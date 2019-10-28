@@ -1,0 +1,136 @@
+ability_check()
+
+eventIDs{KO, to_ultra_space, from_ultra_space, to_pc, from_pc, from_pc_rotation, eliminated, returned, to_bench, from_bench, movement, battle_start, battle_end, plate_used, plate_expired, plate_restored, }
+
+###
+Generic Ability and Attack Effects
+###
+
+# Accounts for all status effects without separate functions
+def apply_status(targets, status_name):
+#status_name not necessary to remove ALL statuses
+def remove_status(targets, *status_name):
+
+# Accounts for all markers and allows new markers without too much adjustment
+def apply_marker(targets, marker_name):
+#marker_name not necessary to remove ALL markers
+def remove_marker(targets, *marker_name):
+
+# Wait effects stack additively
+def apply_wait(targets, duration):
+def remove_wait(targets):
+
+# Accounts for reversion effects, i.e. backtrack (celebi, gross)
+def evolve(targets):
+def devolve(targets):
+def original_state(targets):
+#probably gonna need a separate timer function for Megas/Ultra Necrozma
+def mega_evolve(targets):
+#Accounts for Ultra Necrozma
+def form_change(targets, duration):
+
+# Allows for single- or multi-targeting
+def target_ko(targets):
+def target_remove(targets):
+def targetto_ultra_space(targets):
+def targetToBoard(targets):
+def targetto_bench(targets):
+def targetto_pc(targets):
+def target_to_other_pc(targets):
+def swap_spot(targets):
+
+# OR
+# Summarizes all possible movements into one function with conditionals
+def targetMove(targets, eligibleOrigin, eligibleNewLocation, cause):
+
+# Allows for changing of entire wheel (i.e. targetsegments = color in movelist, targetcolor red for terrakion-like effects) or just one segment (ex. X-Speed)
+def zmove_wheel():
+def change_gold(targets, targetsegments, targetcolor):
+def change_white(targets, targetsegments, targetcolor):
+def change_blue(targets, targetsegments, targetcolor):
+def change_purple(targets, targetsegments, targetcolor):
+
+# haven't decided how to disambiguate between dance effects, fire spins, double chances, etc
+def respin(targets):
+
+# Allows for small number of functions that accomodate effects like Infiltrate, Ghost Sensor, Soar, etc in all different ways
+def bypass_all(exceptions):
+def bypass_none(exceptions):
+
+# most figures will probably have a block_none(enemy) statement, but undecided on how to make bypass override block in the right ways
+def block_all(exceptions):
+def block_none(exceptions):
+
+# Allows checking of immune list in figure objects for things like status, KO, movement, etc
+def immune([KEYWORDS]):
+
+# for "When this is KO'd" effects
+def receiveKO(relevantFunctions()):
+# considers that all KOs allow evolution
+def giveKO(evolve(user), relevantFunctions()):
+# not yet sure how to differentiate between Synthesis-like effects and global auras
+def changeDamage(targets, amount, *targetsegments, *targetcolor)
+def changeStars(targets, amount, *targetsegments)
+def changeMove(targets, amount)
+#For things like Celesteela Flame Gun, could also cover Z-Moves
+def changeAttack(targets, targetsegments, newattack())
+
+###
+Battle Logic
+###
+
+import random.randint
+spin = random.randint(range(1,25))
+coinFlip = random.randint(range(0,2))
+
+
+def battleRoulette(pokemon1, pokemon2):
+    x = spin(range(1,25))
+    for y in range(1,10):
+        if x =< exec(f'pokemon1.attack{y}range'):
+            pokemon1currentAttack = exec(f'pokemon1.attack{y}name')
+            break
+        else:
+            continue
+    for y in range(1,10):
+        if x =< exec(f'pokemon2.attack{y}range'):
+            pokemon2currentAttack = exec(f'pokemon2.attack{y}name')
+            break
+        else:
+            continue
+
+# these functions may need fstrings in the future
+def compare_color(pokemon1_current_attack, pokemon2_current_Attack):
+    if pokemon1[pokemon1_current_attack].color == pokemon2[pokemon1_current_attack].color:
+        if pokemon1[pokemon1_current_attack].color == "white" or "gold" or "purple":
+            compare_power()
+        else:
+            ability_check()
+    elif pokemon1 blah blah blah check for winners and losers too lazy to type it out right now
+
+def comparePower(pokemon1, pokemon2):
+    if pokemon1.attack{X}power > pokemon2.attack{X}power:
+        pokemon1.attack{X}effect()
+        ability_check()
+        pokemon2.attack{Y}effect()
+        ability_check()
+        target_remove(opponentpc, pokemon2)
+    elif pokemon1.attack{X}power < pokemon2.attack{Y}power:
+        pokemon1.attack{X}effect()
+        ability_check()
+        pokemon2.attack{Y}effect()
+        ability_check()
+        target_remove(opponent_pc, pokemon1)
+    else:
+        pokemon1.attack{X}effect()
+        ability_check()
+        pokemon2.attack{Y}effect()
+        ability_check()
+            
+
+###
+Movement
+###
+
+# Catch selected space within function
+move_pokemon(select_pokemon, move, max_distance)

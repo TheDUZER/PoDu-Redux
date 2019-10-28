@@ -1,0 +1,2 @@
+"Charizard", "Charizard, Mega X", "Kyurem", "Kyurem, White", "Kyurem, Black", "Pikachu", "Raichu, Alolan", "Abra", "Kadabra", "Alakazam", "Necrozma", "Necrozma, Dawn", "Necrozma, Ultra", "Lunala"
+"Double Chance", "Double Chance", "DNA Splicers", "Long Throw", "Invisibility Cape"
