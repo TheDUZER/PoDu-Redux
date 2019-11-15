@@ -1,2 +1,0 @@
-"Charizard", "Kyurem", "Pikachu", "Abra", "Necrozma", "Lunala"
-"Double Chance", "Necroizer", "DNA Splicers", "Long Throw", "Invisibility Cape"
