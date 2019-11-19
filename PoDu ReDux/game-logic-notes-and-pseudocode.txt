@@ -32,10 +32,10 @@ def form_change(targets, duration):
 # Allows for single- or multi-targeting
 def target_ko(targets):
 def target_remove(targets):
-def targetto_ultra_space(targets):
-def targetToBoard(targets):
-def targetto_bench(targets):
-def targetto_pc(targets):
+def target_to_ultra_space(targets):
+def target_to_board(targets):
+def target_to_bench(targets):
+def target_to_pc(targets):
 def target_to_other_pc(targets):
 def swap_spot(targets):
 
@@ -74,63 +74,3 @@ def changeStars(targets, amount, *targetsegments)
 def changeMove(targets, amount)
 #For things like Celesteela Flame Gun, could also cover Z-Moves
 def changeAttack(targets, targetsegments, newattack())
-
-###
-Battle Logic
-###
-
-import random.randint
-spin = random.randint(range(1,25))
-coinFlip = random.randint(range(0,2))
-
-
-def battleRoulette(pokemon1, pokemon2):
-    x = spin(range(1,25))
-    for y in range(1,10):
-        if x =< exec(f'pokemon1.attack{y}range'):
-            pokemon1currentAttack = exec(f'pokemon1.attack{y}name')
-            break
-        else:
-            continue
-    for y in range(1,10):
-        if x =< exec(f'pokemon2.attack{y}range'):
-            pokemon2currentAttack = exec(f'pokemon2.attack{y}name')
-            break
-        else:
-            continue
-
-# these functions may need fstrings in the future
-def compare_color(pokemon1_current_attack, pokemon2_current_Attack):
-    if pokemon1[pokemon1_current_attack].color == pokemon2[pokemon1_current_attack].color:
-        if pokemon1[pokemon1_current_attack].color == "white" or "gold" or "purple":
-            compare_power()
-        else:
-            ability_check()
-    elif pokemon1 blah blah blah check for winners and losers too lazy to type it out right now
-
-def comparePower(pokemon1, pokemon2):
-    if pokemon1.attack{X}power > pokemon2.attack{X}power:
-        pokemon1.attack{X}effect()
-        ability_check()
-        pokemon2.attack{Y}effect()
-        ability_check()
-        target_remove(opponentpc, pokemon2)
-    elif pokemon1.attack{X}power < pokemon2.attack{Y}power:
-        pokemon1.attack{X}effect()
-        ability_check()
-        pokemon2.attack{Y}effect()
-        ability_check()
-        target_remove(opponent_pc, pokemon1)
-    else:
-        pokemon1.attack{X}effect()
-        ability_check()
-        pokemon2.attack{Y}effect()
-        ability_check()
-            
-
-###
-Movement
-###
-
-# Catch selected space within function
-move_pokemon(select_pokemon, move, max_distance)
