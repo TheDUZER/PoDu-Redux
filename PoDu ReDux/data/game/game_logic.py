@@ -9,9 +9,7 @@ TO DO:
 -Add function to select and move unit by changing pertinent attributes on unit and board
 -Refine knockback function and checks for straight lines (Mewtwo, Rhyperior, etc)
 """
-
-import json, sys, os, random, boardtest
-
+import json, sys, os, random
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
     def __init__(self, neighbors):
@@ -140,6 +138,11 @@ def path_check(focal_unit):
 
     global path_counter
     global valid_moves
+    global first_loop
+
+    if first_loop == 0:
+        first_loop += 1
+        del valid_moves[:]
     for x in eval(f"board.{focal_unit['location']}.neighbors.keys()"):
         if eval(f"board.{x}.passable") == True:
             valid_moves.append(x)
@@ -194,9 +197,10 @@ def path_check(focal_unit):
                                                                         else:
                                                                             continue
 
-    return set(valid_moves)
-    path_counter = 0
-
+    checked_moves = set(valid_moves)
+    valid_moves.clear()
+    return checked_moves
+    
 class PlayerTeam():
     """Instantiate class that contains player 1 team and base stats."""
     #WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
@@ -411,6 +415,7 @@ board = ClassicBoardGenerator()
 
 path_counter = 0
 valid_moves = []
+first_loop = 0
 
 player_1_team = PlayerTeam(1)
 player_2_team = PlayerTeam(2)
