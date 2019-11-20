@@ -65,43 +65,81 @@ class ClassicBoardGenerator():
         self.E7 = BoardNeighbors({"E6":7, "D6":6, "D7":5})
         self.E7.player_2_entry = True
         self.player_1_bench_1 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_1.occupant = player_1_team.pokemon1
+        self.player_1_bench_1.occupant_team = 1
+        self.player_1_bench_1.occupied = True
         self.player_1_bench_2 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_2.occupant = player_1_team.pokemon2
+        self.player_1_bench_2.occupant_team = 1
+        self.player_1_bench_2.occupied = True
         self.player_1_bench_3 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_3.occupant = player_1_team.pokemon3
+        self.player_1_bench_3.occupant_team = 1
+        self.player_1_bench_3.occupied = True
         self.player_1_bench_4 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_4.occupant = player_1_team.pokemon4
+        self.player_1_bench_4.occupant_team = 1
+        self.player_1_bench_4.occupied = True
         self.player_1_bench_5 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_5.occupant = player_1_team.pokemon5
+        self.player_1_bench_5.occupant_team = 1
+        self.player_1_bench_5.occupied = True
         self.player_1_bench_6 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_6.occupant = player_1_team.pokemon6
+        self.player_1_bench_6.occupant_team = 1
+        self.player_1_bench_6.occupied = True
         self.player_2_bench_1 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_1.occupant = player_1_team.pokemon1
+        self.player_2_bench_1.occupant_team = 2
+        self.player_2_bench_1.occupied = True
         self.player_2_bench_2 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_2.occupant = player_1_team.pokemon2
+        self.player_2_bench_2.occupant_team = 2
+        self.player_2_bench_2.occupied = True
         self.player_2_bench_3 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_3.occupant = player_1_team.pokemon3
+        self.player_2_bench_3.occupant_team = 2
+        self.player_2_bench_3.occupied = True
         self.player_2_bench_4 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_4.occupant = player_1_team.pokemon4
+        self.player_2_bench_4.occupant_team = 2
+        self.player_2_bench_4.occupied = True
         self.player_2_bench_5 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_5.occupant = player_1_team.pokemon5
+        self.player_2_bench_5.occupant_team = 2
+        self.player_2_bench_5.occupied = True
         self.player_2_bench_6 = BoardNeighbors({'E1':None, 'E7':None})
-            
-##        #Populate list of Ultra Space spaces for each player
-##        self.player_1_ultra_space = []
-##        for x in range(6):
-##            self.player_1_ultra_space.append(SpecialSpaces("ultra space"))
-##        self.player_2_ultra_space = []
-##        for x in range(6):
-##            self.player_2_ultra_space.append(SpecialSpaces("ultra space"))
-##            
-##        #Populate list of Eliminated spaces for each player
-##        self.player_1_eliminated = []
-##        for x in range(6):
-##            self.player_1_eliminated.append(SpecialSpaces("eliminated"))
-##        self.player_2_eliminated = []
-##        for x in range(6):
-##            self.player_2_eliminated.append(SpecialSpaces("eliminated"))
-##
-##        #Populate list of PC spaces for each player
-##        self.player_1_PC = []
-##        for x in range(2):
-##            self.player_1_PC.append(SpecialSpaces("PC"))
-##            self.neighbors = None
-##        self.player_2_PC = []
-##        for x in range(2):
-##            self.player_2_PC.append(SpecialSpaces("PC"))
-##            self.neighbors = None
+        self.player_2_bench_6.occupant = player_1_team.pokemon6
+        self.player_2_bench_6.occupant_team = 2
+        self.player_2_bench_6.occupied = True
+        self.player_1_ultra_space_1 = BoardNeighbors({})
+        self.player_1_ultra_space_2 = BoardNeighbors({})
+        self.player_1_ultra_space_3 = BoardNeighbors({})
+        self.player_1_ultra_space_4 = BoardNeighbors({})
+        self.player_1_ultra_space_5 = BoardNeighbors({})
+        self.player_1_ultra_space_6 = BoardNeighbors({})
+        self.player_2_ultra_space_1 = BoardNeighbors({})
+        self.player_2_ultra_space_2 = BoardNeighbors({})
+        self.player_2_ultra_space_3 = BoardNeighbors({})
+        self.player_2_ultra_space_4 = BoardNeighbors({})
+        self.player_2_ultra_space_5 = BoardNeighbors({})
+        self.player_2_ultra_space_6 = BoardNeighbors({})
+        self.player_1_eliminated_1 = BoardNeighbors({})
+        self.player_1_eliminated_2 = BoardNeighbors({})
+        self.player_1_eliminated_3 = BoardNeighbors({})
+        self.player_1_eliminated_4 = BoardNeighbors({})
+        self.player_1_eliminated_5 = BoardNeighbors({})
+        self.player_1_eliminated_6 = BoardNeighbors({})
+        self.player_2_eliminated_1 = BoardNeighbors({})
+        self.player_2_eliminated_2 = BoardNeighbors({})
+        self.player_2_eliminated_3 = BoardNeighbors({})
+        self.player_2_eliminated_4 = BoardNeighbors({})
+        self.player_2_eliminated_5 = BoardNeighbors({})
+        self.player_2_eliminated_6 = BoardNeighbors({})
+        self.player_1_PC_1 = BoardNeighbors({})
+        self.player_1_PC_2 = BoardNeighbors({})
+        self.player_2_PC_1 = BoardNeighbors({})
+        self.player_2_PC_2 = BoardNeighbors({})
         
 def knockback_pathing():
     """Check pathing for directional knockback effects"""
@@ -119,13 +157,12 @@ def knockback_pathing():
 
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
-    #Needs differentiation between friendly and enemy players
-    surround_counter = 0
+    surround_counter = len(eval(f"board.{focal_unit['location']}.neighbors.keys()"))
     for x in eval(f"board.{focal_unit['location']}.neighbors.keys()"):
-        if eval(f"board.{x}.occupied") == True:
-            continue
+        if eval(f"board.{x}.occupied") == True and eval(f"board.{focal_unit['location']}.controlling_player") != eval(f"board.{x}.controlling_player"):
+            surround_counter -= 1
         else:
-            surround_counter += 1
+            continue
     if surround_counter == 0:
         return True
     else:
@@ -133,7 +170,6 @@ def surround_check(focal_unit):
 
 def path_check(focal_unit):
     """Check all possible paths for various purposes, including movement and teleports"""
-    #need to add limitations for obstructed paths
     #need to boil for loops down to a recursive function
 
     global path_counter
@@ -198,6 +234,11 @@ def path_check(focal_unit):
                                                                             continue
 
     checked_moves = set(valid_moves)
+    for possible_moves in checked_moves:
+        if eval(f"board.{possible_moves}.occupied") == True:
+            checked_moves.pop(possible_moves)
+        else:
+            continue
     valid_moves.clear()
     return checked_moves
     
@@ -411,8 +452,6 @@ stats_path = os.path.join(sys.path[0], "pokemon-stats.json")
 #Loads unit data imported above
 pokemon_stats = json.load(open(stats_path, "r"))
 
-board = ClassicBoardGenerator()
-
 path_counter = 0
 valid_moves = []
 first_loop = 0
@@ -421,4 +460,6 @@ player_1_team = PlayerTeam(1)
 player_2_team = PlayerTeam(2)
 
 player_1_team.TeamUpdate(1, "myteam")
-player_2_team.TeamUpdate(2, "myteam")
+player_2_team.TeamUpdate(2, "anotherteam")
+
+board = ClassicBoardGenerator()

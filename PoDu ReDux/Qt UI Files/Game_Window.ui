@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PoDuRedux</class>
+ <widget class="QMainWindow" name="PoDuRedux">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>1024</height>
+   </rect>
+  </property>
+  <property name="mouseTracking">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>PoDu Redux v0.0.0</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget{background-image: url('/images/Lapis.png')}</string>
+   </property>
+   <widget class="QComboBox" name="Player1Team">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>500</y>
+      <width>211</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Blue Team Select...</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="Player2Team">
+    <property name="geometry">
+     <rect>
+      <x>790</x>
+      <y>500</y>
+      <width>221</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Red Team Select...</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="Player2Ability">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>790</x>
+      <y>580</y>
+      <width>61</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Ability</string>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="Player1ZGauge">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>540</y>
+      <width>211</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="maximum">
+     <number>36</number>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="textVisible">
+     <bool>true</bool>
+    </property>
+    <property name="textDirection">
+     <enum>QProgressBar::TopToBottom</enum>
+    </property>
+    <property name="format">
+     <string>Z-Move %v/36</string>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="Player2ZGauge">
+    <property name="geometry">
+     <rect>
+      <x>790</x>
+      <y>540</y>
+      <width>221</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="maximum">
+     <number>36</number>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignHCenter|Qt::AlignTop</set>
+    </property>
+    <property name="textVisible">
+     <bool>true</bool>
+    </property>
+    <property name="invertedAppearance">
+     <bool>true</bool>
+    </property>
+    <property name="format">
+     <string>Z-Move: %v/36</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Player1Ability">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>580</y>
+      <width>61</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Ability</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Player1End">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>172</x>
+      <y>580</y>
+      <width>61</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>End Turn</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Player2End">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>942</x>
+      <y>580</y>
+      <width>71</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>End Turn</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Player1ZMove">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>580</y>
+      <width>71</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Z-Move</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Player2ZMove">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>860</x>
+      <y>580</y>
+      <width>71</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Z-Move</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="board_overlay3v3">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1031</width>
+      <height>1011</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/board/dueloverlay3v3.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="board_overlay">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1031</width>
+      <height>1011</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>false</bool>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/board/dueloverlay.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="background">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1326</width>
+      <height>1056</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/board/Lapis.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BlueForfeitButton">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>960</y>
+      <width>93</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Blue Forfeit</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="RedForfeitButton">
+    <property name="geometry">
+     <rect>
+      <x>770</x>
+      <y>960</y>
+      <width>93</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Red Forfeit</string>
+    </property>
+   </widget>
+   <zorder>background</zorder>
+   <zorder>board_overlay</zorder>
+   <zorder>board_overlay3v3</zorder>
+   <zorder>Player2Ability</zorder>
+   <zorder>Player2End</zorder>
+   <zorder>Player1ZGauge</zorder>
+   <zorder>Player1ZMove</zorder>
+   <zorder>Player1Team</zorder>
+   <zorder>Player2Team</zorder>
+   <zorder>Player2ZGauge</zorder>
+   <zorder>Player1End</zorder>
+   <zorder>Player1Ability</zorder>
+   <zorder>Player2ZMove</zorder>
+   <zorder>BlueForfeitButton</zorder>
+   <zorder>RedForfeitButton</zorder>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuPoDu_Redux">
+    <property name="title">
+     <string>Main Menu</string>
+    </property>
+    <addaction name="actionLibraries"/>
+    <addaction name="actionChat"/>
+    <addaction name="actionConnect"/>
+    <addaction name="actionChange_Background"/>
+   </widget>
+   <widget class="QMenu" name="menuControls">
+    <property name="title">
+     <string>Controls</string>
+    </property>
+    <addaction name="actionPlay"/>
+    <addaction name="actionRestart"/>
+    <addaction name="actionSave_Game_Log"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionClassic_Mode"/>
+    <addaction name="action3v3_Mode"/>
+    <addaction name="actionRule_Settings_2"/>
+   </widget>
+   <addaction name="menuPoDu_Redux"/>
+   <addaction name="menuControls"/>
+   <addaction name="menuOptions"/>
+  </widget>
+  <action name="actionPokemon_Library">
+   <property name="text">
+    <string>Pokemon Library</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionPlate_Library">
+   <property name="text">
+    <string>Plate Library</string>
+   </property>
+  </action>
+  <action name="actionZ_Move_Reference">
+   <property name="text">
+    <string>Z-Move Reference</string>
+   </property>
+  </action>
+  <action name="actionTeam_Builder">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Team Builder</string>
+   </property>
+  </action>
+  <action name="actionSave_Game_Log">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save Log</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionPlay">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionRestart">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Restart</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionChange_Background">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Change Background</string>
+   </property>
+  </action>
+  <action name="actionRule_Settings">
+   <property name="text">
+    <string>Rule Settings</string>
+   </property>
+  </action>
+  <action name="actionClassicMode">
+   <property name="text">
+    <string>Classic Mode</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionRule_Settings_2">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Rule Settings</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect...</string>
+   </property>
+  </action>
+  <action name="action3v3_Mode">
+   <property name="text">
+    <string>3v3 Mode</string>
+   </property>
+  </action>
+  <action name="actionPokemon_Library_3">
+   <property name="text">
+    <string>Pokemon Library</string>
+   </property>
+  </action>
+  <action name="actionClassic_Mode">
+   <property name="text">
+    <string>Classic Mode</string>
+   </property>
+  </action>
+  <action name="actionChat">
+   <property name="text">
+    <string>Chat</string>
+   </property>
+  </action>
+  <action name="actionLibraries">
+   <property name="text">
+    <string>Libraries</string>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>Player1Team</tabstop>
+  <tabstop>Player1Ability</tabstop>
+  <tabstop>Player1ZMove</tabstop>
+  <tabstop>Player1End</tabstop>
+  <tabstop>Player2Team</tabstop>
+  <tabstop>Player2Ability</tabstop>
+  <tabstop>Player2ZMove</tabstop>
+  <tabstop>Player2End</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>actionClassicMode</sender>
+   <signal>triggered()</signal>
+   <receiver>board_overlay3v3</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>515</x>
+     <y>531</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>PoDuRedux</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>514</x>
+     <y>527</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action3v3_Mode</sender>
+   <signal>triggered()</signal>
+   <receiver>board_overlay</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>515</x>
+     <y>531</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action3v3_Mode</sender>
+   <signal>triggered()</signal>
+   <receiver>board_overlay3v3</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>515</x>
+     <y>531</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionClassicMode</sender>
+   <signal>triggered()</signal>
+   <receiver>board_overlay</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>515</x>
+     <y>531</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
