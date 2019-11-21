@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+##  -*- coding: utf-8 -*-
 
 """
 TO DO:
@@ -9,7 +9,9 @@ TO DO:
 -Add function to select and move unit by changing pertinent attributes on unit and board
 -Refine knockback function and checks for straight lines (Mewtwo, Rhyperior, etc)
 """
+
 import json, sys, os, random
+
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
     def __init__(self, neighbors):
@@ -25,11 +27,11 @@ class BoardNeighbors():
         self.player_1_goal = False
         self.player_2_entry = False
         self.player_2_goal = False
-
+        
 class ClassicBoardGenerator():
     """Create board object with space labels and adjusted bools for special spaces"""
     def __init__(self):
-        #Populate neutral spaces of board
+        ## Populate neutral spaces of board
         self.A1 = BoardNeighbors({"B1":1, "B2":2, "A2":3})
         self.A1.player_1_entry = True
         self.A2 = BoardNeighbors({"A1":7, "A3":3})
@@ -143,7 +145,7 @@ class ClassicBoardGenerator():
         
 def knockback_pathing():
     """Check pathing for directional knockback effects"""
-    #PENDING IMPLEMENTATION, NEEDS WORK
+    ## PENDING IMPLEMENTATION, NEEDS WORK
     direction = board.B2.neighbors["C2"]
     valid_moves = []
 
@@ -152,8 +154,9 @@ def knockback_pathing():
             valid_moves.append(x)
         else:
             continue
+    return valid_moves
                     
-    #output -> ['D2']
+    ## output -> ['D2']
 
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
@@ -170,7 +173,7 @@ def surround_check(focal_unit):
 
 def path_check(focal_unit):
     """Check all possible paths for various purposes, including movement and teleports"""
-    #need to boil for loops down to a recursive function
+    ## need to boil for loops down to a recursive function
 
     global path_counter
     global valid_moves
@@ -244,7 +247,7 @@ def path_check(focal_unit):
     
 class PlayerTeam():
     """Instantiate class that contains player 1 team and base stats."""
-    #WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
+    ## WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
     def __init__(self, controlling_player):
         self.pokemon1 = {}
         self.pokemon2 = {}
@@ -320,11 +323,11 @@ class PlayerTeam():
         self.pokemon6['control'] = controlling_player
 
     def TeamUpdate(self, controlling_player, team_file):
-        #Imports custom unit loadout from custom file
+        ## Imports custom unit loadout from custom file
         selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\{team_file}.txt")
         
-        #Iterates over lines in custom unit loadout file, compares them to
-        #pokemon_stats loaded above, and writes the correct stats to a created playerTeam() object
+        ## Iterates over lines in custom unit loadout file, compares them to
+        ## pokemon_stats loaded above, and writes the correct stats to a created playerTeam() object
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
@@ -335,24 +338,45 @@ class PlayerTeam():
 def spin(combatant):
     """Perform SPIN action for selected unit. Can be applied to effects and battles."""
 
-    #Perform number randomization for spin
+    ## Perform number randomization for spin
     combatant_spin = random.randint(1,24)
 
-    #Iterate over wheel for maximum number of possible wheel segments for any unit (9)
+    ## Iterate over wheel for maximum number of possible wheel segments for any unit (9)
     for wheel_numbers in range(1,10):
-        #Check if wheel segment is valid
+        ## Check if wheel segment is valid
         if eval(f"combatant['attack{wheel_numbers}range']") != "null":
-            #Pull wheel information from unit data and find segment
-            #ranges to check against combatant_spin
+            ## Pull wheel information from unit data and find segment
+            ## ranges to check against combatant_spin
             if combatant_spin <= eval(f"combatant['attack{wheel_numbers}range']"):
                 combatant_attack = wheel_numbers
-                #Returns segment number of SPIN result (wheel_numbers at correct iteration)
+                ## Returns segment number of SPIN result (wheel_numbers at correct iteration)
                 return combatant_attack
                 break
             else:
                 continue
         else:
             break
+
+def target_finder(combatant, attack_distance = 1):
+    """Checks adjacent spaces for valid attack targets"""
+    ##  TO ADD:
+    ##  attack_distance variable accounts for extended
+    ##  range attackers like Kartana or Aegislash
+    ##  Need to rework function to be recursive for attack distance
+    target_list = []
+    for x in eval(f"board.{combatant['location']}.neighbors.keys()"):
+        if len(combatant['location']) == 2:
+            if eval(f"board.{x}.occupied") == True:
+                if eval(f"board.{x}.controlling_player") != eval(f"board.{combatant['location']}.controlling_player") or 0:
+                    target_list.append(x)
+                else:
+                    continue
+            else:
+                continue
+        else:
+            continue
+
+    return target_list
 
 def battle_spin_compare(combatant_1, combatant_2):
     """
@@ -372,11 +396,21 @@ def battle_spin_compare(combatant_1, combatant_2):
     combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
     if not combatant_1_color == "Red" or combatant_1_color == "Blue":
         combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
+        if combatant_1_color != "Purple":
+            if combatant_1['status'] == "poison" or combatant_1['status'] == "burn":
+                combatant_1_power -= 20
+            elif combatant_1['status'] == "noxious":
+                combatant_1_power -= 40
     else:
         pass
     combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
     if not combatant_2_color == "Red" or combatant_2_color == "Blue":
         combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
+        if combatant_2_color != "Purple":
+            if combatant_2['status'] == "poison" or combatant_2['status'] == "burn":
+                combatant_2_power -= 20
+            elif combatant_2['status'] == "noxious":
+                combatant_2_power -= 40
     else:
         pass
     if combatant_1_color == "White" and combatant_2_color == "White":
@@ -446,10 +480,10 @@ def battle_spin_compare(combatant_1, combatant_2):
         pass
 
 
-#Imports unit data from file location
+## Imports unit data from file location
 stats_path = os.path.join(sys.path[0], "pokemon-stats.json")
 
-#Loads unit data imported above
+## Loads unit data imported above
 pokemon_stats = json.load(open(stats_path, "r"))
 
 path_counter = 0
@@ -462,4 +496,6 @@ player_2_team = PlayerTeam(2)
 player_1_team.TeamUpdate(1, "myteam")
 player_2_team.TeamUpdate(2, "anotherteam")
 
+## Must be instantiated after teams due to variable dependency / inheritance
+## /whatever the technical term is. These will likely be moved to a game_start() function
 board = ClassicBoardGenerator()
