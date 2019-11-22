@@ -495,6 +495,8 @@ player_2_team = PlayerTeam(2)
 
 player_1_team.TeamUpdate(1, "myteam")
 player_2_team.TeamUpdate(2, "anotherteam")
+player_1_team.pokemon1['spritefile'] = "006MS.png"
+player_2_team.pokemon1['spritefile'] = "003MMS.png"
 
 ## Must be instantiated after teams due to variable dependency / inheritance
 ## /whatever the technical term is. These will likely be moved to a game_start() function

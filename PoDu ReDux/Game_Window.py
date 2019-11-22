@@ -11,6 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from Library_Window import Ui_Figure_Library
 from LogChat_Window import Ui_Chat
 from Rule_Window import Ui_Rule
+import game_logic
 
 class Ui_PoDuRedux(object):
     def openLibrary(self):
@@ -176,6 +177,7 @@ class Ui_PoDuRedux(object):
         self.player1Bench1.setGeometry(QtCore.QRect(277, 801, 70, 70))
         self.player1Bench1.setStyleSheet("QPushButton{\n"
 "    border-style: hidden;\n"
+f"    background-image: url(/images/sprites/{player_1_team.pokemon1['spritefile']})"
 "}")
         self.player1Bench1.setText("")
         self.player1Bench1.setObjectName("player1Bench1")
