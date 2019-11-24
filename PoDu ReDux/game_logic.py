@@ -16,6 +16,7 @@ class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
     def __init__(self, neighbors):
         self.neighbors = neighbors
+        self.coords = {}
         self.force_stop = False
         self.force_attack = False
         self.occupied = False
@@ -142,6 +143,9 @@ class ClassicBoardGenerator():
         self.player_1_PC_2 = BoardNeighbors({})
         self.player_2_PC_1 = BoardNeighbors({})
         self.player_2_PC_2 = BoardNeighbors({})
+
+        #board coordinates for each space
+
         
 def knockback_pathing():
     """Check pathing for directional knockback effects"""
