@@ -6,8 +6,9 @@ TO DO:
 -Implement team file selection for GUI; limit iteration over team files to first 6 lines
 -Set up team selection for two separate teams
 -MAKE PATH BUILDER RECURSIVE
--Add function to select and move unit by changing pertinent attributes on unit and board
 -Refine knockback function and checks for straight lines (Mewtwo, Rhyperior, etc)
+-Add attribute to player team objects for tracking evolution stages and previous evolutions
+for reversion and evolution modifier effects
 """
 
 import json, sys, os, random
@@ -326,12 +327,20 @@ class PlayerTeam():
         self.pokemon6['markers'] = 'clear'
         self.pokemon6['control'] = controlling_player
 
-    def TeamUpdate(self, controlling_player, team_file):
+    def TeamUpdate(self, controlling_player):
         ## Imports custom unit loadout from custom file
-        selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\{team_file}.txt")
         
         ## Iterates over lines in custom unit loadout file, compares them to
         ## pokemon_stats loaded above, and writes the correct stats to a created playerTeam() object
+        print("_-^-"*8, "\nAvailable Teams:\n")
+        try:
+            for teams in os.listdir(os.path.join(sys.path[0] + "\\saves\\teams\\")):
+                print(teams[len(sys.path[0] + "\\save\\teams\\")*(-1):-4])
+        except:
+            pass
+        print("_-^-"*8)
+        team_file = input(f"Select player {controlling_player} team.\n--->")
+        selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\{team_file}.txt")
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
@@ -371,7 +380,8 @@ def target_finder(combatant, attack_distance = 1):
     for x in eval(f"board.{combatant['location']}.neighbors.keys()"):
         if len(combatant['location']) == 2:
             if eval(f"board.{x}.occupied") == True:
-                if eval(f"board.{x}.controlling_player") != eval(f"board.{combatant['location']}.controlling_player") or 0:
+                if eval(f"board.{x}.controlling_player") != eval(
+                    f"board.{combatant['location']}.controlling_player") or 0:
                     target_list.append(x)
                 else:
                     continue
@@ -497,10 +507,8 @@ first_loop = 0
 player_1_team = PlayerTeam(1)
 player_2_team = PlayerTeam(2)
 
-player_1_team.TeamUpdate(1, "myteam")
-player_2_team.TeamUpdate(2, "anotherteam")
-player_1_team.pokemon1['spritefile'] = "006MS.png"
-player_2_team.pokemon1['spritefile'] = "003MMS.png"
+player_1_team.TeamUpdate(1)
+player_2_team.TeamUpdate(2)
 
 ## Must be instantiated after teams due to variable dependency / inheritance
 ## /whatever the technical term is. These will likely be moved to a game_start() function
