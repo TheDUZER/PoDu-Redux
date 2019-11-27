@@ -15,7 +15,11 @@ SCREEN_TITLE = "PoDu ReDux v0.0.5"
 
 checked_moves = []
 click_counter = 0
-in_transit = ""
+in_transit = ''
+in_transit_location = ''
+potential_targets = []
+move_click = False
+attack_click = False
 
 class MyGame(arcade.Window):
 
@@ -229,8 +233,8 @@ class MyGame(arcade.Window):
         except:
             pass
         print("_-^-"*8)
-        background_select = input("Select background image.\n--->")
-        self.background = arcade.load_texture(f"images/board/backgrounds/{background_select}.png")
+        #background_select = input("Select background image.\n--->")
+        self.background = arcade.load_texture(f"images/board/backgrounds/lapis.png")
         self.ClassicBoard = arcade.load_texture("images/board/overlays/dueloverlay.png")
 
     def on_draw(self):
@@ -360,11 +364,15 @@ class MyGame(arcade.Window):
         """
         Called when the user presses a mouse button.
         """
-        global click_counter
+        global move_click
+        global attack_click
         global in_transit
+        global in_transit_location
+        global in_transit_combatant
         global checked_moves
+        global potential_targets
 
-        if click_counter == 0:
+        if not move_click and not attack_click:
             for units in dir(game_logic.player_1_team):
                 if units.startswith("pokemon"):
                     if x in range(eval(f"self.coords[game_logic.player_1_team.{units}['location']]['x']") - 30,
@@ -372,9 +380,11 @@ class MyGame(arcade.Window):
                                   ) and y in range(
                                       eval(f"self.coords[game_logic.player_1_team.{units}['location']]['y']") - 30,
                                       eval(f"self.coords[game_logic.player_1_team.{units}['location']]['y']") + 30):
+                        move_click = True
                         in_transit = f"game_logic.player_1_team.{units}"
+                        in_transit_combatant = f'{in_transit[11:]}'
+                        in_transit_location = eval(f"{in_transit}['location']")
                         checked_moves = game_logic.path_check(eval(f"game_logic.player_1_team.{units}"))
-                        click_counter += 1
                         break
             for units in dir(game_logic.player_2_team):
                 if units.startswith("pokemon"):
@@ -383,20 +393,61 @@ class MyGame(arcade.Window):
                                   ) and y in range(
                                       eval(f"self.coords[game_logic.player_2_team.{units}['location']]['y']") - 30,
                                       eval(f"self.coords[game_logic.player_2_team.{units}['location']]['y']") + 30):
+                        move_click = True
                         in_transit = f"game_logic.player_2_team.{units}"
+                        in_transit_location = eval(f"{in_transit}['location']")
                         checked_moves = game_logic.path_check(eval(f"game_logic.player_2_team.{units}"))
-                        click_counter += 1
                         break
                     
-        elif click_counter == 1:
+        elif move_click:
+            #Need to draw path previews to board
             for moves in checked_moves:
+                #Make parts of this into its own function to clear spaces as you leave them?
                 if x in range(self.coords[moves]['x'] - 30, self.coords[moves]['x'] + 30) and y in range(
-                                    self.coords[moves]['y'] - 30, self.coords[moves]['y'] + 30):
+                                    self.coords[moves]['y'] - 30, self.coords[moves]['y'] + 30) and eval(
+                                    f"game_logic.board.{moves}.occupied") == False:
+                    exec(f"game_logic.board.{in_transit_location}.occupied = False")
+                    exec(f"game_logic.board.{in_transit_location}.occupant = ''")
+                    exec(f"game_logic.board.{in_transit_location}.occupant_team = 0")
+                    exec(f"game_logic.board.{in_transit_location}.controlling_player = 0")
+                    exec(f"game_logic.board.{in_transit_location}.passable = True")
+                    exec(f"game_logic.board.{moves}.occupied = True")
+                    exec(f"game_logic.board.{moves}.occupant = '{in_transit}'[11:]")
+                    exec(f"game_logic.board.{moves}.occupant_team = {in_transit}['control']")
+                    exec(f"game_logic.board.{moves}.controlling_player = {in_transit}['control']")
+                    exec(f"game_logic.board.{moves}.passable = False")
                     exec(f"{in_transit}['location'] = '{moves}'")
-                    self.pokemon_list.update()
-            click_counter = 0
-            in_transit = ""
+                    break
+            potential_targets = game_logic.target_finder(f'{in_transit[11:]}')
+            if len(potential_targets) > 0:
+                move_click = False
+                attack_click = True
+            else:
+                in_transit = ''
+                in_transit_location = ''
+            move_click = False
             checked_moves = []
+            self.pokemon_list.update()
+
+        elif attack_click:
+            #Need to add logic that manipulates board occuppancy and location properties like move logic above 
+            for targets in potential_targets:
+                if x in range(self.coords[targets]['x'] - 30, self.coords[targets]['x'] + 30) and y in range(
+                                    self.coords[targets]['y'] - 30, self.coords[targets]['y'] + 30):
+                    winner_check = game_logic.battle_spin_compare(f'{in_transit_combatant}', eval(f'game_logic.board.{targets}.occupant'))
+                    if winner_check == 1:
+                        temp1 = eval(f"{in_transit}['control']")
+                        exec(f"{in_transit}['location'] = 'player_{temp1}_PC_1'")
+                    elif winner_check == 2:
+                        temp2 = eval(f"game_logic.board.{targets}.occupant")
+                        temp3 = eval(f"game_logic.{temp2}['control']")
+                        exec(f"game_logic.{temp2}['location'] = 'player_{temp3}_PC_1'")
+                    else:
+                        pass
+            attack_click = False
+            in_transit = ''
+            in_transit_location = ''
+            self.pokemon_list.update()
 
 def main():
     """ Main method """

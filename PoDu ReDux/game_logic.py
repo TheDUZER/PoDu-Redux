@@ -242,11 +242,14 @@ def path_check(focal_unit):
                                                                             continue
 
     checked_moves = set(valid_moves)
+    to_remove = []
     for possible_moves in checked_moves:
         if eval(f"board.{possible_moves}.occupied") == True:
-            checked_moves.pop(possible_moves)
+            to_remove.append(possible_moves)
         else:
             continue
+    for invalid_move in to_remove:
+        checked_moves.remove(invalid_move)
     valid_moves.clear()
     return checked_moves
     
@@ -339,8 +342,8 @@ class PlayerTeam():
         except:
             pass
         print("_-^-"*8)
-        team_file = input(f"Select player {controlling_player} team.\n--->")
-        selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\{team_file}.txt")
+        #team_file = input(f"Select player {controlling_player} team.\n--->")
+        selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\TestCaseTeam.txt")
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
@@ -353,14 +356,14 @@ def spin(combatant):
 
     ## Perform number randomization for spin
     combatant_spin = random.randint(1,24)
-
+    
     ## Iterate over wheel for maximum number of possible wheel segments for any unit (9)
     for wheel_numbers in range(1,10):
         ## Check if wheel segment is valid
-        if eval(f"combatant['attack{wheel_numbers}range']") != "null":
+        if eval(f"{combatant}['attack{wheel_numbers}range']") != "null":
             ## Pull wheel information from unit data and find segment
             ## ranges to check against combatant_spin
-            if combatant_spin <= eval(f"combatant['attack{wheel_numbers}range']"):
+            if combatant_spin <= combatant[f'attack{wheel_numbers}range']:
                 combatant_attack = wheel_numbers
                 ## Returns segment number of SPIN result (wheel_numbers at correct iteration)
                 return combatant_attack
@@ -377,6 +380,7 @@ def target_finder(combatant, attack_distance = 1):
     ##  range attackers like Kartana or Aegislash
     ##  Need to rework function to be recursive for attack distance
     target_list = []
+    combatant = eval(combatant)
     for x in eval(f"board.{combatant['location']}.neighbors.keys()"):
         if len(combatant['location']) == 2:
             if eval(f"board.{x}.occupied") == True:
@@ -389,7 +393,6 @@ def target_finder(combatant, attack_distance = 1):
                 continue
         else:
             continue
-
     return target_list
 
 def battle_spin_compare(combatant_1, combatant_2):
@@ -404,6 +407,8 @@ def battle_spin_compare(combatant_1, combatant_2):
         Attacker Win: 1
         Defender Win: 2
     """
+    combatant_1 = eval(combatant_1)
+    combatant_2 = eval(combatant_2)
 
     combatant_1_attack = spin(combatant_1)
     combatant_2_attack = spin(combatant_2)
