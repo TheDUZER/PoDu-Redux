@@ -1,8 +1,9 @@
-"""
-TO DO:
+##  -*- coding: utf-8 -*-
 
--Implement battling and effects that move units to specific parts of the board
--Add more statements that update game_logic objects (location, knockout pending, space occupied/passable, etc)
+"""
+CURRENT TO DO:
+
+-Stitch surround logic to GUI
 
 """
 import arcade, sys, os, game_logic
@@ -233,8 +234,8 @@ class MyGame(arcade.Window):
         except:
             pass
         print("_-^-"*8)
-        #background_select = input("Select background image.\n--->")
-        self.background = arcade.load_texture(f"images/board/backgrounds/lapis.png")
+        background_select = input("Select background image.\n--->")
+        self.background = arcade.load_texture(f"images/board/backgrounds/{background_select}.png")
         self.ClassicBoard = arcade.load_texture("images/board/overlays/dueloverlay.png")
 
     def on_draw(self):
@@ -395,6 +396,7 @@ class MyGame(arcade.Window):
                                       eval(f"self.coords[game_logic.player_2_team.{units}['location']]['y']") + 30):
                         move_click = True
                         in_transit = f"game_logic.player_2_team.{units}"
+                        in_transit_combatant = f'{in_transit[11:]}'
                         in_transit_location = eval(f"{in_transit}['location']")
                         checked_moves = game_logic.path_check(eval(f"game_logic.player_2_team.{units}"))
                         break
@@ -417,6 +419,7 @@ class MyGame(arcade.Window):
                     exec(f"game_logic.board.{moves}.controlling_player = {in_transit}['control']")
                     exec(f"game_logic.board.{moves}.passable = False")
                     exec(f"{in_transit}['location'] = '{moves}'")
+                    in_transit_location = eval(f"{in_transit}['location']")
                     break
             potential_targets = game_logic.target_finder(f'{in_transit[11:]}')
             if len(potential_targets) > 0:
@@ -436,12 +439,24 @@ class MyGame(arcade.Window):
                                     self.coords[targets]['y'] - 30, self.coords[targets]['y'] + 30):
                     winner_check = game_logic.battle_spin_compare(f'{in_transit_combatant}', eval(f'game_logic.board.{targets}.occupant'))
                     if winner_check == 1:
-                        temp1 = eval(f"{in_transit}['control']")
-                        exec(f"{in_transit}['location'] = 'player_{temp1}_PC_1'")
-                    elif winner_check == 2:
                         temp2 = eval(f"game_logic.board.{targets}.occupant")
                         temp3 = eval(f"game_logic.{temp2}['control']")
+                        exec(f"game_logic.board.{targets}.occupied = False")
+                        exec(f"game_logic.board.{targets}.occupant = ''")
+                        exec(f"game_logic.board.{targets}.occupant_team = 0")
+                        exec(f"game_logic.board.{targets}.controlling_player = 0")
+                        exec(f"game_logic.board.{targets}.passable = True")
                         exec(f"game_logic.{temp2}['location'] = 'player_{temp3}_PC_1'")
+                    elif winner_check == 2:
+                        temp1 = eval(f"{in_transit}['control']")
+                        exec(f"game_logic.board.{in_transit_location}.occupied = False")
+                        exec(f"game_logic.board.{in_transit_location}.occupant = ''")
+                        exec(f"game_logic.board.{in_transit_location}.occupant_team = 0")
+                        exec(f"game_logic.board.{in_transit_location}.controlling_player = 0")
+                        exec(f"game_logic.board.{in_transit_location}.passable = True")
+                        exec(f"{in_transit}['location'] = 'player_{temp1}_PC_1'")
+                    elif winner_check == 3:
+                        pass
                     else:
                         pass
             attack_click = False

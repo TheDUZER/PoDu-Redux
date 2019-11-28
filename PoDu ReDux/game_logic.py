@@ -9,6 +9,7 @@ TO DO:
 -Refine knockback function and checks for straight lines (Mewtwo, Rhyperior, etc)
 -Add attribute to player team objects for tracking evolution stages and previous evolutions
 for reversion and evolution modifier effects
+
 """
 
 import json, sys, os, random
@@ -411,8 +412,14 @@ def battle_spin_compare(combatant_1, combatant_2):
     combatant_2 = eval(combatant_2)
 
     combatant_1_attack = spin(combatant_1)
+    print(f"{combatant_1['name']} spun {combatant_1[f'attack{combatant_1_attack}name']}")
     combatant_2_attack = spin(combatant_2)
-    combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
+    print(f"{combatant_2['name']} spun {combatant_2[f'attack{combatant_2_attack}name']}")
+
+    if combatant_1['status'] != 'frozen':
+        combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
+    else:
+        combatant_1_color = 'Red'
     if not combatant_1_color == "Red" or combatant_1_color == "Blue":
         combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
         if combatant_1_color != "Purple":
@@ -422,7 +429,10 @@ def battle_spin_compare(combatant_1, combatant_2):
                 combatant_1_power -= 40
     else:
         pass
-    combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
+    if combatant_2['status'] != 'frozen':
+        combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
+    else:
+        combatant_2_color = 'Red'
     if not combatant_2_color == "Red" or combatant_2_color == "Blue":
         combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
         if combatant_2_color != "Purple":
@@ -432,10 +442,13 @@ def battle_spin_compare(combatant_1, combatant_2):
                 combatant_2_power -= 40
     else:
         pass
+    
     if combatant_1_color == "White" and combatant_2_color == "White":
         if combatant_1_power > combatant_2_power:
+            print(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_1_power < combatant_2_power:
+            print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
             return 0
@@ -443,8 +456,10 @@ def battle_spin_compare(combatant_1, combatant_2):
             pass
     elif combatant_1_color == "White" and combatant_2_color == "Gold":
         if combatant_1_power > combatant_2_power:
+            print(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_1_power < combatant_2_power:
+            print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
             return 0
@@ -452,8 +467,10 @@ def battle_spin_compare(combatant_1, combatant_2):
             pass
     elif combatant_1_color == "Gold" and combatant_2_color == "White":
         if combatant_1_power > combatant_2_power:
+            print(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_1_power < combatant_2_power:
+            print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
             return 0
@@ -461,35 +478,49 @@ def battle_spin_compare(combatant_1, combatant_2):
             pass
     elif combatant_1_color == "Gold" and combatant_2_color == "Gold":
         if combatant_1_power > combatant_2_power:
+            print(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_1_power < combatant_2_power:
+            print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
             return 0
         else:
             pass
     elif combatant_1_color == "Gold" and combatant_2_color == "Purple":
+        print(f"{combatant_1['name']} wins!")
         return 1
     elif combatant_1_color == "Purple" and combatant_2_color == "Gold":
+        print(f"{combatant_2['name']} wins!")
         return 2
     elif combatant_1_color == "Red" and combatant_2_color == "Red":
         return 0
     elif combatant_1_color == "Red" and combatant_2_color != "Red":
+        print(f"{combatant_2['name']} wins!")
         return 2
     elif combatant_1_color != "Red" and combatant_2_color == "Red":
+        print(f"{combatant_1['name']} wins!")
         return 1
     elif combatant_1_color == "Blue" and combatant_2_color != "Blue":
-        return 1
+        print(f"{combatant_1['name']} wins!")
+        return 3
     elif combatant_1_color != "Blue" and combatant_2_color == "Blue":
-        return 2
+        print(f"{combatant_2['name']} wins!")
+        return 3
     elif combatant_1_color == "Purple" and combatant_2_color == "White":
-        return 1
+        print(f"{combatant_1['name']} wins!")
+        return 3
     elif combatant_1_color == "White" and combatant_2_color == "Purple":
-        return 2
+        print(f"{combatant_2['name']} wins!")
+        return 3
+
+    #NEEDS ADJUSTMENT
     elif combatant_1_color == "Purple" and combatant_2_color == "Purple":
         if combatant_1_power > combatant_2_power:
+            print(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_1_power < combatant_2_power:
+            print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
             return 0
