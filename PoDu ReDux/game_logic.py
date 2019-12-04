@@ -3,7 +3,7 @@
 """
 TO DO:
 
--Implement team file selection for GUI; limit iteration over team files to first 6 lines
+-Implement team file selection for GUI, background (separate views)
 -Set up team selection for two separate teams
 -MAKE PATH BUILDER RECURSIVE
 -Refine knockback function and checks for straight lines (Mewtwo, Rhyperior, etc)
@@ -164,6 +164,26 @@ def knockback_pathing():
                     
     ## output -> ['D2']
 
+def evolution_check(winner):
+    if eval(f"{winner}['evolutions']"):
+        if len(eval(f"{winner}['evolutions']")) > 0:
+            evo_confirm = input("Evolve? y/n\n--> ")
+            if evo_confirm.lower() == 'y':
+                evo_complete = eval(f"{winner}['evolutions']")
+            else:
+                evo_complete = False
+    else:
+        evo_complete = False
+    return evo_complete
+
+def pc_rotate(controlling_player):
+    for pokes in range(1,7):
+        if eval(f"'PC' in player_{controlling_player}_team.pokemon{pokes}['location']"):
+            if eval(f"player_{controlling_player}_team.pokemon{pokes}['location'][-1] == str(2)"):
+                exec(f"player_{controlling_player}_team.pokemon{pokes}['location'] = 'player_{controlling_player}_PC_1'")
+            else:
+                exec(f"player_{controlling_player}_team.pokemon{pokes}['location'] = player_{controlling_player}_team.pokemon{pokes}['origination']")
+
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
     surround_counter = len(eval(f"board.{focal_unit['location']}.neighbors.keys()"))
@@ -177,65 +197,70 @@ def surround_check(focal_unit):
     else:
         return False
 
-def path_check(focal_unit):
+def path_check(focal_unit, modifier = 0):
     """Check all possible paths for various purposes, including movement and teleports"""
-    ## need to boil for loops down to a recursive function
+    # need to boil for loops down to a recursive function
 
-    global path_counter
     global valid_moves
     global first_loop
+    global first_turn
 
     if first_loop == 0:
         first_loop += 1
         del valid_moves[:]
+    if first_turn == True:
+        modifier = -1
+        print("First turn: Movement reduced by 1.")
+    else:
+        pass
     for x in eval(f"board.{focal_unit['location']}.neighbors.keys()"):
         if eval(f"board.{x}.passable") == True:
             valid_moves.append(x)
         else:
             continue
-        if focal_unit['move'] > 1:
+        if focal_unit['move'] + modifier > 1:
             for y in eval(f"board.{x}.neighbors.keys()"):
                 if eval(f"board.{y}.passable") == True:
                     valid_moves.append(y)
                 else:
                     continue
-                if focal_unit['move'] > 2:
+                if focal_unit['move'] + modifier > 2:
                     for z in eval(f"board.{y}.neighbors.keys()"):
                         if eval(f"board.{z}.passable") == True:
                             valid_moves.append(z)
                         else:
                             continue
-                        if focal_unit['move'] > 3:
+                        if focal_unit['move'] + modifier > 3:
                             for a in eval(f"board.{z}.neighbors.keys()"):
                                 if eval(f"board.{a}.passable") == True:
                                     valid_moves.append(a)
                                 else:
                                     continue
-                                if focal_unit['move'] > 4:
+                                if focal_unit['move'] + modifier > 4:
                                     for b in eval(f"board.{a}.neighbors.keys()"):
                                         if eval(f"board.{b}.passable") == True:
                                             valid_moves.append(b)
                                         else:
                                             continue
-                                        if focal_unit['move'] > 5:        
+                                        if focal_unit['move'] + modifier > 5:        
                                             for c in eval(f"board.{b}.neighbors.keys()"):
                                                 if eval(f"board.{c}.passable") == True:
                                                     valid_moves.append(c)
                                                 else:
                                                     continue
-                                                if focal_unit['move'] >6:
+                                                if focal_unit['move'] + modifier > 6:
                                                     for d in eval(f"board.{c}.neighbors.keys()"):
                                                         if eval(f"board.{d}.passable") == True:
                                                             valid_moves.append(d)
                                                         else:
                                                             continue
-                                                        if focal_unit['move'] >7:
+                                                        if focal_unit['move'] + modifier > 7:
                                                             for e in eval(f"board.{d}.neighbors.keys()"):
                                                                 if eval(f"board.{e}.passable") == True:
                                                                     valid_moves.append(e)
                                                                 else:
                                                                     continue
-                                                                if focal_unit['move'] >8:
+                                                                if focal_unit['move'] + modifier > 8:
                                                                     for f in eval(f"board.{e}.neighbors.keys()"):
                                                                         if eval(f"board.{f}.passable") == True:
                                                                             valid_moves.append(f)
@@ -252,6 +277,7 @@ def path_check(focal_unit):
     for invalid_move in to_remove:
         checked_moves.remove(invalid_move)
     valid_moves.clear()
+    first_loop = 0
     return checked_moves
     
 class PlayerTeam():
@@ -265,7 +291,9 @@ class PlayerTeam():
         self.pokemon5 = {}
         self.pokemon6 = {}
         self.pokemon1['location'] = f'player_{controlling_player}_bench_1'
+        self.pokemon1['origination'] = f'player_{controlling_player}_bench_1'
         self.pokemon1['knocked_out'] = False
+        self.pokemon1['is_surrounded'] = False
         self.pokemon1['to_PC'] = False
         self.pokemon1['to_eliminated'] = False
         self.pokemon1['to_ultra_space'] = False
@@ -276,6 +304,8 @@ class PlayerTeam():
         self.pokemon1['markers'] = 'clear'
         self.pokemon1['control'] = controlling_player
         self.pokemon2['location'] = f'player_{controlling_player}_bench_2'
+        self.pokemon2['origination'] = f'player_{controlling_player}_bench_2'
+        self.pokemon2['is_surrounded'] = False
         self.pokemon2['knocked_out'] = False
         self.pokemon2['to_PC'] = False
         self.pokemon2['to_eliminated'] = False
@@ -287,6 +317,8 @@ class PlayerTeam():
         self.pokemon2['markers'] = 'clear'
         self.pokemon2['control'] = controlling_player
         self.pokemon3['location'] = f'player_{controlling_player}_bench_3'
+        self.pokemon3['origination'] = f'player_{controlling_player}_bench_3'
+        self.pokemon3['is_surrounded'] = False
         self.pokemon3['knocked_out'] = False
         self.pokemon3['to_PC'] = False
         self.pokemon3['to_eliminated'] = False
@@ -298,6 +330,8 @@ class PlayerTeam():
         self.pokemon3['markers'] = 'clear'
         self.pokemon3['control'] = controlling_player
         self.pokemon4['location'] = f'player_{controlling_player}_bench_4'
+        self.pokemon4['origination'] = f'player_{controlling_player}_bench_4'
+        self.pokemon4['is_surrounded'] = False
         self.pokemon4['knocked_out'] = False
         self.pokemon4['to_PC'] = False
         self.pokemon4['to_eliminated'] = False
@@ -309,6 +343,8 @@ class PlayerTeam():
         self.pokemon4['markers'] = 'clear'
         self.pokemon4['control'] = controlling_player
         self.pokemon5['location'] = f'player_{controlling_player}_bench_5'
+        self.pokemon5['origination'] = f'player_{controlling_player}_bench_5'
+        self.pokemon5['is_surrounded'] = False
         self.pokemon5['knocked_out'] = False
         self.pokemon5['to_PC'] = False
         self.pokemon5['to_eliminated'] = False
@@ -320,6 +356,8 @@ class PlayerTeam():
         self.pokemon5['markers'] = 'clear'
         self.pokemon5['control'] = controlling_player
         self.pokemon6['location'] = f'player_{controlling_player}_bench_6'
+        self.pokemon6['origination'] = f'player_{controlling_player}_bench_6'
+        self.pokemon6['is_surrounded'] = False
         self.pokemon6['knocked_out'] = False
         self.pokemon6['to_PC'] = False
         self.pokemon6['to_eliminated'] = False
@@ -343,14 +381,18 @@ class PlayerTeam():
         except:
             pass
         print("_-^-"*8)
-        #team_file = input(f"Select player {controlling_player} team.\n--->")
-        selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\TestCaseTeam.txt")
+        team_file = input(f"Select player {controlling_player} team.\n--->")
+        selected_team_path = os.path.join(sys.path[0], f"saves\\teams\\{team_file}.txt")
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
         for line in custom_team:
             exec(f"self.pokemon{line_counter}.update(pokemon_stats['{line}'])")
             line_counter += 1
+            if line_counter == 7:
+                break
+            else:
+                continue
 
 def spin(combatant):
     """Perform SPIN action for selected unit. Can be applied to effects and battles."""
@@ -407,20 +449,23 @@ def battle_spin_compare(combatant_1, combatant_2):
         Tie: 0
         Attacker Win: 1
         Defender Win: 2
+        Purple or Blue Win: 3
     """
     combatant_1 = eval(combatant_1)
     combatant_2 = eval(combatant_2)
 
     combatant_1_attack = spin(combatant_1)
-    print(f"{combatant_1['name']} spun {combatant_1[f'attack{combatant_1_attack}name']}")
+    print(f"{combatant_1['name']} spun {combatant_1[f'attack{combatant_1_attack}name']}", "\n\t",
+          f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
     combatant_2_attack = spin(combatant_2)
-    print(f"{combatant_2['name']} spun {combatant_2[f'attack{combatant_2_attack}name']}")
+    print(f"{combatant_2['name']} spun {combatant_2[f'attack{combatant_2_attack}name']}", "\n\t",
+          f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
 
     if combatant_1['status'] != 'frozen':
         combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
     else:
-        combatant_1_color = 'Red'
-    if not combatant_1_color == "Red" or combatant_1_color == "Blue":
+        combatant_1_color = "Red"
+    if not combatant_1_color == "Red" and not combatant_1_color == "Blue":
         combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
         if combatant_1_color != "Purple":
             if combatant_1['status'] == "poison" or combatant_1['status'] == "burn":
@@ -433,7 +478,7 @@ def battle_spin_compare(combatant_1, combatant_2):
         combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
     else:
         combatant_2_color = 'Red'
-    if not combatant_2_color == "Red" or combatant_2_color == "Blue":
+    if not combatant_2_color == "Red" and not combatant_2_color == "Blue":
         combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
         if combatant_2_color != "Purple":
             if combatant_2['status'] == "poison" or combatant_2['status'] == "burn":
@@ -442,7 +487,94 @@ def battle_spin_compare(combatant_1, combatant_2):
                 combatant_2_power -= 40
     else:
         pass
-    
+
+    if combatant_1_color == "White":
+        if combatant_2_color == "White" or combatant_2_color == "Gold":
+            if combatant_1_power > combatant_2_power:
+                print(f"{combatant_1['name']} wins!")
+                return 1
+            elif combatant_1_power < combatant_2_power:
+                print(f"{combatant_2['name']} wins!")
+                return 2
+            elif combatant_1_power == combatant_2_power:
+                print("Tie!")
+                return 0
+        elif combatant_2_color == "Purple":
+            print(f"{combatant_2['name']} wins!")
+            return 3
+        elif combatant_2_color == "Red":
+            print(f"{combatant_1['name']} wins!")
+            return 1
+        elif combatant_2_color == "Blue":
+            print(f"{combatant_2['name']} wins!")
+            return 3
+        
+    elif combatant_1_color == "Gold":
+        if combatant_2_color == "White" or combatant_2_color == "Gold":
+            if combatant_1_power > combatant_2_power:
+                print(f"{combatant_1['name']} wins!")
+                return 1
+            elif combatant_1_power < combatant_2_power:
+                print(f"{combatant_2['name']} wins!")
+                return 2
+            elif combatant_1_power == combatant_2_power:
+                print("Tie!")
+                return 0
+        elif combatant_2_color == "Purple":
+            print(f"{combatant_2['name']} wins!")
+            return 1
+        elif combatant_2_color == "Red":
+            print(f"{combatant_1['name']} wins!")
+            return 1
+        elif combatant_2_color == "Blue":
+            print(f"{combatant_2['name']} wins!")
+            return 3
+        
+    elif combatant_1_color == "Purple":
+        if combatant_2_color == "Purple":
+            if combatant_1_power > combatant_2_power:
+                print(f"{combatant_1['name']} wins!")
+                return 3
+            elif combatant_1_power < combatant_2_power:
+                print(f"{combatant_2['name']} wins!")
+                return 3
+            elif combatant_1_power == combatant_2_power:
+                print("Tie!")
+                return 0
+        elif combatant_2_color == "White":
+            print(f"{combatant_1['name']} wins!")
+            return 3
+        elif combatant_2_color == "Gold":
+            print(f"{combatant_2['name']} wins!")
+            return 2
+        elif combatant_2_color == "Red":
+            print(f"{combatant_1['name']} wins!")
+            return 3
+        elif combatant_2_color == "Blue":
+            print(f"{combatant_2['name']} wins!")
+            return 3
+
+    elif combatant_1_color == "Blue":
+        if combatant_2_color != "Blue":
+            print(f"{combatant_1['name']} wins!")
+            return 1
+        else:
+            print("Tie!")
+            return 0
+
+    elif combatant_1_color == "Red":
+        if combatant_2_color == "White" or combatant_2_color == "Gold":
+            print(f"{combatant_2['name']} wins!")
+            return 2
+        elif combatant_2_color == "Purple" or combatant_2_color == "Blue":
+            print(f"{combatant_2['name']} wins!")
+            return 3
+        elif combatant_2_color == "Red":
+            print("Tie!")
+            return 0
+
+
+    """ Old combat logic
     if combatant_1_color == "White" and combatant_2_color == "White":
         if combatant_1_power > combatant_2_power:
             print(f"{combatant_1['name']} wins!")
@@ -451,6 +583,7 @@ def battle_spin_compare(combatant_1, combatant_2):
             print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
+            print("Tie!")
             return 0
         else:
             pass
@@ -462,6 +595,7 @@ def battle_spin_compare(combatant_1, combatant_2):
             print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
+            print("Tie!")
             return 0
         else:
             pass
@@ -473,6 +607,7 @@ def battle_spin_compare(combatant_1, combatant_2):
             print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
+            print("Tie!")
             return 0
         else:
             pass
@@ -484,9 +619,16 @@ def battle_spin_compare(combatant_1, combatant_2):
             print(f"{combatant_2['name']} wins!")
             return 2
         elif combatant_1_power == combatant_2_power:
+            print("Tie!")
             return 0
         else:
             pass
+    elif combatant_1_color == "Red" and combatant_2_color != "Red":
+        print(f"{combatant_2['name']} wins!")
+        return 2
+    elif combatant_1_color != "Red" and combatant_2_color == "Red":
+        print(f"{combatant_1['name']} wins!")
+        return 1
     elif combatant_1_color == "Gold" and combatant_2_color == "Purple":
         print(f"{combatant_1['name']} wins!")
         return 1
@@ -494,49 +636,43 @@ def battle_spin_compare(combatant_1, combatant_2):
         print(f"{combatant_2['name']} wins!")
         return 2
     elif combatant_1_color == "Red" and combatant_2_color == "Red":
+        print("Tie!")
         return 0
-    elif combatant_1_color == "Red" and combatant_2_color != "Red":
-        print(f"{combatant_2['name']} wins!")
-        return 2
-    elif combatant_1_color != "Red" and combatant_2_color == "Red":
-        print(f"{combatant_1['name']} wins!")
-        return 1
-    elif combatant_1_color == "Blue" and combatant_2_color != "Blue":
-        print(f"{combatant_1['name']} wins!")
-        return 3
-    elif combatant_1_color != "Blue" and combatant_2_color == "Blue":
-        print(f"{combatant_2['name']} wins!")
-        return 3
+    #NEEDS ADJUSTMENT
+    elif combatant_1_color == "Purple" and combatant_2_color == "Purple":
+        if combatant_1_power > combatant_2_power:
+            print(f"{combatant_1['name']} wins!")
+            return 3
+        elif combatant_1_power < combatant_2_power:
+            print(f"{combatant_2['name']} wins!")
+            return 3
+        elif combatant_1_power == combatant_2_power:
+            print("Tie!")
+            return 0
     elif combatant_1_color == "Purple" and combatant_2_color == "White":
         print(f"{combatant_1['name']} wins!")
         return 3
     elif combatant_1_color == "White" and combatant_2_color == "Purple":
         print(f"{combatant_2['name']} wins!")
         return 3
+    elif combatant_1_color == "Blue" and combatant_2_color != "Blue":
+        print(f"{combatant_1['name']} wins!")
+        return 3
+    elif combatant_1_color != "Blue" and combatant_2_color == "Blue":
+        print(f"{combatant_2['name']} wins!")
+        return 3
 
-    #NEEDS ADJUSTMENT
-    elif combatant_1_color == "Purple" and combatant_2_color == "Purple":
-        if combatant_1_power > combatant_2_power:
-            print(f"{combatant_1['name']} wins!")
-            return 1
-        elif combatant_1_power < combatant_2_power:
-            print(f"{combatant_2['name']} wins!")
-            return 2
-        elif combatant_1_power == combatant_2_power:
-            return 0
-        else:
-            pass
+
     else:
         pass
 
-
+"""
 ## Imports unit data from file location
 stats_path = os.path.join(sys.path[0], "pokemon-stats.json")
 
 ## Loads unit data imported above
 pokemon_stats = json.load(open(stats_path, "r"))
 
-path_counter = 0
 valid_moves = []
 first_loop = 0
 
@@ -549,3 +685,4 @@ player_2_team.TeamUpdate(2)
 ## Must be instantiated after teams due to variable dependency / inheritance
 ## /whatever the technical term is. These will likely be moved to a game_start() function
 board = ClassicBoardGenerator()
+first_turn = True
