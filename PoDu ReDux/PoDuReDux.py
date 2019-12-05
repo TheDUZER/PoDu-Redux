@@ -568,12 +568,13 @@ class MyGame(arcade.Window):
                 self.pokemon_list.draw()
                 print("Player 2 wins!")
                 input("Press ENTER in this console to quit.")
+                exit()
             elif game_logic.board.E4.controlling_player == 1:
                 self.pokemon_list.update()
                 self.pokemon_list.draw()
                 print("Player 1 wins!")
                 input("Press ENTER in this console to quit.")
-                arcade.close_window()
+                exit()
             
 
 def main():
