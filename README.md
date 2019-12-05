@@ -3,7 +3,7 @@
 Run main game window with PoDuReDux.py
 
 Requirements:
--Python 3.7.3 (older 3x versions probably work)
+-Python 3.6+
 -Python Arcade library ("pip install arcade" in a command prompt)
 
 Essential files currently include:
