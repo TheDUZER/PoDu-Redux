@@ -8,13 +8,9 @@ Requirements:
 
 Essential files currently include:
 -PoDuReDux.py
--game_logic.py
 -pokemon-stats.json
 -/saves
 -/images
-
-Remaining files are the original Qt UI and are planned for use as a library editor and possibly a viewport for the main game file.
-Game currently relies on some console input.
 
 
 CUSTOMIZATION:
