@@ -65,6 +65,8 @@ player_1_select = ''
 player_2_select = ''
 game_mode = ''
 evo_complete = False
+unit_attacked = False
+unit_moved = False
 
 BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
 
@@ -1015,6 +1017,7 @@ class GameView(arcade.View):
 
         # This command should happen before we start drawing. It will clear
         # the screen to the background color, and erase what we drew last frame.
+        
         arcade.start_render()
         arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
                                       SCREEN_HEIGHT, SCREEN_HEIGHT, self.background)
@@ -1317,11 +1320,14 @@ class GameView(arcade.View):
 
                         
             elif move_click:
+                global unit_attacked
+                global unit_moved
                 for moves in checked_moves:
                     #Make space clearing its own function?
                     if x in range(eval(f"board.{moves}.coords['x']") - 40, eval(f"board.{moves}.coords['x']") + 40) and y in range(
                                         eval(f"board.{moves}.coords['y']") - 40, eval(f"board.{moves}.coords['y']") + 40) and eval(
                                         f"board.{moves}.occupied") == False:
+                        unit_moved = True
                         gamelog.append(f"Player {turn_player}'s " +  eval(f"{in_transit}['name']") +  " (" + str(eval(f"{in_transit}['orig_loc'][-1]")) + ") "+ f"moved to {moves}.")
                         exec(f"board.{in_transit_loc}.occupied = False")
                         exec(f"board.{in_transit_loc}.occupant = ''")
@@ -1377,6 +1383,8 @@ class GameView(arcade.View):
                                         first_turn = False
                             in_transit = ''
                             in_transit_loc = ''
+                            unit_moved = False
+                            unit_attacked = False
 
                     elif len(in_transit_loc) == 2 and x in range(eval(f"board.{in_transit_loc}.coords['x']") - 40,
                                                                       eval(f"board.{in_transit_loc}.coords['x']") + 40) and y in range(
@@ -1396,11 +1404,12 @@ class GameView(arcade.View):
                 
                 self.pkmn_list.update()
 
-            elif attack_click: 
+            elif attack_click:
                 for targets in potential_targets:
                     global evo_complete
                     if x in range(eval(f"board.{targets}.coords['x']") - 40, eval(f"board.{targets}.coords['x']") + 40) and y in range(
                                         eval(f"board.{targets}.coords['y']") - 40, eval(f"board.{targets}.coords['y']") + 40):
+                        unit_attacked = True
                         winner_check = battle_spin_compare(f'{in_transit_combatant}', eval(f'board.{targets}.occupant'))
                         if winner_check == 1:
                             winner_loc = eval(f"board.{targets}.occupant")
@@ -1472,16 +1481,21 @@ class GameView(arcade.View):
                         elif winner_check == 3:
                             pass
 
-                if turn_player == 1:
-                    turn_player = 2
-                elif turn_player == 2:
-                    turn_player = 1
+                if unit_moved or unit_attacked:
+                    if turn_player == 1:
+                        turn_player = 2
+                    elif turn_player == 2:
+                        turn_player = 1
                 attack_click = False
                 in_transit = ''
                 in_transit_loc = ''
                 potential_targets = []
+                unit_moved = False
+                unit_attacked = False
+                attack_click = False
                 
                 self.pkmn_list.update()
+                self.pkmn_list.draw()
 
             if player_1_win == True or player_2_win == True:
                 arcade.close_window()
