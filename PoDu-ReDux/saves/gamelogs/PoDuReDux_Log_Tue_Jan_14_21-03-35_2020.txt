@@ -1,0 +1,25 @@
+Player 1's team:
+--------FireStuff--------
+Houndoom
+Houndour
+Houndour
+Heatran
+Larvesta
+Moltres
+Player 2's team:
+--------BlueHole--------
+Gardevoir
+Gardevoir
+Tapu Fini
+Palkia
+Palkia
+Altaria
+First turn: Movement reduced by 1.
+Player 1's Houndour (3) moved to B6.
+Click this unit again to attack without moving, if able.
+Player 2's Gardevoir (1) moved to D2.
+Player 1's Houndour (3) moved to E7.
+Click this unit again to attack without moving, if able.
+Player 2's Gardevoir (1) moved to B2.
+Player 1's Houndour (3) moved to E4.
+Player 1 wins! Click anywhere to exit.

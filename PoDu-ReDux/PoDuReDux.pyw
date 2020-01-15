@@ -4,7 +4,6 @@
 CURRENT TODO:
 
 -Update file pathing for various filesystems
--Create special views for background selection, evolution, other prompts for effects
 -Add ability and stat previews to main view on click (or possibly hover? TK popup? do something with hover)
 
 
@@ -34,7 +33,7 @@ from glob import iglob
 from os.path import abspath, expanduser, join
 import tkinter as tk
 from tkinter import ttk
-import arcade, json, sys, os, random
+import arcade, json, sys, os, random, time
 
 SPRITE_SCALING = 2.5
 
@@ -42,6 +41,7 @@ SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 1024
 SCREEN_TITLE = "PoDu ReDux v0.1.1"
 STATS_PATH = os.path.join(sys.path[0], "pkmn-stats.json")
+
 PKMN_STATS = json.load(open(STATS_PATH, "r"))
 
 valid_moves = []
@@ -1265,7 +1265,6 @@ class GameView(arcade.View):
                                 in_transit_combatant = f'{in_transit}'
                                 in_transit_loc = eval(f"{in_transit}['loc']")
                                 checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_2_team.{units}['move']"))
-                                gamelog.append("Click this unit again to attack without moving, if able.")
                                 break
 
                         
@@ -1466,12 +1465,30 @@ class GameView(arcade.View):
             if board.A4.ctrl_player == 2:
                 player_2_win = True
                 gamelog.append("Player 2 wins! Click anywhere to exit.")
+                log_stamp = time.ctime()
+                log_stamp = log_stamp.replace(' ', '_')
+                log_stamp = log_stamp.replace(':', '-')
+                LOG_PATH = sys.path[0] + "\saves\gamelogs\PoDuReDux_Log_" + f"{log_stamp}" + ".txt"
+                LOG_FILE = open(LOG_PATH, "a+")
+                for lines in gamelog:
+                    lines = lines + "\n"
+                    LOG_FILE.write(lines)
+                LOG_FILE.close()
                 self.pkmn_list.update()
                 self.pkmn_list.draw()
                 
             elif board.E4.ctrl_player == 1:
                 player_1_win = True
                 gamelog.append("Player 1 wins! Click anywhere to exit.")
+                log_stamp = time.ctime()
+                log_stamp = log_stamp.replace(' ', '_')
+                log_stamp = log_stamp.replace(':', '-')
+                LOG_PATH = sys.path[0] + "\saves\gamelogs\PoDuReDux_Log_" + f"{log_stamp}" + ".txt"
+                LOG_FILE = open(LOG_PATH, "a+")
+                for lines in gamelog:
+                    lines = lines + "\n"
+                    LOG_FILE.write(lines)
+                LOG_FILE.close()
                 self.pkmn_list.update()
                 self.pkmn_list.draw()
 
