@@ -1,4 +1,4 @@
-##  -*- coding: utf-8 -*-
+ ##  -*- coding: utf-8 -*-
 
 """
 CURRENT TODO:
@@ -317,7 +317,6 @@ class TvTBoardGenerator():
         self.C1.coords = {'x': 290, 'y': 514}
         self.C2 = BoardNeighbors({"B2":5, "D2":1, "C4":3})
         self.C2.coords = {'x': 400, 'y': 514}
-        ## UPDATE C4
         self.C4 = BoardNeighbors({"C2":7, "C6":3})
         self.C4.coords = {'x': 512, 'y': 512}
         self.C6 = BoardNeighbors({"B6":5, "D6":1, "C4":7})
@@ -462,80 +461,38 @@ def surround_check(focal_unit):
     else:
         return False
 
-def path_check(focal_unit, modifier = 0):
+def path_check(loc, move, modifier = 0):
     """Check all possible paths for various purposes, including movement and teleports"""
     # need to boil for loops down to a recursive function
 
-    global valid_moves
-    global first_loop
-    global first_turn
-    global loop_counter
+    global valid_moves, first_turn, loop_counter
 
-    if first_loop == 0:
-        first_loop += 1
-        del valid_moves[:]
+    loop_counter = 0
+
+    del valid_moves[:]
     if first_turn == True:
         modifier = -1
         gamelog.append("First turn: Movement reduced by 1.")
     else:
         pass
 
-    for x in eval(f"board.{focal_unit['loc']}.neighbors.keys()"):
-        if focal_unit['move'] + modifier == 0:
-            break
-        if eval(f"board.{x}.passable") == True:
-            valid_moves.append(x)
-        else:
-            continue
-        if focal_unit['move'] + modifier > 1:
-            for y in eval(f"board.{x}.neighbors.keys()"):
-                if eval(f"board.{y}.passable") == True:
-                    valid_moves.append(y)
-                else:
-                    continue
-                if focal_unit['move'] + modifier > 2:
-                    for z in eval(f"board.{y}.neighbors.keys()"):
-                        if eval(f"board.{z}.passable") == True:
-                            valid_moves.append(z)
-                        else:
-                            continue
-                        if focal_unit['move'] + modifier > 3:
-                            for a in eval(f"board.{z}.neighbors.keys()"):
-                                if eval(f"board.{a}.passable") == True:
-                                    valid_moves.append(a)
-                                else:
-                                    continue
-                                if focal_unit['move'] + modifier > 4:
-                                    for b in eval(f"board.{a}.neighbors.keys()"):
-                                        if eval(f"board.{b}.passable") == True:
-                                            valid_moves.append(b)
-                                        else:
-                                            continue
-                                        if focal_unit['move'] + modifier > 5:        
-                                            for c in eval(f"board.{b}.neighbors.keys()"):
-                                                if eval(f"board.{c}.passable") == True:
-                                                    valid_moves.append(c)
-                                                else:
-                                                    continue
-                                                if focal_unit['move'] + modifier > 6:
-                                                    for d in eval(f"board.{c}.neighbors.keys()"):
-                                                        if eval(f"board.{d}.passable") == True:
-                                                            valid_moves.append(d)
-                                                        else:
-                                                            continue
-                                                        if focal_unit['move'] + modifier > 7:
-                                                            for e in eval(f"board.{d}.neighbors.keys()"):
-                                                                if eval(f"board.{e}.passable") == True:
-                                                                    valid_moves.append(e)
-                                                                else:
-                                                                    continue
-                                                                if focal_unit['move'] + modifier > 8:
-                                                                    for f in eval(f"board.{e}.neighbors.keys()"):
-                                                                        if eval(f"board.{f}.passable") == True:
-                                                                            valid_moves.append(f)
-                                                                        else:
-                                                                            continue
+    def path_iter(loc, move, modifier):
+        global valid_moves, loop_counter
+        next_moves = []
+        for x in loc:
+            if move + modifier == 0:
+                break
+            if eval(f"board.{x}.passable") == True:
+                valid_moves.append(x)
+                for y in eval(f"board.{x}.neighbors.keys()"):
+                    next_moves.append(y)
+            else:
+                continue
+        loop_counter += 1
+        if loop_counter < move + modifier:
+            path_iter(next_moves, modifier, move)
 
+    path_iter(loc, move, modifier)
     checked_moves = set(valid_moves)
     to_remove = []
     for possible_moves in checked_moves:
@@ -657,14 +614,9 @@ class PlayerTeam():
         
         ## Iterates over lines in custom unit loadout file, compares them to
         ## PKMN_STATS loaded above, and writes the correct stats to a created playerTeam() object
-        global player_1_select
-        global player_2_select
-        global game_mode
-        global team_list
+        global player_1_select, player_2_select, game_mode, team_list
         
         team_file = eval(f"player_{ctrl_player}_select")
-
-        gamelog.append(team_file)
         
         if game_mode == "Classic":
             selected_team_path = os.path.join(sys.path[0], f"saves\\classic_teams\\{team_file}")
@@ -674,6 +626,8 @@ class PlayerTeam():
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
+        gamelog.append(f"Player {ctrl_player}'s team:")
+        gamelog.append(str("-"*8 + team_file[:-4] + "-"*8))
         for line in custom_team:
             exec(f"self.pkmn{line_counter}.update(PKMN_STATS['{line}'])")
             gamelog.append(eval(f"PKMN_STATS['{line}']['name']"))
@@ -699,6 +653,11 @@ def spin(combatant):
             ## ranges to check against combatant_spin
             if combatant_spin <= combatant[f'attack{wheel_numbers}range']:
                 combatant_attack = wheel_numbers
+                ## Checks for Confusion status and returns next available attack segment
+                if combatant['status'] == 'confused':
+                    combatant_attack += 1
+                    if eval(f"{combatant}['attack{wheel_numbers}name']") == "null":
+                        combatant_attack = 1
                 ## Returns segment number of SPIN result (wheel_numbers at correct iteration)
                 return combatant_attack
                 break
@@ -733,7 +692,11 @@ def battle_spin_compare(combatant_1, combatant_2):
         Tie: 0
         Attacker Win: 1
         Defender Win: 2
-        Purple or Blue Win: 3
+        Attacker Gold beats Purple: 3
+        Defender Gold beats Purple: 4
+        Attacker Purple or Blue Win: 5
+        Defender Purple or Blue Win: 6
+        Purple or Blue Tie: 7
     """
     combatant_1 = eval(combatant_1)
     combatant_2 = eval(combatant_2)
@@ -787,13 +750,13 @@ def battle_spin_compare(combatant_1, combatant_2):
                 return 0
         elif combatant_2_color == "Purple":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 3
+            return 6
         elif combatant_2_color == "Red":
             gamelog.append(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_2_color == "Blue":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 3
+            return 6
         
     elif combatant_1_color == "Gold":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
@@ -808,45 +771,45 @@ def battle_spin_compare(combatant_1, combatant_2):
                 return 0
         elif combatant_2_color == "Purple":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 1
+            return 3
         elif combatant_2_color == "Red":
             gamelog.append(f"{combatant_1['name']} wins!")
             return 1
         elif combatant_2_color == "Blue":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 3
+            return 6
         
     elif combatant_1_color == "Purple":
         if combatant_2_color == "Purple":
             if combatant_1_power > combatant_2_power:
                 gamelog.append(f"{combatant_1['name']} wins!")
-                return 3
+                return 5
             elif combatant_1_power < combatant_2_power:
                 gamelog.append(f"{combatant_2['name']} wins!")
-                return 3
+                return 6
             elif combatant_1_power == combatant_2_power:
                 gamelog.append("Tie!")
-                return 0
+                return 7
         elif combatant_2_color == "White":
             gamelog.append(f"{combatant_1['name']} wins!")
-            return 3
+            return 5
         elif combatant_2_color == "Gold":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 2
+            return 4
         elif combatant_2_color == "Red":
             gamelog.append(f"{combatant_1['name']} wins!")
-            return 3
+            return 5
         elif combatant_2_color == "Blue":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 3
+            return 6
 
     elif combatant_1_color == "Blue":
         if combatant_2_color != "Blue":
             gamelog.append(f"{combatant_1['name']} wins!")
-            return 3
+            return 6
         else:
             gamelog.append("Tie!")
-            return 0
+            return 7
 
     elif combatant_1_color == "Red":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
@@ -854,7 +817,7 @@ def battle_spin_compare(combatant_1, combatant_2):
             return 2
         elif combatant_2_color == "Purple" or combatant_2_color == "Blue":
             gamelog.append(f"{combatant_2['name']} wins!")
-            return 3
+            return 6
         elif combatant_2_color == "Red":
             gamelog.append("Tie!")
             return 0
@@ -1056,9 +1019,9 @@ class GameView(arcade.View):
 
         line_counter = 0
         for lines in gamelog[::-1]:
-            arcade.draw_text(lines, 1030, 500 + line_counter*16, arcade.color.WHITE, font_name = "Comic Sans")
+            arcade.draw_text(lines, 1030, 40 + line_counter*16, arcade.color.WHITE, font_name = "Arial")
             line_counter += 1
-            if line_counter == 35:
+            if line_counter == 70:
                 break
 
         if player_1_win == True:
@@ -1075,6 +1038,8 @@ class GameView(arcade.View):
             center_text_x = 450
             center_text_y = 369
         arcade.draw_text(center_text, center_text_x, center_text_y, arcade.color.YELLOW, 18)
+        if move_click == True:
+            arcade.draw_text("Click this unit again\nto attack without moving,\nif able.", center_text_x - 15, center_text_y - 45, arcade.color.YELLOW, 12, align='center')
         
 
         #Place Player 1 team on board        
@@ -1258,26 +1223,12 @@ class GameView(arcade.View):
                         evolution_popup(winner_name, evo_list)
                         if evo_complete != False:
                             gamelog.append(f"{winner_name} evolving to {evo_complete}")
-
-    def on_mouse_motion(self, x, y, dx, dy):
-        pass
     
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
         Called when the user presses a mouse button.
         """
-        global move_click
-        global attack_click
-        global in_transit
-        global in_transit_loc
-        global in_transit_combatant
-        global checked_moves
-        global potential_targets
-        global turn_player
-        global first_turn
-        global gamelog
-        global player_1_win
-        global player_2_win
+        global move_click, attack_click, in_transit, in_transit_loc, in_transit_combatant, checked_moves, potential_targets, turn_player, first_turn, gamelog, player_1_win, player_2_win
 
         if button == arcade.MOUSE_BUTTON_LEFT:
             #gamelog.append(f"Player {turn_player} turn.")
@@ -1297,8 +1248,7 @@ class GameView(arcade.View):
                                 in_transit = f"player_1_team.{units}"
                                 in_transit_combatant = f'{in_transit}'
                                 in_transit_loc = eval(f"{in_transit}['loc']")
-                                checked_moves = path_check(eval(f"player_1_team.{units}"))
-                                gamelog.append("Click this unit again to attack without moving, if able.")
+                                checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_1_team.{units}['move']"))
                                 break
                 elif turn_player == 2:
                     for units in dir(player_2_team):
@@ -1314,14 +1264,13 @@ class GameView(arcade.View):
                                 in_transit = f"player_2_team.{units}"
                                 in_transit_combatant = f'{in_transit}'
                                 in_transit_loc = eval(f"{in_transit}['loc']")
-                                checked_moves = path_check(eval(f"player_2_team.{units}"))
+                                checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_2_team.{units}['move']"))
                                 gamelog.append("Click this unit again to attack without moving, if able.")
                                 break
 
                         
             elif move_click:
-                global unit_attacked
-                global unit_moved
+                global unit_attacked, unit_moved
                 for moves in checked_moves:
                     #Make space clearing its own function?
                     if x in range(eval(f"board.{moves}.coords['x']") - 40, eval(f"board.{moves}.coords['x']") + 40) and y in range(
@@ -1411,6 +1360,11 @@ class GameView(arcade.View):
                                         eval(f"board.{targets}.coords['y']") - 40, eval(f"board.{targets}.coords['y']") + 40):
                         unit_attacked = True
                         winner_check = battle_spin_compare(f'{in_transit_combatant}', eval(f'board.{targets}.occupant'))
+
+                        #Add effects checks
+                        if winner_check == 0:
+                            pass
+                        
                         if winner_check == 1:
                             winner_loc = eval(f"board.{targets}.occupant")
                             winner_ctrl = eval(f"{winner_loc}['ctrl']")
@@ -1480,6 +1434,14 @@ class GameView(arcade.View):
                                 self.pkmn_list.update()
                         elif winner_check == 3:
                             pass
+                        elif winner_check == 4:
+                            pass
+                        elif winner_check == 5:
+                            pass
+                        elif winner_check == 6:
+                            pass
+                        elif winner_check == 7:
+                            pass
 
                 if unit_moved or unit_attacked:
                     if turn_player == 1:
@@ -1514,8 +1476,7 @@ class GameView(arcade.View):
                 self.pkmn_list.draw()
 
         elif button == arcade.MOUSE_BUTTON_RIGHT:
-            global stats_x
-            global stats_y
+            global stats_x, stats_y
             
             stats_x = x
             stats_y = y
@@ -1528,8 +1489,7 @@ class StatsWindow(arcade.View):
         super().__init__()
         self.game_view = game_view
     
-    global stats_x
-    global stats_y
+    global stats_x, stats_y
     
     def on_draw(self):
         arcade.start_render()
@@ -1593,9 +1553,6 @@ def main():
 
 def on_select_team(player_num, event = None):
 
-    global player_1_select
-    global player_2_select
-    
     if event:
         if player_num == 1:
             player_1_select = event.widget.get()
@@ -1607,8 +1564,7 @@ def mode_select():
     global game_mode
     
     def button_click():
-        global game_mode
-        global background_select
+        global game_mode, background_select
         
         if var.get() == '3v3':
             game_mode = '3v3'
@@ -1661,14 +1617,11 @@ def mode_select():
 
 def startup_window():
 
-    global game_mode
-    global player_1_select
-    global player_2_select
+    global game_mode, player_1_select, player_2_select
 
     def button_click():
 
-        global player_1_select
-        global player_2_select
+        global player_1_select, player_2_select
         
         player_1_select = p1team_cb.get()
         player_2_select = p2team_cb.get()
