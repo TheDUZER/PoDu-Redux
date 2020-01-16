@@ -10,21 +10,20 @@ CURRENT TODO:
 TODO LATER...:
 -Properly display modified movement values on screen
 -Create functional ability button
--Game log scrolling and newlines?
+-Fix gamelog on-screen text overflow
 -Write gamelog to file
 
--START ADDING ABILITIES
+-START ADDING ATTACK EFFECTS
     Priorities:
     -Wait effects and wait after PC move
     -Fly / Fly Away / Telekinesis effects
     -Knockback / Psychic Shove
     -Wait / Markers
     -Status Affliction
-        -Confusion mechanics missing
     -Respin (forced, tactical, Swords Dance, Fire Spin, etc)
     -Swap (Abra, Gardevoir)
     -Draco Meteor effects
-    -
+
 -PACKAGING / HOSTING
     -UUUGGGHHHH
 
@@ -69,6 +68,17 @@ unit_attacked = False
 unit_moved = False
 
 BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
+
+def write_log():
+    log_stamp = time.ctime()
+    log_stamp = log_stamp.replace(' ', '_')
+    log_stamp = log_stamp.replace(':', '-')
+    LOG_PATH = sys.path[0] + "\saves\gamelogs\PoDuReDux_Log_" + f"{log_stamp}" + ".txt"
+    LOG_FILE = open(LOG_PATH, "a+")
+    for lines in gamelog:
+        lines = lines + "\n"
+        LOG_FILE.write(lines)
+    LOG_FILE.close()
 
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
@@ -443,10 +453,20 @@ def pc_rotate(ctrl_player):
                     exec(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'] = 'player_{ctrl_player}_PC_1'")
                 else:
                     exec(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'] = player_{ctrl_player}_team.pkmn{pkmns}['orig_loc']")
+                    if eval(f"player_{ctrl_player}_team.pkmn{pkmns}['wait']") < 2:
+                        exec(f"player_{ctrl_player}_team.pkmn{pkmns}['wait'] += 2")
     elif game_mode == "3v3":
         for pkmns in range(1,4):
             if eval(f"'PC' in player_{ctrl_player}_team.pkmn{pkmns}['loc']"):
                 exec(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'] = player_{ctrl_player}_team.pkmn{pkmns}['orig_loc']")
+                if eval(f"player_{ctrl_player}_team.pkmn{pkmns}['wait']") < 2:
+                    exec(f"player_{ctrl_player}_team.pkmn{pkmns}['wait'] += 2")
+
+def wait_tickdown():
+    for x in range(1,3):
+        for pkmns in range(1,7):
+            if eval(f"player_{x}_team.pkmn{pkmns}['wait']") != 0:
+                exec(f"player_{x}_team.pkmn{pkmns}['wait'] -= 1")
 
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
@@ -510,104 +530,28 @@ class PlayerTeam():
     """Instantiate class that contains player 1 team and base stats."""
     ## WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
     def __init__(self, ctrl_player):
-        self.pkmn1 = {}
-        self.pkmn2 = {}
-        self.pkmn3 = {}
-        if game_mode == "Classic":
-            self.pkmn4 = {}
-            self.pkmn5 = {}
-            self.pkmn6 = {}
-        
-        self.pkmn1['loc'] = f'player_{ctrl_player}_bench_1'
-        self.pkmn1['orig_loc'] = f'player_{ctrl_player}_bench_1'
-        self.pkmn1['knocked_out'] = False
-        self.pkmn1['is_surrounded'] = False
-        self.pkmn1['to_PC'] = False
-        self.pkmn1['to_eliminated'] = False
-        self.pkmn1['to_ultra_space'] = False
-        self.pkmn1['to_bench'] = False
-        self.pkmn1['wait'] = 0
-        self.pkmn1['in-play'] = False
-        self.pkmn1['status'] = 'clear'
-        self.pkmn1['markers'] = 'clear'
-        self.pkmn1['ctrl'] = ctrl_player
-        self.pkmn1['stage'] = 0
-        
-        self.pkmn2['loc'] = f'player_{ctrl_player}_bench_2'
-        self.pkmn2['orig_loc'] = f'player_{ctrl_player}_bench_2'
-        self.pkmn2['is_surrounded'] = False
-        self.pkmn2['knocked_out'] = False
-        self.pkmn2['to_PC'] = False
-        self.pkmn2['to_eliminated'] = False
-        self.pkmn2['to_ultra_space'] = False
-        self.pkmn2['to_bench'] = False
-        self.pkmn2['wait'] = 0
-        self.pkmn2['in-play'] = False
-        self.pkmn2['status'] = 'clear'
-        self.pkmn2['markers'] = 'clear'
-        self.pkmn2['ctrl'] = ctrl_player
-        self.pkmn2['stage'] = 0
-        
-        self.pkmn3['loc'] = f'player_{ctrl_player}_bench_3'
-        self.pkmn3['orig_loc'] = f'player_{ctrl_player}_bench_3'
-        self.pkmn3['is_surrounded'] = False
-        self.pkmn3['knocked_out'] = False
-        self.pkmn3['to_PC'] = False
-        self.pkmn3['to_eliminated'] = False
-        self.pkmn3['to_ultra_space'] = False
-        self.pkmn3['to_bench'] = False
-        self.pkmn3['wait'] = 0
-        self.pkmn3['in-play'] = False
-        self.pkmn3['status'] = 'clear'
-        self.pkmn3['markers'] = 'clear'
-        self.pkmn3['ctrl'] = ctrl_player
-        self.pkmn3['stage'] = 0
+        def create_team(self, top_range, bottom_range):
+            for x in range(top_range, bottom_range):
+                exec(f"self.pkmn{x} = dict()")
+                exec(f"self.pkmn{x}['loc'] = f'player_{ctrl_player}_bench_{x}'")
+                exec(f"self.pkmn{x}['orig_loc'] = f'player_{ctrl_player}_bench_{x}'")
+                exec(f"self.pkmn{x}['knocked_out'] = False")
+                exec(f"self.pkmn{x}['is_surrounded'] = False")
+                exec(f"self.pkmn{x}['to_PC'] = False")
+                exec(f"self.pkmn{x}['to_eliminated'] = False")
+                exec(f"self.pkmn{x}['to_ultra_space'] = False")
+                exec(f"self.pkmn{x}['to_bench'] = False")
+                exec(f"self.pkmn{x}['wait'] = int(0)")
+                exec(f"self.pkmn{x}['in-play'] = False")
+                exec(f"self.pkmn{x}['status'] = 'clear'")
+                exec(f"self.pkmn{x}['markers'] = 'clear'")
+                exec(f"self.pkmn{x}['ctrl'] = ctrl_player")
+                exec(f"self.pkmn{x}['stage'] = 0")
+                exec(f"self.pkmn{x}['final_song_count'] = None")
 
+        create_team(self, 1, 4)
         if game_mode == "Classic":
-            self.pkmn4['loc'] = f'player_{ctrl_player}_bench_4'
-            self.pkmn4['orig_loc'] = f'player_{ctrl_player}_bench_4'
-            self.pkmn4['is_surrounded'] = False
-            self.pkmn4['knocked_out'] = False
-            self.pkmn4['to_PC'] = False
-            self.pkmn4['to_eliminated'] = False
-            self.pkmn4['to_ultra_space'] = False
-            self.pkmn4['to_bench'] = False
-            self.pkmn4['wait'] = 0
-            self.pkmn4['in-play'] = False
-            self.pkmn4['status'] = 'clear'
-            self.pkmn4['markers'] = 'clear'
-            self.pkmn4['ctrl'] = ctrl_player
-            self.pkmn4['stage'] = 0
-            
-            self.pkmn5['loc'] = f'player_{ctrl_player}_bench_5'
-            self.pkmn5['orig_loc'] = f'player_{ctrl_player}_bench_5'
-            self.pkmn5['is_surrounded'] = False
-            self.pkmn5['knocked_out'] = False
-            self.pkmn5['to_PC'] = False
-            self.pkmn5['to_eliminated'] = False
-            self.pkmn5['to_ultra_space'] = False
-            self.pkmn5['to_bench'] = False
-            self.pkmn5['wait'] = 0
-            self.pkmn5['in-play'] = False
-            self.pkmn5['status'] = 'clear'
-            self.pkmn5['markers'] = 'clear'
-            self.pkmn5['ctrl'] = ctrl_player
-            self.pkmn5['stage'] = 0
-            
-            self.pkmn6['loc'] = f'player_{ctrl_player}_bench_6'
-            self.pkmn6['orig_loc'] = f'player_{ctrl_player}_bench_6'
-            self.pkmn6['is_surrounded'] = False
-            self.pkmn6['knocked_out'] = False
-            self.pkmn6['to_PC'] = False
-            self.pkmn6['to_eliminated'] = False
-            self.pkmn6['to_ultra_space'] = False
-            self.pkmn6['to_bench'] = False
-            self.pkmn6['wait'] = 0
-            self.pkmn6['in-play'] = False
-            self.pkmn6['status'] = 'clear'
-            self.pkmn6['markers'] = 'clear'
-            self.pkmn6['ctrl'] = ctrl_player
-            self.pkmn6['stage'] = 0
+            create_team(self, 4, 7)
 
     def TeamUpdate(self, ctrl_player):
         ## Imports custom unit loadout from custom file
@@ -620,8 +564,12 @@ class PlayerTeam():
         
         if game_mode == "Classic":
             selected_team_path = os.path.join(sys.path[0], f"saves\\classic_teams\\{team_file}")
+            top_range = 1
+            bottom_range = 7
         elif game_mode == "3v3":
             selected_team_path = os.path.join(sys.path[0], f"saves\\3v3_teams\\{team_file}")
+            top_range = 1
+            bottom_range = 4
         
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
@@ -638,6 +586,12 @@ class PlayerTeam():
                 break
             else:
                 continue
+        for x in range(top_range, bottom_range):
+            for y in range(1,10):
+                if eval(f"self.pkmn{x}['attack{y}power']") != 'null':
+                    exec(f"self.pkmn{x}['attack{y}origpower'] = self.pkmn{x}['attack{y}power']")
+                else:
+                    exec(f"self.pkmn{x}['attack{y}origpower'] = 'null'")
 
 def spin(combatant):
     """Perform SPIN action for selected unit. Can be applied to effects and battles."""
@@ -743,69 +697,69 @@ def battle_spin_compare(combatant_1, combatant_2):
                 gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 1
             elif combatant_1_power < combatant_2_power:
-                gamelog.append(f"{combatant_2['name']} wins!")
+                gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 2
             elif combatant_1_power == combatant_2_power:
                 gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         elif combatant_2_color == "Red":
-            gamelog.append(f"{combatant_1['name']} wins!")
+            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 1
         elif combatant_2_color == "Blue":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         
     elif combatant_1_color == "Gold":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
             if combatant_1_power > combatant_2_power:
-                gamelog.append(f"{combatant_1['name']} wins!")
+                gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 1
             elif combatant_1_power < combatant_2_power:
-                gamelog.append(f"{combatant_2['name']} wins!")
+                gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 2
             elif combatant_1_power == combatant_2_power:
                 gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 3
         elif combatant_2_color == "Red":
-            gamelog.append(f"{combatant_1['name']} wins!")
+            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 1
         elif combatant_2_color == "Blue":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         
     elif combatant_1_color == "Purple":
         if combatant_2_color == "Purple":
             if combatant_1_power > combatant_2_power:
-                gamelog.append(f"{combatant_1['name']} wins!")
+                gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 5
             elif combatant_1_power < combatant_2_power:
-                gamelog.append(f"{combatant_2['name']} wins!")
+                gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 6
             elif combatant_1_power == combatant_2_power:
                 gamelog.append("Tie!")
                 return 7
         elif combatant_2_color == "White":
-            gamelog.append(f"{combatant_1['name']} wins!")
+            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 5
         elif combatant_2_color == "Gold":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 4
         elif combatant_2_color == "Red":
-            gamelog.append(f"{combatant_1['name']} wins!")
+            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 5
         elif combatant_2_color == "Blue":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
 
     elif combatant_1_color == "Blue":
         if combatant_2_color != "Blue":
-            gamelog.append(f"{combatant_1['name']} wins!")
+            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 6
         else:
             gamelog.append("Tie!")
@@ -813,10 +767,10 @@ def battle_spin_compare(combatant_1, combatant_2):
 
     elif combatant_1_color == "Red":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 2
         elif combatant_2_color == "Purple" or combatant_2_color == "Blue":
-            gamelog.append(f"{combatant_2['name']} wins!")
+            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         elif combatant_2_color == "Red":
             gamelog.append("Tie!")
@@ -833,19 +787,10 @@ class GameView(arcade.View):
         self.ClassicBoard = None
         self.TvTBoard = None
 
-        #change to player_x_team.pkmn_x.sprite_info attributes?
-        self.player_1_pkmn_1 = None
-        self.player_1_pkmn_2 = None
-        self.player_1_pkmn_3 = None
-        self.player_1_pkmn_4 = None
-        self.player_1_pkmn_5 = None
-        self.player_1_pkmn_6 = None
-        self.player_2_pkmn_1 = None
-        self.player_2_pkmn_2 = None
-        self.player_2_pkmn_3 = None
-        self.player_2_pkmn_4 = None
-        self.player_2_pkmn_5 = None
-        self.player_2_pkmn_6 = None
+        #Create initial state of sprites for both teams
+        for x in range(1,3):
+            for y in range(1,7):
+                exec(f"self.player_{x}_pkmn_{y} = None")
         
         # If you have sprite lists, you should create them here,
         # and set them to None
@@ -855,116 +800,26 @@ class GameView(arcade.View):
     def on_show(self):
         # Create your sprites and sprite lists here
         self.pkmn_list = arcade.SpriteList()
-        
-        self.player_1_pkmn_1 = arcade.Sprite(
-            f"images/Sprites/{player_1_team.pkmn1['spritefile']}",
-            SPRITE_SCALING)
-        self.player_1_pkmn_2 = arcade.Sprite(
-            f"images/Sprites/{player_1_team.pkmn2['spritefile']}",
-            SPRITE_SCALING)
-        self.player_1_pkmn_3 = arcade.Sprite(
-            f"images/Sprites/{player_1_team.pkmn3['spritefile']}",
-            SPRITE_SCALING)
-        if game_mode == "Classic":
-            self.player_1_pkmn_4 = arcade.Sprite(
-                f"images/Sprites/{player_1_team.pkmn4['spritefile']}",
-                SPRITE_SCALING)
-            self.player_1_pkmn_5 = arcade.Sprite(
-                f"images/Sprites/{player_1_team.pkmn5['spritefile']}",
-                SPRITE_SCALING)
-            self.player_1_pkmn_6 = arcade.Sprite(
-                f"images/Sprites/{player_1_team.pkmn6['spritefile']}",
-                SPRITE_SCALING)
-        
-        self.player_2_pkmn_1 = arcade.Sprite(
-            f"images/Sprites/{player_2_team.pkmn1['spritefile']}",
-            SPRITE_SCALING)
-        self.player_2_pkmn_2 = arcade.Sprite(
-            f"images/Sprites/{player_2_team.pkmn2['spritefile']}",
-            SPRITE_SCALING)
-        self.player_2_pkmn_3 = arcade.Sprite(
-            f"images/Sprites/{player_2_team.pkmn3['spritefile']}",
-            SPRITE_SCALING)
-        if game_mode == "Classic":
-            self.player_2_pkmn_4 = arcade.Sprite(
-                f"images/Sprites/{player_2_team.pkmn4['spritefile']}",
-                SPRITE_SCALING)
-            self.player_2_pkmn_5 = arcade.Sprite(
-                f"images/Sprites/{player_2_team.pkmn5['spritefile']}",
-                SPRITE_SCALING)
-            self.player_2_pkmn_6 = arcade.Sprite(
-                f"images/Sprites/{player_2_team.pkmn6['spritefile']}",
-                SPRITE_SCALING)
 
-        #Place Player 1 team on board        
-        self.player_1_pkmn_1.center_x = eval(
-            f"board.{player_1_team.pkmn1['loc']}.coords['x']")
-        self.player_1_pkmn_1.center_y = eval(
-            f"board.{player_1_team.pkmn1['loc']}.coords['y']")
-        self.player_1_pkmn_2.center_x = eval(
-            f"board.{player_1_team.pkmn2['loc']}.coords['x']")
-        self.player_1_pkmn_2.center_y = eval(
-            f"board.{player_1_team.pkmn2['loc']}.coords['y']")
-        self.player_1_pkmn_3.center_x = eval(
-            f"board.{player_1_team.pkmn3['loc']}.coords['x']")
-        self.player_1_pkmn_3.center_y = eval(
-            f"board.{player_1_team.pkmn3['loc']}.coords['y']")
         if game_mode == "Classic":
-            self.player_1_pkmn_4.center_x = eval(
-                f"board.{player_1_team.pkmn4['loc']}.coords['x']")
-            self.player_1_pkmn_4.center_y = eval(
-                f"board.{player_1_team.pkmn4['loc']}.coords['y']")
-            self.player_1_pkmn_5.center_x = eval(
-                f"board.{player_1_team.pkmn5['loc']}.coords['x']")
-            self.player_1_pkmn_5.center_y = eval(
-                f"board.{player_1_team.pkmn5['loc']}.coords['y']")
-            self.player_1_pkmn_6.center_x = eval(
-                f"board.{player_1_team.pkmn6['loc']}.coords['x']")
-            self.player_1_pkmn_6.center_y = eval(
-                f"board.{player_1_team.pkmn6['loc']}.coords['y']")
+            range_top = 1
+            range_bottom = 7
+        elif game_mode == "3v3":
+            range_top = 1
+            range_bottom = 4
         
-        #Place Player 2 team 
-        self.player_2_pkmn_1.center_x = eval(
-            f"board.{player_2_team.pkmn1['loc']}.coords['x']")
-        self.player_2_pkmn_1.center_y = eval(
-            f"board.{player_2_team.pkmn1['loc']}.coords['y']")
-        self.player_2_pkmn_2.center_x = eval(
-            f"board.{player_2_team.pkmn2['loc']}.coords['x']")
-        self.player_2_pkmn_2.center_y = eval(
-            f"board.{player_2_team.pkmn2['loc']}.coords['y']")
-        self.player_2_pkmn_3.center_x = eval(
-            f"board.{player_2_team.pkmn3['loc']}.coords['x']")
-        self.player_2_pkmn_3.center_y = eval(
-            f"board.{player_2_team.pkmn3['loc']}.coords['y']")
-        if game_mode == "Classic":
-            self.player_2_pkmn_4.center_x = eval(
-                f"board.{player_2_team.pkmn4['loc']}.coords['x']")
-            self.player_2_pkmn_4.center_y = eval(
-                f"board.{player_2_team.pkmn4['loc']}.coords['y']")
-            self.player_2_pkmn_5.center_x = eval(
-                f"board.{player_2_team.pkmn5['loc']}.coords['x']")
-            self.player_2_pkmn_5.center_y = eval(
-                f"board.{player_2_team.pkmn5['loc']}.coords['y']")
-            self.player_2_pkmn_6.center_x = eval(
-                f"board.{player_2_team.pkmn6['loc']}.coords['x']")
-            self.player_2_pkmn_6.center_y = eval(
-                f"board.{player_2_team.pkmn6['loc']}.coords['y']")
-        
-        self.pkmn_list.append(self.player_1_pkmn_1)
-        self.pkmn_list.append(self.player_1_pkmn_2)
-        self.pkmn_list.append(self.player_1_pkmn_3)
-        if game_mode == "Classic":
-            self.pkmn_list.append(self.player_1_pkmn_4)
-            self.pkmn_list.append(self.player_1_pkmn_5)
-            self.pkmn_list.append(self.player_1_pkmn_6)
-        
-        self.pkmn_list.append(self.player_2_pkmn_1)
-        self.pkmn_list.append(self.player_2_pkmn_2)
-        self.pkmn_list.append(self.player_2_pkmn_3)
-        if game_mode == "Classic":
-            self.pkmn_list.append(self.player_2_pkmn_4)
-            self.pkmn_list.append(self.player_2_pkmn_5)
-            self.pkmn_list.append(self.player_2_pkmn_6)
+        for x in range(1,3):
+            for y in range(range_top,range_bottom):
+                pkmn_ref = f"player_{x}_team.pkmn{y}"
+                pkmn_ref_loc = eval(f"{pkmn_ref}['loc']")
+                pkmn_ref_x = eval(f"board.{pkmn_ref_loc}.coords['x']")
+                pkmn_ref_y = eval(f"board.{pkmn_ref_loc}.coords['y']")
+                sprite_file_name = eval(f"{pkmn_ref}['spritefile']")
+                sprite_path = f"images/Sprites/{sprite_file_name}"
+                exec(f"self.player_{x}_pkmn_{y} = arcade.Sprite('{sprite_path}', SPRITE_SCALING)")
+                exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
+                exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
+                exec(f"self.pkmn_list.append(self.player_{x}_pkmn_{y})")
 
         self.background = arcade.load_texture(background_select)
         if game_mode == "Classic":
@@ -980,6 +835,11 @@ class GameView(arcade.View):
 
         # This command should happen before we start drawing. It will clear
         # the screen to the background color, and erase what we drew last frame.
+
+        text_offset_x = -20
+        text_offset_y = 35
+        circle_offset_x = -25
+        circle_offset_y = 27
         
         arcade.start_render()
         arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
@@ -987,35 +847,40 @@ class GameView(arcade.View):
         if game_mode == "Classic":
             arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
                                           SCREEN_HEIGHT, SCREEN_HEIGHT, self.ClassicBoard)
+            center_text_x = 450
+            center_text_y = 500
+            top_range = 1
+            bottom_range = 7
+            
         elif game_mode == "3v3":
             arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
                                           SCREEN_HEIGHT, SCREEN_HEIGHT, self.TvTBoard)
-        arcade.draw_circle_filled(self.player_1_pkmn_1.center_x, self.player_1_pkmn_1.center_y,
-                                  40, arcade.color.AZURE) 
-        arcade.draw_circle_filled(self.player_1_pkmn_2.center_x, self.player_1_pkmn_2.center_y,
-                                  40, arcade.color.AZURE)
-        arcade.draw_circle_filled(self.player_1_pkmn_3.center_x, self.player_1_pkmn_3.center_y,
-                                  40, arcade.color.AZURE)
-        if game_mode == "Classic":
-            arcade.draw_circle_filled(self.player_1_pkmn_4.center_x, self.player_1_pkmn_4.center_y,
-                                      40, arcade.color.AZURE)
-            arcade.draw_circle_filled(self.player_1_pkmn_5.center_x, self.player_1_pkmn_5.center_y,
-                                      40, arcade.color.AZURE)
-            arcade.draw_circle_filled(self.player_1_pkmn_6.center_x, self.player_1_pkmn_6.center_y,
-                                      40, arcade.color.AZURE)
-        arcade.draw_circle_filled(self.player_2_pkmn_1.center_x, self.player_2_pkmn_1.center_y,
-                                  40, arcade.color.RASPBERRY)
-        arcade.draw_circle_filled(self.player_2_pkmn_2.center_x, self.player_2_pkmn_2.center_y,
-                                  40, arcade.color.RASPBERRY)
-        arcade.draw_circle_filled(self.player_2_pkmn_3.center_x, self.player_2_pkmn_3.center_y,
-                                  40, arcade.color.RASPBERRY)
-        if game_mode == "Classic":
-            arcade.draw_circle_filled(self.player_2_pkmn_4.center_x, self.player_2_pkmn_4.center_y,
-                                      40, arcade.color.RASPBERRY)
-            arcade.draw_circle_filled(self.player_2_pkmn_5.center_x, self.player_2_pkmn_5.center_y,
-                                      40, arcade.color.RASPBERRY)
-            arcade.draw_circle_filled(self.player_2_pkmn_6.center_x, self.player_2_pkmn_6.center_y,
-                                      40, arcade.color.RASPBERRY)
+            center_text_x = 450
+            center_text_y = 369
+            top_range = 1
+            bottom_range = 4
+
+        #draw unit bases
+        for x in range(1,3):
+            if x == 1:
+                cir_color = arcade.color.AZURE
+            elif x == 2:
+                cir_color = arcade.color.RASPBERRY
+            for y in range(top_range, bottom_range):
+                pkmn_ref = f"player_{x}_team.pkmn{y}"
+                pkmn_ref_loc = eval(f"{pkmn_ref}['loc']")
+                pkmn_ref_x = eval(f"board.{pkmn_ref_loc}.coords['x']")
+                pkmn_ref_y = eval(f"board.{pkmn_ref_loc}.coords['y']")
+                exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
+                exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
+                exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40, cir_color)")
+                exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x - circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.BLUE_SAPPHIRE)")
+                exec(f"arcade.draw_text(str(player_{x}_team.pkmn{y}['move']), self.player_{x}_pkmn_{y}.center_x - text_offset_x, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
+
+                #Wait circle and text draw
+                if eval(f"{pkmn_ref}['wait']") > 0:
+                    exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x + circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.PURPLE)")
+                    exec(f"arcade.draw_text(str(player_{x}_team.pkmn{y}['wait']), self.player_{x}_pkmn_{y}.center_x + text_offset_x - 10, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
 
         line_counter = 0
         for lines in gamelog[::-1]:
@@ -1031,70 +896,10 @@ class GameView(arcade.View):
         else:
             center_text = f"Player {turn_player} turn."
 
-        if game_mode == "Classic":
-            center_text_x = 450
-            center_text_y = 500
-        elif game_mode == "3v3":
-            center_text_x = 450
-            center_text_y = 369
         arcade.draw_text(center_text, center_text_x, center_text_y, arcade.color.YELLOW, 18)
         if move_click == True:
             arcade.draw_text("Click this unit again\nto attack without moving,\nif able.", center_text_x - 15, center_text_y - 45, arcade.color.YELLOW, 12, align='center')
-        
-
-        #Place Player 1 team on board        
-        self.player_1_pkmn_1.center_x = eval(
-            f"board.{player_1_team.pkmn1['loc']}.coords['x']")
-        self.player_1_pkmn_1.center_y = eval(
-            f"board.{player_1_team.pkmn1['loc']}.coords['y']")
-        self.player_1_pkmn_2.center_x = eval(
-            f"board.{player_1_team.pkmn2['loc']}.coords['x']")
-        self.player_1_pkmn_2.center_y = eval(
-            f"board.{player_1_team.pkmn2['loc']}.coords['y']")
-        self.player_1_pkmn_3.center_x = eval(
-            f"board.{player_1_team.pkmn3['loc']}.coords['x']")
-        self.player_1_pkmn_3.center_y = eval(
-            f"board.{player_1_team.pkmn3['loc']}.coords['y']")
-        if game_mode == "Classic":
-            self.player_1_pkmn_4.center_x = eval(
-                f"board.{player_1_team.pkmn4['loc']}.coords['x']")
-            self.player_1_pkmn_4.center_y = eval(
-                f"board.{player_1_team.pkmn4['loc']}.coords['y']")
-            self.player_1_pkmn_5.center_x = eval(
-                f"board.{player_1_team.pkmn5['loc']}.coords['x']")
-            self.player_1_pkmn_5.center_y = eval(
-                f"board.{player_1_team.pkmn5['loc']}.coords['y']")
-            self.player_1_pkmn_6.center_x = eval(
-                f"board.{player_1_team.pkmn6['loc']}.coords['x']")
-            self.player_1_pkmn_6.center_y = eval(
-                f"board.{player_1_team.pkmn6['loc']}.coords['y']")
-        
-        #Place Player 2 team 
-        self.player_2_pkmn_1.center_x = eval(
-            f"board.{player_2_team.pkmn1['loc']}.coords['x']")
-        self.player_2_pkmn_1.center_y = eval(
-            f"board.{player_2_team.pkmn1['loc']}.coords['y']")
-        self.player_2_pkmn_2.center_x = eval(
-            f"board.{player_2_team.pkmn2['loc']}.coords['x']")
-        self.player_2_pkmn_2.center_y = eval(
-            f"board.{player_2_team.pkmn2['loc']}.coords['y']")
-        self.player_2_pkmn_3.center_x = eval(
-            f"board.{player_2_team.pkmn3['loc']}.coords['x']")
-        self.player_2_pkmn_3.center_y = eval(
-            f"board.{player_2_team.pkmn3['loc']}.coords['y']")
-        if game_mode == "Classic":
-            self.player_2_pkmn_4.center_x = eval(
-                f"board.{player_2_team.pkmn4['loc']}.coords['x']")
-            self.player_2_pkmn_4.center_y = eval(
-                f"board.{player_2_team.pkmn4['loc']}.coords['y']")
-            self.player_2_pkmn_5.center_x = eval(
-                f"board.{player_2_team.pkmn5['loc']}.coords['x']")
-            self.player_2_pkmn_5.center_y = eval(
-                f"board.{player_2_team.pkmn5['loc']}.coords['y']")
-            self.player_2_pkmn_6.center_x = eval(
-                f"board.{player_2_team.pkmn6['loc']}.coords['x']")
-            self.player_2_pkmn_6.center_y = eval(
-                f"board.{player_2_team.pkmn6['loc']}.coords['y']")
+                
         if len(checked_moves) > 0:
             for moves in checked_moves:
                 arcade.draw_circle_outline(eval(f"board.{moves}.coords['x']"), eval(f"board.{moves}.coords['y']"), 40, arcade.color.AMAZON, 5)
@@ -1105,67 +910,6 @@ class GameView(arcade.View):
         self.pkmn_list.update()
         self.pkmn_list.draw()
 
-        # Draw movement stat bubbles over sprites
-        text_offset_x = -20
-        text_offset_y = 35
-        circle_offset_x = -25
-        circle_offset_y = 27
-
-        arcade.draw_circle_filled(self.player_1_pkmn_1.center_x - circle_offset_x, self.player_1_pkmn_1.center_y - circle_offset_y,
-                                  12, arcade.color.BLUE_SAPPHIRE)
-        arcade.draw_text(str(player_1_team.pkmn1['move']), self.player_1_pkmn_1.center_x - text_offset_x, self.player_1_pkmn_1.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        arcade.draw_circle_filled(self.player_1_pkmn_2.center_x - circle_offset_x, self.player_1_pkmn_2.center_y - circle_offset_y,
-                                  12, arcade.color.BLUE_SAPPHIRE)
-        arcade.draw_text(str(player_1_team.pkmn2['move']), self.player_1_pkmn_2.center_x - text_offset_x, self.player_1_pkmn_2.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        arcade.draw_circle_filled(self.player_1_pkmn_3.center_x - circle_offset_x, self.player_1_pkmn_3.center_y - circle_offset_y,
-                                  12, arcade.color.BLUE_SAPPHIRE)
-        arcade.draw_text(str(player_1_team.pkmn3['move']), self.player_1_pkmn_3.center_x - text_offset_x, self.player_1_pkmn_3.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        if game_mode == "Classic":
-            arcade.draw_circle_filled(self.player_1_pkmn_4.center_x - circle_offset_x, self.player_1_pkmn_4.center_y - circle_offset_y,
-                                      12, arcade.color.BLUE_SAPPHIRE)
-            arcade.draw_text(str(player_1_team.pkmn4['move']), self.player_1_pkmn_4.center_x - text_offset_x, self.player_1_pkmn_4.center_y - text_offset_y,
-                                  arcade.color.WHITE, 16)
-            arcade.draw_circle_filled(self.player_1_pkmn_5.center_x - circle_offset_x, self.player_1_pkmn_5.center_y - circle_offset_y,
-                                      12, arcade.color.BLUE_SAPPHIRE)
-            arcade.draw_text(str(player_1_team.pkmn5['move']), self.player_1_pkmn_5.center_x - text_offset_x, self.player_1_pkmn_5.center_y - text_offset_y,
-                                  arcade.color.WHITE, 16)
-            arcade.draw_circle_filled(self.player_1_pkmn_6.center_x - circle_offset_x, self.player_1_pkmn_6.center_y - circle_offset_y,
-                                      12, arcade.color.BLUE_SAPPHIRE)
-            arcade.draw_text(str(player_1_team.pkmn6['move']), self.player_1_pkmn_6.center_x - text_offset_x, self.player_1_pkmn_6.center_y - text_offset_y,
-                                  arcade.color.WHITE, 16)
-        
-        
-        arcade.draw_text(str(player_2_team.pkmn1['move']), self.player_2_pkmn_1.center_x - text_offset_x, self.player_2_pkmn_1.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        arcade.draw_circle_filled(self.player_2_pkmn_1.center_x - circle_offset_x, self.player_2_pkmn_1.center_y - circle_offset_y,
-                                  12, arcade.color.BLUE_SAPPHIRE)
-        arcade.draw_text(str(player_2_team.pkmn1['move']), self.player_2_pkmn_1.center_x - text_offset_x, self.player_2_pkmn_1.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        arcade.draw_circle_filled(self.player_2_pkmn_2.center_x - circle_offset_x, self.player_2_pkmn_2.center_y - circle_offset_y,
-                                  12, arcade.color.BLUE_SAPPHIRE)
-        arcade.draw_text(str(player_2_team.pkmn2['move']), self.player_2_pkmn_2.center_x - text_offset_x, self.player_2_pkmn_2.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        arcade.draw_circle_filled(self.player_2_pkmn_3.center_x - circle_offset_x, self.player_2_pkmn_3.center_y - circle_offset_y,
-                                  12, arcade.color.BLUE_SAPPHIRE)
-        arcade.draw_text(str(player_2_team.pkmn3['move']), self.player_2_pkmn_3.center_x - text_offset_x, self.player_2_pkmn_3.center_y - text_offset_y,
-                              arcade.color.WHITE, 16)
-        if game_mode == "Classic":
-            arcade.draw_circle_filled(self.player_2_pkmn_4.center_x - circle_offset_x, self.player_2_pkmn_4.center_y - circle_offset_y,
-                                      12, arcade.color.BLUE_SAPPHIRE)
-            arcade.draw_text(str(player_2_team.pkmn4['move']), self.player_2_pkmn_4.center_x - text_offset_x, self.player_2_pkmn_4.center_y - text_offset_y,
-                                  arcade.color.WHITE, 16)
-            arcade.draw_circle_filled(self.player_2_pkmn_5.center_x - circle_offset_x, self.player_2_pkmn_5.center_y - circle_offset_y,
-                                      12, arcade.color.BLUE_SAPPHIRE)
-            arcade.draw_text(str(player_2_team.pkmn5['move']), self.player_2_pkmn_5.center_x - text_offset_x, self.player_2_pkmn_5.center_y - text_offset_y,
-                                  arcade.color.WHITE, 16)
-            arcade.draw_circle_filled(self.player_2_pkmn_6.center_x - circle_offset_x, self.player_2_pkmn_6.center_y - circle_offset_y,
-                                      12, arcade.color.BLUE_SAPPHIRE)
-            arcade.draw_text(str(player_2_team.pkmn6['move']), self.player_2_pkmn_6.center_x - text_offset_x, self.player_2_pkmn_6.center_y - text_offset_y,
-                                  arcade.color.WHITE, 16)
-        
     def on_update(self, delta_time):
         """
         All the logic to move, and the game logic goes here.
@@ -1321,11 +1065,13 @@ class GameView(arcade.View):
                         else:
                             if turn_player == 1:
                                 turn_player = 2
+                                wait_tickdown()
                                 if first_turn:
                                     if len(in_transit_loc) == 2:
                                         first_turn = False
                             elif turn_player == 2:
                                 turn_player = 1
+                                wait_tickdown()
                                 if first_turn:
                                     if len(in_transit_loc) == 2:
                                         first_turn = False
@@ -1365,19 +1111,20 @@ class GameView(arcade.View):
                             pass
                         
                         if winner_check == 1:
-                            winner_loc = eval(f"board.{targets}.occupant")
-                            winner_ctrl = eval(f"{winner_loc}['ctrl']")
-                            loser_ctrl = eval(f"{in_transit}['ctrl']")
+                            winner_ctrl = eval(f"{in_transit}['ctrl']")
+                            loser_ctrl_temp = eval(f"board.{targets}.occupant")
+                            loser_ctrl = eval(f"{loser_ctrl_temp}['ctrl']")
+                            gamelog.append(f"Player {loser_ctrl}s Pokemon was sent to the PC.")
                             exec(f"board.{targets}.occupied = False")
                             exec(f"board.{targets}.occupant = ''")
                             exec(f"board.{targets}.occupant_team = 0")
                             exec(f"board.{targets}.ctrl_player = 0")
                             exec(f"board.{targets}.passable = True")
-                            pc_rotate(winner_ctrl)
+                            pc_rotate(loser_ctrl)
                             if game_mode == "Classic":
-                                exec(f"{winner_loc}['loc'] = 'player_{winner_ctrl}_PC_2'")
+                                exec(f"{loser_ctrl_temp}['loc'] = 'player_{loser_ctrl}_PC_2'")
                             elif game_mode == "3v3":
-                                exec(f"{winner_loc}['loc'] = 'player_{winner_ctrl}_PC_1'")
+                                exec(f"{loser_ctrl}['loc'] = 'player_{loser_ctrl}_PC_1'")
                             self.evolution_check(eval(f"{in_transit}"))
                             if evo_complete:
                                 print(evo_complete)
@@ -1394,42 +1141,43 @@ class GameView(arcade.View):
                                     else:
                                         continue
                                     
-                                exec(f"self.pkmn_list.remove(self.player_{loser_ctrl}_pkmn_{in_transit[-1]})")
-                                exec(f"self.player_{loser_ctrl}_pkmn_{in_transit[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', SPRITE_SCALING)")
-                                exec(f"self.pkmn_list.append(self.player_{loser_ctrl}_pkmn_{in_transit[-1]})")
+                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{in_transit[-1]})")
+                                exec(f"self.player_{winner_ctrl}_pkmn_{in_transit[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', SPRITE_SCALING)")
+                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{in_transit[-1]})")
                                 self.pkmn_list.update()
                         elif winner_check == 2:
-                            winner_loc = eval(f"{in_transit}['ctrl']")
-                            winner_ctrl = eval(f"board.{targets}.occupant")
-                            loser_ctrl = eval(f"{winner_ctrl}['ctrl']")
+                            winner_ctrl_temp = eval(f"board.{targets}.occupant")
+                            winner_ctrl = eval(f"{winner_ctrl_temp}['ctrl']")
+                            loser_ctrl = eval(f"{in_transit}['ctrl']")
+                            gamelog.append(f"Player {loser_ctrl}s Pokemon was sent to the PC.")
                             exec(f"board.{in_transit_loc}.occupied = False")
                             exec(f"board.{in_transit_loc}.occupant = ''")
                             exec(f"board.{in_transit_loc}.occupant_team = 0")
                             exec(f"board.{in_transit_loc}.ctrl_player = 0")
                             exec(f"board.{in_transit_loc}.passable = True")
-                            pc_rotate(winner_loc)
+                            pc_rotate(loser_ctrl)
                             if game_mode == "Classic":
-                                exec(f"{in_transit}['loc'] = 'player_{winner_loc}_PC_2'")
+                                exec(f"{in_transit}['loc'] = 'player_{loser_ctrl}_PC_2'")
                             elif game_mode == "3v3":
-                                exec(f"{in_transit}['loc'] = 'player_{winner_loc}_PC_1'")
-                            self.evolution_check(winner_ctrl)
+                                exec(f"{in_transit}['loc'] = 'player_{loser_ctrl}_PC_1'")
+                            self.evolution_check(winner_ctrl_temp)
                             if evo_complete:
-                                exec(f"{winner_ctrl}.update(PKMN_STATS['{evo_complete}'])")
-                                new_evo_path = eval(f"{winner_ctrl}")['spritefile']
-                                exec(f"{winner_ctrl}['stage'] += 1")
+                                exec(f"{winner_ctrl_temp}.update(PKMN_STATS['{evo_complete}'])")
+                                new_evo_path = eval(f"{winner_ctrl_temp}")['spritefile']
+                                exec(f"{winner_ctrl_temp}['stage'] += 1")
 
                                 for x in range(1,10):
-                                    if type(eval(f"{winner_ctrl}['attack{x}power']")) == int:
-                                        if eval(f"{winner_ctrl}['attack{x}color']") == 'White' or eval(f"{winner_ctrl}['attack{x}color']") == 'Gold':
-                                            exec(f"{winner_ctrl}['attack{x}power'] += 10*{winner_ctrl}['stage']")
-                                        elif eval(f"{winner_ctrl}['attack{x}color']") == 'Purple':
-                                            exec(f"{winner_ctrl}['attack{x}power'] += 1*{winner_ctrl}['stage']")
+                                    if type(eval(f"{winner_ctrl_temp}['attack{x}power']")) == int:
+                                        if eval(f"{winner_ctrl_temp}['attack{x}color']") == 'White' or eval(f"{winner_ctrl_temp}['attack{x}color']") == 'Gold':
+                                            exec(f"{winner_ctrl_temp}['attack{x}power'] += 10*{winner_ctrl_temp}['stage']")
+                                        elif eval(f"{winner_ctrl_temp}['attack{x}color']") == 'Purple':
+                                            exec(f"{winner_ctrl_temp}['attack{x}power'] += 1*{winner_ctrl_temp}['stage']")
                                     else:
                                         continue
                                     
-                                exec(f"self.pkmn_list.remove(self.player_{loser_ctrl}_pkmn_{winner_ctrl[-1]})")
-                                exec(f"self.player_{loser_ctrl}_pkmn_{winner_ctrl[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', SPRITE_SCALING)")
-                                exec(f"self.pkmn_list.append(self.player_{loser_ctrl}_pkmn_{winner_ctrl[-1]})")
+                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp[-1]})")
+                                exec(f"self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', SPRITE_SCALING)")
+                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp[-1]})")
                                 self.pkmn_list.update()
                         elif winner_check == 3:
                             pass
@@ -1465,30 +1213,14 @@ class GameView(arcade.View):
             if board.A4.ctrl_player == 2:
                 player_2_win = True
                 gamelog.append("Player 2 wins! Click anywhere to exit.")
-                log_stamp = time.ctime()
-                log_stamp = log_stamp.replace(' ', '_')
-                log_stamp = log_stamp.replace(':', '-')
-                LOG_PATH = sys.path[0] + "\saves\gamelogs\PoDuReDux_Log_" + f"{log_stamp}" + ".txt"
-                LOG_FILE = open(LOG_PATH, "a+")
-                for lines in gamelog:
-                    lines = lines + "\n"
-                    LOG_FILE.write(lines)
-                LOG_FILE.close()
+                write_log()
                 self.pkmn_list.update()
                 self.pkmn_list.draw()
                 
             elif board.E4.ctrl_player == 1:
                 player_1_win = True
                 gamelog.append("Player 1 wins! Click anywhere to exit.")
-                log_stamp = time.ctime()
-                log_stamp = log_stamp.replace(' ', '_')
-                log_stamp = log_stamp.replace(':', '-')
-                LOG_PATH = sys.path[0] + "\saves\gamelogs\PoDuReDux_Log_" + f"{log_stamp}" + ".txt"
-                LOG_FILE = open(LOG_PATH, "a+")
-                for lines in gamelog:
-                    lines = lines + "\n"
-                    LOG_FILE.write(lines)
-                LOG_FILE.close()
+                write_log()
                 self.pkmn_list.update()
                 self.pkmn_list.draw()
 
