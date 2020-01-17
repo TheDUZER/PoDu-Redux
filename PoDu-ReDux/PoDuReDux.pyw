@@ -1193,8 +1193,10 @@ class GameView(arcade.View):
                 if unit_moved or unit_attacked:
                     if turn_player == 1:
                         turn_player = 2
+                        wait_tickdown()
                     elif turn_player == 2:
                         turn_player = 1
+                        wait_tickdown()
                 attack_click = False
                 in_transit = ''
                 in_transit_loc = ''
