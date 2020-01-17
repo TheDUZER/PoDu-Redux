@@ -978,38 +978,43 @@ class GameView(arcade.View):
             #gamelog.append(f"Player {turn_player} turn.")
             if not move_click and not attack_click:
                 if turn_player == 1:
-                    
                     for units in dir(player_1_team):
                         if units.startswith("pkmn"):
-                            units_loc_str = "player_1_team." + units + "['loc']"
-                            units_loc_str = eval(units_loc_str)
-                            if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                                          eval(f"board.{units_loc_str}.coords['x']") + 40
-                                          ) and y in range(
-                                              eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                              eval(f"board.{units_loc_str}.coords['y']") + 40):
-                                move_click = True
-                                in_transit = f"player_1_team.{units}"
-                                in_transit_combatant = f'{in_transit}'
-                                in_transit_loc = eval(f"{in_transit}['loc']")
-                                checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_1_team.{units}['move']"))
-                                break
+                            if eval("player_1_team." + units + "['wait']") > 0:
+                                continue
+                            else:
+                                units_loc_str = "player_1_team." + units + "['loc']"
+                                units_loc_str = eval(units_loc_str)
+                                if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
+                                              eval(f"board.{units_loc_str}.coords['x']") + 40
+                                              ) and y in range(
+                                                  eval(f"board.{units_loc_str}.coords['y']") - 40,
+                                                  eval(f"board.{units_loc_str}.coords['y']") + 40):
+                                    move_click = True
+                                    in_transit = f"player_1_team.{units}"
+                                    in_transit_combatant = f'{in_transit}'
+                                    in_transit_loc = eval(f"{in_transit}['loc']")
+                                    checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_1_team.{units}['move']"))
+                                    break
                 elif turn_player == 2:
                     for units in dir(player_2_team):
                         if units.startswith("pkmn"):
-                            units_loc_str = "player_2_team." + units + "['loc']"
-                            units_loc_str = eval(units_loc_str)
-                            if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                                          eval(f"board.{units_loc_str}.coords['x']") + 40
-                                          ) and y in range(
-                                              eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                              eval(f"board.{units_loc_str}.coords['y']") + 40):
-                                move_click = True
-                                in_transit = f"player_2_team.{units}"
-                                in_transit_combatant = f'{in_transit}'
-                                in_transit_loc = eval(f"{in_transit}['loc']")
-                                checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_2_team.{units}['move']"))
-                                break
+                            if eval("player_2_team." + units + "['wait']") > 0:
+                                continue
+                            else:
+                                units_loc_str = "player_2_team." + units + "['loc']"
+                                units_loc_str = eval(units_loc_str)
+                                if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
+                                              eval(f"board.{units_loc_str}.coords['x']") + 40
+                                              ) and y in range(
+                                                  eval(f"board.{units_loc_str}.coords['y']") - 40,
+                                                  eval(f"board.{units_loc_str}.coords['y']") + 40):
+                                    move_click = True
+                                    in_transit = f"player_2_team.{units}"
+                                    in_transit_combatant = f'{in_transit}'
+                                    in_transit_loc = eval(f"{in_transit}['loc']")
+                                    checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_2_team.{units}['move']"))
+                                    break
 
                         
             elif move_click:
