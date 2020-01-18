@@ -34,6 +34,17 @@ import tkinter as tk
 from tkinter import ttk
 import arcade, json, sys, os, random, time
 
+
+"""
+Class to replace globals? Use this method to replace calls to teams?
+
+class GlobalVars:
+    valid_moves = []
+    turn_player = 1
+
+GlobalVars.turn_player = 2
+"""
+
 SPRITE_SCALING = 2.5
 
 SCREEN_WIDTH = 1440
@@ -607,11 +618,6 @@ def spin(combatant):
             ## ranges to check against combatant_spin
             if combatant_spin <= combatant[f'attack{wheel_numbers}range']:
                 combatant_attack = wheel_numbers
-                ## Checks for Confusion status and returns next available attack segment
-                if combatant['status'] == 'confused':
-                    combatant_attack += 1
-                    if eval(f"{combatant}['attack{wheel_numbers}name']") == "null":
-                        combatant_attack = 1
                 ## Returns segment number of SPIN result (wheel_numbers at correct iteration)
                 return combatant_attack
                 break
@@ -662,33 +668,88 @@ def battle_spin_compare(combatant_1, combatant_2):
     combatant_2_attack = spin(combatant_2)
     gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
     gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
-
+    
     if combatant_1['status'] != 'frozen':
         combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
     else:
         combatant_1_color = "Red"
+        gamelog.append(f"{combatant_1}['name'] is frozen. Wheel has become Miss.")
     if not combatant_1_color == "Red" and not combatant_1_color == "Blue":
         combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
-        if combatant_1_color != "Purple":
+        if combatant_1_color == "White" or combatant_1_color == "Gold":
             if combatant_1['status'] == "poison" or combatant_1['status'] == "burn":
                 combatant_1_power -= 20
             elif combatant_1['status'] == "noxious":
                 combatant_1_power -= 40
     else:
         pass
+    #Need to rework code to prevent procs of burn/paralyzed attack effects. Delphox miss effects need to be taken into heavy consideration
+    #
+    #Need to add check for attacks with same name
+    if combatant_1['status'] == "paralyzed" or combatant_1['status'] == "burn":
+        baseline_size = 24
+        miss_candidates = []
+        for x in range(1,10):
+            atk_size = eval(f"combatant_1['attack{x}size']")
+            if atk_size <= baseline_size:
+                baseline_size = atk_size
+                for y in miss_candidates:
+                    if eval(f"combatant_1['attack{x}size']") > baseline_size:
+                        miss_candidates.remove(miss_candidates.index(y))
+                miss_candidates.append(x)
+        miss_check = miss_candidates[random.randint(0, len(miss_candidates) + 1)]
+        if miss_check == combatant_1_attack:
+            combatant_1_color = "Red"
+            if combatant_1['status'] == "burn":
+                gamelog.append(f"{combatant_1}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
+            elif combatant_1['status'] == "paralyzed":
+                gamelog.append(f"{combatant_1}['name'] is paralyzed. Smallest segment has become Miss.")
+    ## Checks for Confusion status and returns next available attack segment
+    if combatant_1['status'] == 'confused':
+        gamelog.append(f"{combatant_1}['name'] is confused. Attack has shifted one segment from {combatant_1}['attack{combatant_1_attack}name'].")
+        combatant_attack += 1
+        if eval(f"{combatant_1}['attack{combatant_1_attack}name']") == "null":
+            combatant_attack = 1
+    
     if combatant_2['status'] != 'frozen':
         combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
     else:
         combatant_2_color = 'Red'
+        gamelog.append(f"{combatant_2}['name'] is frozen. Wheel has become Miss.")
     if not combatant_2_color == "Red" and not combatant_2_color == "Blue":
         combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
-        if combatant_2_color != "Purple":
+        if combatant_2_color == "White" or combatant_2_color == "Gold":
             if combatant_2['status'] == "poison" or combatant_2['status'] == "burn":
                 combatant_2_power -= 20
             elif combatant_2['status'] == "noxious":
                 combatant_2_power -= 40
     else:
         pass
+
+    if combatant_2['status'] == "paralyzed" or combatant_2['status'] == "burn":
+        baseline_size = 24
+        miss_candidates = []
+        for x in range(1,10):
+            atk_size = eval(f"combatant_1['attack{x}size']")
+            if atk_size <= baseline_size:
+                baseline_size = atk_size
+                for y in miss_candidates:
+                    if eval(f"combatant_2['attack{x}size']") > baseline_size:
+                        miss_candidates.remove(miss_candidates.index(y))
+                miss_candidates.append(x)
+        miss_check = miss_candidates[random.randint(0, len(miss_candidates) + 1)]
+        if miss_check == combatant_2_attack:
+            combatant_2_color = "Red"
+            if combatant_2['status'] == "burn":
+                gamelog.append(f"{combatant_2}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
+            elif combatant_2['status'] == "paralyzed":
+                gamelog.append(f"{combatant_2}['name'] is paralyzed. Smallest segment has become Miss.")
+                
+    if combatant_2['status'] == 'confused':
+        gamelog.append(f"{combatant_2}['name'] is confused. Attack has shifted one segment from {combatant_2}['attack{combatant_2_attack}name'].")
+        combatant_attack += 1
+        if eval(f"{combatant_2}['attack{combatant_2_attack}name']") == "null":
+            combatant_attack = 1
 
     if combatant_1_color == "White":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
@@ -1262,8 +1323,9 @@ class StatsWindow(arcade.View):
                     line_counter = 0
                     selected_stats = eval(selected_stats)
                     for stats in selected_stats:
-                        arcade.draw_text(stats + ":    " + str(selected_stats[stats]), 10, 1000 - 12*line_counter, arcade.color.WHITE)
-                        line_counter += 1
+                        if selected_stats[stats] != 'null' and selected_stats[stats] != None:
+                            arcade.draw_text(stats + ":    " + str(selected_stats[stats]), 10, 1000 - 12*line_counter, arcade.color.WHITE)
+                            line_counter += 1
                     line_counter = 0
         for units in dir(player_2_team):
             if units.startswith("pkmn"):
@@ -1278,8 +1340,9 @@ class StatsWindow(arcade.View):
                     line_counter = 0
                     selected_stats = eval(selected_stats)
                     for stats in selected_stats:
-                        arcade.draw_text(stats + ":    " + str(selected_stats[stats]), 10, 1000 - 12*line_counter, arcade.color.WHITE)
-                        line_counter += 1
+                        if selected_stats[stats] != 'null' and selected_stats[stats] != None:
+                            arcade.draw_text(stats + ":    " + str(selected_stats[stats]), 10, 1000 - 12*line_counter, arcade.color.WHITE)
+                            line_counter += 1
                     line_counter = 0
 
     def on_mouse_press(self, x, y, button, modifiers):
