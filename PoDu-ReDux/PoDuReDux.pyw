@@ -1,21 +1,13 @@
  ##  -*- coding: utf-8 -*-
 
 """
-CURRENT TODO:
-
--Update file pathing for various filesystems
--Add ability and stat previews to main view on click (or possibly hover? TK popup? do something with hover)
-
-
 TODO LATER...:
 -Properly display modified movement values on screen
 -Create functional ability button
--Fix gamelog on-screen text overflow
--Write gamelog to file
+-Fix GlobalVars.gamelog on-screen text overflow
 
 -START ADDING ATTACK EFFECTS
     Priorities:
-    -Wait effects and wait after PC move
     -Fly / Fly Away / Telekinesis effects
     -Knockback / Psychic Shove
     -Wait / Markers
@@ -39,54 +31,59 @@ import arcade, json, sys, os, random, time
 Class to replace globals? Use this method to replace calls to teams?
 
 class GlobalVars:
-    valid_moves = []
-    turn_player = 1
+    GlobalVars.valid_moves = []
+    GlobalVars.turn_player = 1
 
-GlobalVars.turn_player = 2
+GlobalVars.GlobalVars.turn_player = 2
 """
+class GlobalConstants():
+    def __init__(self):
+        self.SPRITE_SCALING = 2.5
+        self.SCREEN_WIDTH = 1440
+        self.SCREEN_HEIGHT = 1024
+        self.SCREEN_TITLE = "PoDu ReDux v0.1.3"
+        self.STATS_PATH = join(abspath(expanduser(sys.path[0])), "pkmn-stats.json")
+        self.PKMN_STATS = json.load(open(self.STATS_PATH, "r"))
+        self.BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
 
-SPRITE_SCALING = 2.5
 
-SCREEN_WIDTH = 1440
-SCREEN_HEIGHT = 1024
-SCREEN_TITLE = "PoDu ReDux v0.1.1"
-STATS_PATH = os.path.join(sys.path[0], "pkmn-stats.json")
-
-PKMN_STATS = json.load(open(STATS_PATH, "r"))
-
-valid_moves = []
-first_loop = 0
-checked_moves = []
-click_counter = 0
-in_transit = ''
-in_transit_loc = ''
-potential_targets = []
-move_click = False
-attack_click = False
-turn_player = random.randint(1,2)
-first_turn = True
-gamelog = []
-player_1_win = False
-player_2_win = False
-stats_x = 0
-stats_y = 0
-background_select = ''
-player_1_select = ''
-player_2_select = ''
-game_mode = ''
-evo_complete = False
-unit_attacked = False
-unit_moved = False
-
-BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
-
+class GlobalVars():
+    def __init__(self):
+        self.loop_counter = 0
+        self.valid_moves = []
+        self.checked_moves = []
+        self.click_counter = 0
+        self.in_transit = ''
+        self.in_transit_loc = ''
+        self.potential_targets = []
+        self.move_click = False
+        self.attack_click = False
+        self.turn_player = random.randint(1,2)
+        self.first_turn = True
+        self.gamelog = []
+        self.player_1_win = False
+        self.player_2_win = False
+        self.stats_x = 0
+        self.stats_y = 0
+        self.background_select = ''
+        self.player_1_select = ''
+        self.player_2_select = ''
+        self.game_mode = ''
+        self.evo_complete = False
+        self.unit_attacked = False
+        self.unit_moved = False
+        self.player_1_team = None
+        self.player_2_team = None
+        self.top_range = None
+        self.bottom_range = None
+        
 def write_log():
     log_stamp = time.ctime()
     log_stamp = log_stamp.replace(' ', '_')
     log_stamp = log_stamp.replace(':', '-')
-    LOG_PATH = sys.path[0] + "\saves\gamelogs\PoDuReDux_Log_" + f"{log_stamp}" + ".txt"
+    LOG_PATH = join(abspath(expanduser(sys.path[0])), "saves", "gamelogs", "PoDuReDux_Log_" + f"{log_stamp}" + ".txt")
     LOG_FILE = open(LOG_PATH, "a+")
-    for lines in gamelog:
+    for lines in GlobalVars.gamelog:
         lines = lines + "\n"
         LOG_FILE.write(lines)
     LOG_FILE.close()
@@ -179,63 +176,63 @@ class ClassicBoardGenerator():
         self.E7.coords = {'x': 732, 'y': 731}
         
         self.player_1_bench_1 = BoardNeighbors({'A1':None, 'A7':None})
-        self.player_1_bench_1.occupant = player_1_team.pkmn1
+        self.player_1_bench_1.occupant = GlobalVars.player_1_team.pkmn1
         self.player_1_bench_1.occupant_team = 1
         self.player_1_bench_1.occupied = True
         self.player_1_bench_1.coords = {'x': 311, 'y': 183}
         self.player_1_bench_2 = BoardNeighbors({'A1':None, 'A7':None})
-        self.player_1_bench_2.occupant = player_1_team.pkmn2
+        self.player_1_bench_2.occupant = GlobalVars.player_1_team.pkmn2
         self.player_1_bench_2.occupant_team = 1
         self.player_1_bench_2.occupied = True
         self.player_1_bench_2.coords = {'x': 411, 'y': 183}
         self.player_1_bench_3 = BoardNeighbors({'A1':None, 'A7':None})
-        self.player_1_bench_3.occupant = player_1_team.pkmn3
+        self.player_1_bench_3.occupant = GlobalVars.player_1_team.pkmn3
         self.player_1_bench_3.occupant_team = 1
         self.player_1_bench_3.occupied = True
         self.player_1_bench_3.coords = {'x': 511, 'y': 183}
         self.player_1_bench_4 = BoardNeighbors({'A1':None, 'A7':None})
-        self.player_1_bench_4.occupant = player_1_team.pkmn4
+        self.player_1_bench_4.occupant = GlobalVars.player_1_team.pkmn4
         self.player_1_bench_4.occupant_team = 1
         self.player_1_bench_4.occupied = True
         self.player_1_bench_4.coords = {'x': 360, 'y': 110}
         self.player_1_bench_5 = BoardNeighbors({'A1':None, 'A7':None})
-        self.player_1_bench_5.occupant = player_1_team.pkmn5
+        self.player_1_bench_5.occupant = GlobalVars.player_1_team.pkmn5
         self.player_1_bench_5.occupant_team = 1
         self.player_1_bench_5.occupied = True
         self.player_1_bench_5.coords = {'x': 460, 'y': 110}
         self.player_1_bench_6 = BoardNeighbors({'A1':None, 'A7':None})
-        self.player_1_bench_6.occupant = player_1_team.pkmn6
+        self.player_1_bench_6.occupant = GlobalVars.player_1_team.pkmn6
         self.player_1_bench_6.occupant_team = 1
         self.player_1_bench_6.occupied = True
         self.player_1_bench_6.coords = {'x': 560, 'y': 110}
         
         self.player_2_bench_1 = BoardNeighbors({'E1':None, 'E7':None})
-        self.player_2_bench_1.occupant = player_1_team.pkmn1
+        self.player_2_bench_1.occupant = GlobalVars.player_2_team.pkmn1
         self.player_2_bench_1.occupant_team = 2
         self.player_2_bench_1.occupied = True
         self.player_2_bench_1.coords = {'x': 715, 'y': 845}
         self.player_2_bench_2 = BoardNeighbors({'E1':None, 'E7':None})
-        self.player_2_bench_2.occupant = player_1_team.pkmn2
+        self.player_2_bench_2.occupant = GlobalVars.player_2_team.pkmn2
         self.player_2_bench_2.occupant_team = 2
         self.player_2_bench_2.occupied = True
         self.player_2_bench_2.coords = {'x': 615, 'y': 845}
         self.player_2_bench_3 = BoardNeighbors({'E1':None, 'E7':None})
-        self.player_2_bench_3.occupant = player_1_team.pkmn3
+        self.player_2_bench_3.occupant = GlobalVars.player_2_team.pkmn3
         self.player_2_bench_3.occupant_team = 2
         self.player_2_bench_3.occupied = True
         self.player_2_bench_3.coords = {'x': 515, 'y': 845}
         self.player_2_bench_4 = BoardNeighbors({'E1':None, 'E7':None})
-        self.player_2_bench_4.occupant = player_1_team.pkmn4
+        self.player_2_bench_4.occupant = GlobalVars.player_2_team.pkmn4
         self.player_2_bench_4.occupant_team = 2
         self.player_2_bench_4.occupied = True
         self.player_2_bench_4.coords = {'x': 661, 'y': 921}
         self.player_2_bench_5 = BoardNeighbors({'E1':None, 'E7':None})
-        self.player_2_bench_5.occupant = player_1_team.pkmn5
+        self.player_2_bench_5.occupant = GlobalVars.player_2_team.pkmn5
         self.player_2_bench_5.occupant_team = 2
         self.player_2_bench_5.occupied = True
         self.player_2_bench_5.coords = {'x': 561, 'y': 921}
         self.player_2_bench_6 = BoardNeighbors({'E1':None, 'E7':None})
-        self.player_2_bench_6.occupant = player_1_team.pkmn6
+        self.player_2_bench_6.occupant = GlobalVars.player_2_team.pkmn6
         self.player_2_bench_6.occupant_team = 2
         self.player_2_bench_6.occupied = True
         self.player_2_bench_6.coords = {'x': 461, 'y': 921}
@@ -373,33 +370,33 @@ class TvTBoardGenerator():
         self.E7.coords = {'x': 732, 'y': 731}
         
         self.player_1_bench_1 = BoardNeighbors({'A1':None, 'A6':None})
-        self.player_1_bench_1.occupant = player_1_team.pkmn1
+        self.player_1_bench_1.occupant = GlobalVars.player_1_team.pkmn1
         self.player_1_bench_1.occupant_team = 1
         self.player_1_bench_1.occupied = True
         self.player_1_bench_1.coords = {'x': 311, 'y': 183}
         self.player_1_bench_2 = BoardNeighbors({'A1':None, 'A6':None})
-        self.player_1_bench_2.occupant = player_1_team.pkmn2
+        self.player_1_bench_2.occupant = GlobalVars.player_1_team.pkmn2
         self.player_1_bench_2.occupant_team = 1
         self.player_1_bench_2.occupied = True
         self.player_1_bench_2.coords = {'x': 411, 'y': 183}
         self.player_1_bench_3 = BoardNeighbors({'A1':None, 'A6':None})
-        self.player_1_bench_3.occupant = player_1_team.pkmn3
+        self.player_1_bench_3.occupant = GlobalVars.player_1_team.pkmn3
         self.player_1_bench_3.occupant_team = 1
         self.player_1_bench_3.occupied = True
         self.player_1_bench_3.coords = {'x': 511, 'y': 183}
         
         self.player_2_bench_1 = BoardNeighbors({'E2':None, 'E7':None})
-        self.player_2_bench_1.occupant = player_1_team.pkmn1
+        self.player_2_bench_1.occupant = GlobalVars.player_2_team.pkmn1
         self.player_2_bench_1.occupant_team = 2
         self.player_2_bench_1.occupied = True
         self.player_2_bench_1.coords = {'x': 715, 'y': 845}
         self.player_2_bench_2 = BoardNeighbors({'E2':None, 'E7':None})
-        self.player_2_bench_2.occupant = player_1_team.pkmn2
+        self.player_2_bench_2.occupant = GlobalVars.player_2_team.pkmn2
         self.player_2_bench_2.occupant_team = 2
         self.player_2_bench_2.occupied = True
         self.player_2_bench_2.coords = {'x': 615, 'y': 845}
         self.player_2_bench_3 = BoardNeighbors({'E2':None, 'E7':None})
-        self.player_2_bench_3.occupant = player_1_team.pkmn3
+        self.player_2_bench_3.occupant = GlobalVars.player_2_team.pkmn3
         self.player_2_bench_3.occupant_team = 2
         self.player_2_bench_3.occupied = True
         self.player_2_bench_3.coords = {'x': 515, 'y': 845}
@@ -442,42 +439,37 @@ def knockback_pathing():
     """Check pathing for directional knockback effects"""
     ## PENDING IMPLEMENTATION, NEEDS WORK
     direction = board.B2.neighbors["C2"]
-    valid_moves = []
+    GlobalVars.valid_moves = []
 
     for x in board.C2.neighbors.keys():
         if board.C2.neighbors[x] == direction:
-            valid_moves.append(x)
+            GlobalVars.valid_moves.append(x)
         else:
             continue
-    return valid_moves
+    return GlobalVars.valid_moves
                     
     ## output -> ['D2']
 
-def pc_rotate(ctrl_player):
-    
-    global game_mode
+def pc_rotate(target):
 
-    if game_mode == "Classic":
-        for pkmns in range(1,7):
-            if eval(f"'PC' in player_{ctrl_player}_team.pkmn{pkmns}['loc']"):
-                if eval(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'][-1] == str(2)"):
-                    exec(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'] = 'player_{ctrl_player}_PC_1'")
+    for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
+        rotate_target = eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}")
+        if 'PC' in eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}['loc']"):
+            if rotate_target['loc'][-1] == str(2):
+                rotate_target['loc'] = f"player_{target['ctrl']}_PC_1"
+            else:
+                rotate_target['loc'] = rotate_target['orig_loc']
+                if rotate_target['wait'] >= 1:
+                    rotate_target['wait'] += 1
                 else:
-                    exec(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'] = player_{ctrl_player}_team.pkmn{pkmns}['orig_loc']")
-                    if eval(f"player_{ctrl_player}_team.pkmn{pkmns}['wait']") < 2:
-                        exec(f"player_{ctrl_player}_team.pkmn{pkmns}['wait'] += 2")
-    elif game_mode == "3v3":
-        for pkmns in range(1,4):
-            if eval(f"'PC' in player_{ctrl_player}_team.pkmn{pkmns}['loc']"):
-                exec(f"player_{ctrl_player}_team.pkmn{pkmns}['loc'] = player_{ctrl_player}_team.pkmn{pkmns}['orig_loc']")
-                if eval(f"player_{ctrl_player}_team.pkmn{pkmns}['wait']") < 2:
-                    exec(f"player_{ctrl_player}_team.pkmn{pkmns}['wait'] += 2")
+                    rotate_target['wait'] += 2
+        
 
 def wait_tickdown():
     for x in range(1,3):
-        for pkmns in range(1,7):
-            if eval(f"player_{x}_team.pkmn{pkmns}['wait']") != 0:
-                exec(f"player_{x}_team.pkmn{pkmns}['wait'] -= 1")
+        for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
+            if eval(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait']") != 0:
+                exec(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait'] -= int(1)")
 
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
@@ -494,110 +486,94 @@ def surround_check(focal_unit):
 
 def path_check(loc, move, modifier = 0):
     """Check all possible paths for various purposes, including movement and teleports"""
-    # need to boil for loops down to a recursive function
 
-    global valid_moves, first_turn, loop_counter
+    GlobalVars.loop_counter = 0
 
-    loop_counter = 0
-
-    del valid_moves[:]
-    if first_turn == True:
+    del GlobalVars.valid_moves[:]
+    if GlobalVars.first_turn == True:
         modifier = -1
-        gamelog.append("First turn: Movement reduced by 1.")
+        GlobalVars.gamelog.append("First turn: Movement reduced by 1.")
     else:
         pass
 
     def path_iter(loc, move, modifier):
-        global valid_moves, loop_counter
         next_moves = []
         for x in loc:
             if move + modifier == 0:
                 break
             if eval(f"board.{x}.passable") == True:
-                valid_moves.append(x)
+                GlobalVars.valid_moves.append(x)
                 for y in eval(f"board.{x}.neighbors.keys()"):
                     next_moves.append(y)
             else:
                 continue
-        loop_counter += 1
-        if loop_counter < move + modifier:
+        GlobalVars.loop_counter += 1
+        if GlobalVars.loop_counter < move + modifier:
             path_iter(next_moves, modifier, move)
 
     path_iter(loc, move, modifier)
-    checked_moves = set(valid_moves)
+    GlobalVars.checked_moves = set(GlobalVars.valid_moves)
     to_remove = []
-    for possible_moves in checked_moves:
+    for possible_moves in GlobalVars.checked_moves:
         if eval(f"board.{possible_moves}.occupied") == True:
             to_remove.append(possible_moves)
         else:
             continue
     for invalid_move in to_remove:
-        checked_moves.remove(invalid_move)
-    valid_moves.clear()
-    first_loop = 0
-    return checked_moves
+        GlobalVars.checked_moves.remove(invalid_move)
+    GlobalVars.valid_moves.clear()
+    return GlobalVars.checked_moves
     
 class PlayerTeam():
     """Instantiate class that contains player 1 team and base stats."""
     ## WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
     def __init__(self, ctrl_player):
-        def create_team(self, top_range, bottom_range):
-            for x in range(top_range, bottom_range):
-                exec(f"self.pkmn{x} = dict()")
-                exec(f"self.pkmn{x}['loc'] = f'player_{ctrl_player}_bench_{x}'")
-                exec(f"self.pkmn{x}['orig_loc'] = f'player_{ctrl_player}_bench_{x}'")
-                exec(f"self.pkmn{x}['knocked_out'] = False")
-                exec(f"self.pkmn{x}['is_surrounded'] = False")
-                exec(f"self.pkmn{x}['to_PC'] = False")
-                exec(f"self.pkmn{x}['to_eliminated'] = False")
-                exec(f"self.pkmn{x}['to_ultra_space'] = False")
-                exec(f"self.pkmn{x}['to_bench'] = False")
-                exec(f"self.pkmn{x}['wait'] = int(0)")
-                exec(f"self.pkmn{x}['in-play'] = False")
-                exec(f"self.pkmn{x}['status'] = 'clear'")
-                exec(f"self.pkmn{x}['markers'] = 'clear'")
-                exec(f"self.pkmn{x}['ctrl'] = ctrl_player")
-                exec(f"self.pkmn{x}['stage'] = 0")
-                exec(f"self.pkmn{x}['final_song_count'] = None")
 
-        create_team(self, 1, 4)
-        if game_mode == "Classic":
-            create_team(self, 4, 7)
+        team_file = eval(f"GlobalVars.player_{ctrl_player}_select")
 
-    def TeamUpdate(self, ctrl_player):
-        ## Imports custom unit loadout from custom file
+        if GlobalVars.game_mode == "Classic":
+            selected_team_path = join(abspath(expanduser(sys.path[0])), "saves", "classic_teams", f"{team_file}")
+            GlobalVars.top_range = 1
+            GlobalVars.bottom_range = 7
+        elif GlobalVars.game_mode == "3v3":
+            selected_team_path = join(abspath(expanduser(sys.path[0])), "saves", "3v3_teams", f"{team_file}")
+            GlobalVars.top_range = 1
+            GlobalVars.bottom_range = 4
         
-        ## Iterates over lines in custom unit loadout file, compares them to
-        ## PKMN_STATS loaded above, and writes the correct stats to a created playerTeam() object
-        global player_1_select, player_2_select, game_mode, team_list
-        
-        team_file = eval(f"player_{ctrl_player}_select")
-        
-        if game_mode == "Classic":
-            selected_team_path = os.path.join(sys.path[0], f"saves\\classic_teams\\{team_file}")
-            top_range = 1
-            bottom_range = 7
-        elif game_mode == "3v3":
-            selected_team_path = os.path.join(sys.path[0], f"saves\\3v3_teams\\{team_file}")
-            top_range = 1
-            bottom_range = 4
+        for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
+            exec(f"self.pkmn{x} = dict()")
+            exec(f"self.pkmn{x}['loc'] = f'player_{ctrl_player}_bench_{x}'")
+            exec(f"self.pkmn{x}['orig_loc'] = f'player_{ctrl_player}_bench_{x}'")
+            exec(f"self.pkmn{x}['knocked_out'] = False")
+            exec(f"self.pkmn{x}['is_surrounded'] = False")
+            exec(f"self.pkmn{x}['to_PC'] = False")
+            exec(f"self.pkmn{x}['to_eliminated'] = False")
+            exec(f"self.pkmn{x}['to_ultra_space'] = False")
+            exec(f"self.pkmn{x}['to_bench'] = False")
+            exec(f"self.pkmn{x}['wait'] = int(0)")
+            exec(f"self.pkmn{x}['in-play'] = False")
+            exec(f"self.pkmn{x}['status'] = 'clear'")
+            exec(f"self.pkmn{x}['markers'] = 'clear'")
+            exec(f"self.pkmn{x}['ctrl'] = ctrl_player")
+            exec(f"self.pkmn{x}['stage'] = 0")
+            exec(f"self.pkmn{x}['final_song_count'] = None")
         
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
-        gamelog.append(f"Player {ctrl_player}'s team:")
-        gamelog.append(str("-"*8 + team_file[:-4] + "-"*8))
+        GlobalVars.gamelog.append(f"Player {ctrl_player}'s team:")
+        GlobalVars.gamelog.append(str("-"*8 + team_file[:-4] + "-"*8))
         for line in custom_team:
-            exec(f"self.pkmn{line_counter}.update(PKMN_STATS['{line}'])")
-            gamelog.append(eval(f"PKMN_STATS['{line}']['name']"))
+            exec(f"self.pkmn{line_counter}.update(GlobalConstants.PKMN_STATS['{line}'])")
+            GlobalVars.gamelog.append(eval(f"GlobalConstants.PKMN_STATS['{line}']['name']"))
             line_counter += 1
-            if game_mode == "Classic" and line_counter == 7:
+            if GlobalVars.game_mode == "Classic" and line_counter == 7:
                 break
-            elif game_mode == "3v3" and line_counter == 4:
+            elif GlobalVars.game_mode == "3v3" and line_counter == 4:
                 break
             else:
                 continue
-        for x in range(top_range, bottom_range):
+        for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
             for y in range(1,10):
                 if eval(f"self.pkmn{x}['attack{y}power']") != 'null':
                     exec(f"self.pkmn{x}['attack{y}origpower'] = self.pkmn{x}['attack{y}power']")
@@ -633,7 +609,6 @@ def target_finder(combatant, attack_distance = 1):
     ##  range attackers like Kartana or Aegislash
     ##  Need to rework function to be recursive for attack distance
     target_list = []
-    combatant = eval(combatant)
     for x in eval(f"board.{combatant['loc']}.neighbors.keys()"):
         if len(combatant['loc']) == 2 and eval(f"board.{x}.occupied") == True:
                 if eval(f"board.{x}.ctrl_player") != eval(
@@ -658,22 +633,20 @@ def battle_spin_compare(combatant_1, combatant_2):
         Defender Purple or Blue Win: 6
         Purple or Blue Tie: 7
     """
-    combatant_1 = eval(combatant_1)
-    combatant_2 = eval(combatant_2)
 
-    gamelog.append(f"Player {turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) attacked Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]})")
+    GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) attacked Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]})")
     combatant_1_attack = spin(combatant_1)
-    gamelog.append(f"Player {turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
-    gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
+    GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
+    GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
     combatant_2_attack = spin(combatant_2)
-    gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
-    gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
+    GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
+    GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
     
     if combatant_1['status'] != 'frozen':
         combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
     else:
         combatant_1_color = "Red"
-        gamelog.append(f"{combatant_1}['name'] is frozen. Wheel has become Miss.")
+        GlobalVars.gamelog.append(f"{combatant_1}['name'] is frozen. Wheel has become Miss.")
     if not combatant_1_color == "Red" and not combatant_1_color == "Blue":
         combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
         if combatant_1_color == "White" or combatant_1_color == "Gold":
@@ -701,12 +674,12 @@ def battle_spin_compare(combatant_1, combatant_2):
         if miss_check == combatant_1_attack:
             combatant_1_color = "Red"
             if combatant_1['status'] == "burn":
-                gamelog.append(f"{combatant_1}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
+                GlobalVars.gamelog.append(f"{combatant_1}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
             elif combatant_1['status'] == "paralyzed":
-                gamelog.append(f"{combatant_1}['name'] is paralyzed. Smallest segment has become Miss.")
+                GlobalVars.gamelog.append(f"{combatant_1}['name'] is paralyzed. Smallest segment has become Miss.")
     ## Checks for Confusion status and returns next available attack segment
     if combatant_1['status'] == 'confused':
-        gamelog.append(f"{combatant_1}['name'] is confused. Attack has shifted one segment from {combatant_1}['attack{combatant_1_attack}name'].")
+        GlobalVars.gamelog.append(f"{combatant_1}['name'] is confused. Attack has shifted one segment from {combatant_1}['attack{combatant_1_attack}name'].")
         combatant_attack += 1
         if eval(f"{combatant_1}['attack{combatant_1_attack}name']") == "null":
             combatant_attack = 1
@@ -715,7 +688,7 @@ def battle_spin_compare(combatant_1, combatant_2):
         combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
     else:
         combatant_2_color = 'Red'
-        gamelog.append(f"{combatant_2}['name'] is frozen. Wheel has become Miss.")
+        GlobalVars.gamelog.append(f"{combatant_2}['name'] is frozen. Wheel has become Miss.")
     if not combatant_2_color == "Red" and not combatant_2_color == "Blue":
         combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
         if combatant_2_color == "White" or combatant_2_color == "Gold":
@@ -741,12 +714,12 @@ def battle_spin_compare(combatant_1, combatant_2):
         if miss_check == combatant_2_attack:
             combatant_2_color = "Red"
             if combatant_2['status'] == "burn":
-                gamelog.append(f"{combatant_2}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
+                GlobalVars.gamelog.append(f"{combatant_2}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
             elif combatant_2['status'] == "paralyzed":
-                gamelog.append(f"{combatant_2}['name'] is paralyzed. Smallest segment has become Miss.")
+                GlobalVars.gamelog.append(f"{combatant_2}['name'] is paralyzed. Smallest segment has become Miss.")
                 
     if combatant_2['status'] == 'confused':
-        gamelog.append(f"{combatant_2}['name'] is confused. Attack has shifted one segment from {combatant_2}['attack{combatant_2_attack}name'].")
+        GlobalVars.gamelog.append(f"{combatant_2}['name'] is confused. Attack has shifted one segment from {combatant_2}['attack{combatant_2_attack}name'].")
         combatant_attack += 1
         if eval(f"{combatant_2}['attack{combatant_2_attack}name']") == "null":
             combatant_attack = 1
@@ -755,86 +728,86 @@ def battle_spin_compare(combatant_1, combatant_2):
         if combatant_2_color == "White" or combatant_2_color == "Gold":
             if combatant_1_power > combatant_2_power:
                 #Update other log entries here to this format
-                gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 1
             elif combatant_1_power < combatant_2_power:
-                gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 2
             elif combatant_1_power == combatant_2_power:
-                gamelog.append("Tie!")
+                GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         elif combatant_2_color == "Red":
-            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 1
         elif combatant_2_color == "Blue":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         
     elif combatant_1_color == "Gold":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
             if combatant_1_power > combatant_2_power:
-                gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 1
             elif combatant_1_power < combatant_2_power:
-                gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 2
             elif combatant_1_power == combatant_2_power:
-                gamelog.append("Tie!")
+                GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 3
         elif combatant_2_color == "Red":
-            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 1
         elif combatant_2_color == "Blue":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         
     elif combatant_1_color == "Purple":
         if combatant_2_color == "Purple":
             if combatant_1_power > combatant_2_power:
-                gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 5
             elif combatant_1_power < combatant_2_power:
-                gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 6
             elif combatant_1_power == combatant_2_power:
-                gamelog.append("Tie!")
+                GlobalVars.gamelog.append("Tie!")
                 return 7
         elif combatant_2_color == "White":
-            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 5
         elif combatant_2_color == "Gold":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 4
         elif combatant_2_color == "Red":
-            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 5
         elif combatant_2_color == "Blue":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
 
     elif combatant_1_color == "Blue":
         if combatant_2_color != "Blue":
-            gamelog.append(f"Player {turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 6
         else:
-            gamelog.append("Tie!")
+            GlobalVars.gamelog.append("Tie!")
             return 7
 
     elif combatant_1_color == "Red":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 2
         elif combatant_2_color == "Purple" or combatant_2_color == "Blue":
-            gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
             return 6
         elif combatant_2_color == "Red":
-            gamelog.append("Tie!")
+            GlobalVars.gamelog.append("Tie!")
             return 0
 
 class GameView(arcade.View):
@@ -842,50 +815,37 @@ class GameView(arcade.View):
     def __init__(self):
         super().__init__()
         
-        #arcade.set_background_color(arcade.color.BLACK)
-        
         self.background = None
         self.ClassicBoard = None
         self.TvTBoard = None
 
         #Create initial state of sprites for both teams
         for x in range(1,3):
-            for y in range(1,7):
+            for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
                 exec(f"self.player_{x}_pkmn_{y} = None")
-        
-        # If you have sprite lists, you should create them here,
-        # and set them to None
 
         self.pkmn_list = None
         
     def on_show(self):
         # Create your sprites and sprite lists here
         self.pkmn_list = arcade.SpriteList()
-
-        if game_mode == "Classic":
-            range_top = 1
-            range_bottom = 7
-        elif game_mode == "3v3":
-            range_top = 1
-            range_bottom = 4
         
         for x in range(1,3):
-            for y in range(range_top,range_bottom):
-                pkmn_ref = f"player_{x}_team.pkmn{y}"
-                pkmn_ref_loc = eval(f"{pkmn_ref}['loc']")
-                pkmn_ref_x = eval(f"board.{pkmn_ref_loc}.coords['x']")
-                pkmn_ref_y = eval(f"board.{pkmn_ref_loc}.coords['y']")
-                sprite_file_name = eval(f"{pkmn_ref}['spritefile']")
+            for y in range(GlobalVars.top_range,GlobalVars.bottom_range):
+                pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
+                pkmn_ref_x = eval(f"board.{pkmn_ref['loc']}.coords['x']")
+                pkmn_ref_y = eval(f"board.{pkmn_ref['loc']}.coords['y']")
+                sprite_file_name = pkmn_ref['spritefile']
                 sprite_path = f"images/Sprites/{sprite_file_name}"
-                exec(f"self.player_{x}_pkmn_{y} = arcade.Sprite('{sprite_path}', SPRITE_SCALING)")
+                exec(f"self.player_{x}_pkmn_{y} = arcade.Sprite('{sprite_path}', GlobalConstants.SPRITE_SCALING)")
                 exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
                 exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
                 exec(f"self.pkmn_list.append(self.player_{x}_pkmn_{y})")
 
-        self.background = arcade.load_texture(background_select)
-        if game_mode == "Classic":
+        self.background = arcade.load_texture(GlobalVars.background_select)
+        if GlobalVars.game_mode == "Classic":
             self.ClassicBoard = arcade.load_texture("images/board/overlays/classic_duel_overlay.png")
-        elif game_mode == "3v3":
+        elif GlobalVars.game_mode == "3v3":
             self.TvTBoard = arcade.load_texture("images/board/overlays/3v3_duel_overlay.png")
     
 
@@ -903,23 +863,19 @@ class GameView(arcade.View):
         circle_offset_y = 27
         
         arcade.start_render()
-        arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
-                                      SCREEN_HEIGHT, SCREEN_HEIGHT, self.background)
-        if game_mode == "Classic":
-            arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
-                                          SCREEN_HEIGHT, SCREEN_HEIGHT, self.ClassicBoard)
+        arcade.draw_texture_rectangle(GlobalConstants.SCREEN_HEIGHT // 2, GlobalConstants.SCREEN_HEIGHT // 2,
+                                      GlobalConstants.SCREEN_HEIGHT, GlobalConstants.SCREEN_HEIGHT, self.background)
+        if GlobalVars.game_mode == "Classic":
+            arcade.draw_texture_rectangle(GlobalConstants.SCREEN_HEIGHT // 2, GlobalConstants.SCREEN_HEIGHT // 2,
+                                          GlobalConstants.SCREEN_HEIGHT, GlobalConstants.SCREEN_HEIGHT, self.ClassicBoard)
             center_text_x = 450
             center_text_y = 500
-            top_range = 1
-            bottom_range = 7
             
-        elif game_mode == "3v3":
-            arcade.draw_texture_rectangle(SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2,
-                                          SCREEN_HEIGHT, SCREEN_HEIGHT, self.TvTBoard)
+        elif GlobalVars.game_mode == "3v3":
+            arcade.draw_texture_rectangle(GlobalConstants.SCREEN_HEIGHT // 2, GlobalConstants.SCREEN_HEIGHT // 2,
+                                          GlobalConstants.SCREEN_HEIGHT, GlobalConstants.SCREEN_HEIGHT, self.TvTBoard)
             center_text_x = 450
             center_text_y = 369
-            top_range = 1
-            bottom_range = 4
 
         #draw unit bases
         for x in range(1,3):
@@ -927,61 +883,50 @@ class GameView(arcade.View):
                 cir_color = arcade.color.AZURE
             elif x == 2:
                 cir_color = arcade.color.RASPBERRY
-            for y in range(top_range, bottom_range):
-                pkmn_ref = f"player_{x}_team.pkmn{y}"
-                pkmn_ref_loc = eval(f"{pkmn_ref}['loc']")
+            for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
+                pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
+                pkmn_ref_loc = pkmn_ref['loc']
                 pkmn_ref_x = eval(f"board.{pkmn_ref_loc}.coords['x']")
                 pkmn_ref_y = eval(f"board.{pkmn_ref_loc}.coords['y']")
                 exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
                 exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
                 exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40, cir_color)")
                 exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x - circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.BLUE_SAPPHIRE)")
-                exec(f"arcade.draw_text(str(player_{x}_team.pkmn{y}['move']), self.player_{x}_pkmn_{y}.center_x - text_offset_x, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
+                exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['move']), self.player_{x}_pkmn_{y}.center_x - text_offset_x, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
 
                 #Wait circle and text draw
-                if eval(f"{pkmn_ref}['wait']") > 0:
+                if pkmn_ref['wait'] > 0:
                     exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x + circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.PURPLE)")
-                    exec(f"arcade.draw_text(str(player_{x}_team.pkmn{y}['wait']), self.player_{x}_pkmn_{y}.center_x + text_offset_x - 10, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
+                    exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['wait']), self.player_{x}_pkmn_{y}.center_x + text_offset_x - 10, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
 
         line_counter = 0
-        for lines in gamelog[::-1]:
+        for lines in GlobalVars.gamelog[::-1]:
             arcade.draw_text(lines, 1030, 40 + line_counter*16, arcade.color.WHITE, font_name = "Arial")
             line_counter += 1
             if line_counter == 70:
                 break
 
-        if player_1_win == True:
+        if GlobalVars.player_1_win == True:
             center_text = "Player 1 Wins!"
-        elif player_2_win == True:
+        elif GlobalVars.player_2_win == True:
             center_text = "Player 2 Wins!"
         else:
-            center_text = f"Player {turn_player} turn."
+            center_text = f"Player {GlobalVars.turn_player} turn."
 
         arcade.draw_text(center_text, center_text_x, center_text_y, arcade.color.YELLOW, 18)
-        if move_click == True:
+        if GlobalVars.move_click == True:
             arcade.draw_text("Click this unit again\nto attack without moving,\nif able.", center_text_x - 15, center_text_y - 45, arcade.color.YELLOW, 12, align='center')
                 
-        if len(checked_moves) > 0:
-            for moves in checked_moves:
+        if len(GlobalVars.checked_moves) > 0:
+            for moves in GlobalVars.checked_moves:
                 arcade.draw_circle_outline(eval(f"board.{moves}.coords['x']"), eval(f"board.{moves}.coords['y']"), 40, arcade.color.AMAZON, 5)
-        if len(potential_targets) > 0:
-            for targets in potential_targets:
+        if len(GlobalVars.potential_targets) > 0:
+            for targets in GlobalVars.potential_targets:
                 arcade.draw_circle_outline(eval(f"board.{targets}.coords['x']"), eval(f"board.{targets}.coords['y']"), 40, arcade.color.YELLOW , 5)
         # Call draw() on all your sprite lists below
-        self.pkmn_list.update()
-        self.pkmn_list.draw()
-
-    def on_update(self, delta_time):
-        """
-        All the logic to move, and the game logic goes here.
-        Normally, you'll call update() on the sprite lists that
-        need it.
-        """
-        self.pkmn_list.update()
         self.pkmn_list.draw()
             
     def evolution_check(self, winner):
-        global evo_complete
         
         def evolution_popup(winner_name, evo_list):
 
@@ -992,8 +937,7 @@ class GameView(arcade.View):
                 root.destroy()
             
             def evolution_submit(selection):
-                global evo_complete
-                evo_complete = selection
+                GlobalVars.evo_complete = selection
                 root.destroy()
 
             evo_cb = ttk.Combobox(root, values = evo_list)
@@ -1010,7 +954,7 @@ class GameView(arcade.View):
 
         evo_skip = False
         evo_list = []
-        evo_complete = False
+        GlobalVars.evo_complete = False
         
         if eval(f"{winner}['evolutions']"):
             if len(eval(f"{winner}['evolutions']")) > 0:
@@ -1026,224 +970,221 @@ class GameView(arcade.View):
                             evo_list.append(evos)
                     if len(evo_list) != 0:
                         evolution_popup(winner_name, evo_list)
-                        if evo_complete != False:
-                            gamelog.append(f"{winner_name} evolving to {evo_complete}")
+                        if GlobalVars.evo_complete != False:
+                            GlobalVars.gamelog.append(f"{winner_name} evolving to {GlobalVars.evo_complete}")
     
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
         Called when the user presses a mouse button.
         """
-        global move_click, attack_click, in_transit, in_transit_loc, in_transit_combatant, checked_moves, potential_targets, turn_player, first_turn, gamelog, player_1_win, player_2_win
 
         if button == arcade.MOUSE_BUTTON_LEFT:
-            #gamelog.append(f"Player {turn_player} turn.")
-            if not move_click and not attack_click:
-                if turn_player == 1:
-                    for units in dir(player_1_team):
+            #GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player} turn.")
+            if not GlobalVars.move_click and not GlobalVars.attack_click:
+                if GlobalVars.turn_player == 1:
+                    for units in dir(GlobalVars.player_1_team):
                         if units.startswith("pkmn"):
-                            if eval("player_1_team." + units + "['wait']") > 0:
+                            unit = eval(f"GlobalVars.player_1_team.{units}")
+                            if unit['wait'] > 0:
                                 continue
                             else:
-                                units_loc_str = "player_1_team." + units + "['loc']"
-                                units_loc_str = eval(units_loc_str)
+                                units_loc_str = unit['loc']
                                 if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
                                               eval(f"board.{units_loc_str}.coords['x']") + 40
                                               ) and y in range(
                                                   eval(f"board.{units_loc_str}.coords['y']") - 40,
                                                   eval(f"board.{units_loc_str}.coords['y']") + 40):
-                                    move_click = True
-                                    in_transit = f"player_1_team.{units}"
-                                    in_transit_combatant = f'{in_transit}'
-                                    in_transit_loc = eval(f"{in_transit}['loc']")
-                                    checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_1_team.{units}['move']"))
+                                    GlobalVars.move_click = True
+                                    GlobalVars.in_transit = unit
+                                    GlobalVars.in_transit_combatant = GlobalVars.in_transit
+                                    GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
+                                    GlobalVars.checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
                                     break
-                elif turn_player == 2:
-                    for units in dir(player_2_team):
+                elif GlobalVars.turn_player == 2:
+                    for units in dir(GlobalVars.player_2_team):
                         if units.startswith("pkmn"):
-                            if eval("player_2_team." + units + "['wait']") > 0:
+                            unit = eval(f"GlobalVars.player_2_team.{units}")
+                            if unit['wait'] > 0:
                                 continue
                             else:
-                                units_loc_str = "player_2_team." + units + "['loc']"
-                                units_loc_str = eval(units_loc_str)
+                                units_loc_str = unit['loc']
                                 if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
                                               eval(f"board.{units_loc_str}.coords['x']") + 40
                                               ) and y in range(
                                                   eval(f"board.{units_loc_str}.coords['y']") - 40,
                                                   eval(f"board.{units_loc_str}.coords['y']") + 40):
-                                    move_click = True
-                                    in_transit = f"player_2_team.{units}"
-                                    in_transit_combatant = f'{in_transit}'
-                                    in_transit_loc = eval(f"{in_transit}['loc']")
-                                    checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), eval(f"player_2_team.{units}['move']"))
+                                    GlobalVars.move_click = True
+                                    GlobalVars.in_transit = unit
+                                    GlobalVars.in_transit_combatant = GlobalVars.in_transit
+                                    GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
+                                    GlobalVars.checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
                                     break
 
                         
-            elif move_click:
-                global unit_attacked, unit_moved
-                for moves in checked_moves:
+            elif GlobalVars.move_click:
+                for moves in GlobalVars.checked_moves:
                     #Make space clearing its own function?
                     if x in range(eval(f"board.{moves}.coords['x']") - 40, eval(f"board.{moves}.coords['x']") + 40) and y in range(
                                         eval(f"board.{moves}.coords['y']") - 40, eval(f"board.{moves}.coords['y']") + 40) and eval(
                                         f"board.{moves}.occupied") == False:
-                        unit_moved = True
-                        gamelog.append(f"Player {turn_player}'s " +  eval(f"{in_transit}['name']") +  " (" + str(eval(f"{in_transit}['orig_loc'][-1]")) + ") "+ f"moved to {moves}.")
-                        exec(f"board.{in_transit_loc}.occupied = False")
-                        exec(f"board.{in_transit_loc}.occupant = ''")
-                        exec(f"board.{in_transit_loc}.occupant_team = 0")
-                        exec(f"board.{in_transit_loc}.ctrl_player = 0")
-                        exec(f"board.{in_transit_loc}.passable = True")
+                        GlobalVars.unit_moved = True
+                        GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s " +  eval(f"{GlobalVars.in_transit}['name']") +  " (" + str(eval(f"{GlobalVars.in_transit}['orig_loc'][-1]")) + ") "+ f"moved to {moves}.")
+                        exec(f"board.{GlobalVars.in_transit_loc}.occupied = False")
+                        exec(f"board.{GlobalVars.in_transit_loc}.occupant = ''")
+                        exec(f"board.{GlobalVars.in_transit_loc}.occupant_team = 0")
+                        exec(f"board.{GlobalVars.in_transit_loc}.ctrl_player = 0")
+                        exec(f"board.{GlobalVars.in_transit_loc}.passable = True")
                         exec(f"board.{moves}.occupied = True")
-                        exec(f"board.{moves}.occupant = '{in_transit}'")
-                        exec(f"board.{moves}.occupant_team = {in_transit}['ctrl']")
-                        exec(f"board.{moves}.ctrl_player = {in_transit}['ctrl']")
+                        exec(f"board.{moves}.occupant = GlobalVars.in_transit")
+                        exec(f"board.{moves}.occupant_team = GlobalVars.in_transit['ctrl']")
+                        exec(f"board.{moves}.ctrl_player = GlobalVars.in_transit['ctrl']")
                         exec(f"board.{moves}.passable = False")
-                        exec(f"{in_transit}['loc'] = '{moves}'")
-                        in_transit_loc = eval(f"{in_transit}['loc']")
+                        GlobalVars.in_transit['loc'] = moves
+                        GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
                         for surround_neighbors in dir(board):
                             if len(surround_neighbors) == 2:
                                 surround_target = eval(f"board.{surround_neighbors}.occupant")
                                 if surround_target:
-                                    exec(f"{surround_target}['is_surrounded'] = surround_check({surround_target})")
+                                    surround_target['is_surrounded'] = surround_check(surround_target)
                         for team in range(1,3):
-                            for surround_resolve in eval(f"dir(player_{team}_team)"):
-                                if surround_resolve.startswith('pkmn'):
-                                    winner_ctrl = eval(f"player_{team}_team.{surround_resolve}['loc']")
-                                    if eval(f"player_{team}_team.{surround_resolve}['is_surrounded']") == True:
-                                        gamelog.append(str(f"SURROUNDED:    Player {team}'s " +
-                                              eval(f"player_{team}_team.{surround_resolve}['name']") + " (" +
+                            for surround_resolve_target in eval(f"dir(GlobalVars.player_{team}_team)"):
+                                if surround_resolve_target.startswith('pkmn'):
+                                    surround_resolve = eval(f"GlobalVars.player_{team}_team.{surround_resolve_target}")
+                                    winner_ctrl = surround_resolve['loc']
+                                    if surround_resolve['is_surrounded'] == True:
+                                        GlobalVars.gamelog.append(str(f"SURROUNDED:    Player {team}'s " +
+                                              surround_resolve['name'] + " (" +
                                                 f"{surround_resolve}"[-1] +
                                                 ") " +
                                               f" was sent to Player {team}'s PC."))
-                                        exec(f"board.{winner_ctrl}.occupied = False")
-                                        exec(f"board.{winner_ctrl}.occupant = ''")
-                                        exec(f"board.{winner_ctrl}.occupant_team = 0")
-                                        exec(f"board.{winner_ctrl}.ctrl_player = 0")
-                                        exec(f"board.{winner_ctrl}.passable = True")
-                                        pc_rotate(team)
-                                        if game_mode == "Classic":
-                                            exec(f"player_{team}_team.{surround_resolve}['loc'] = 'player_{team}_PC_2'")
-                                        elif game_mode == "3v3":
-                                            exec(f"player_{team}_team.{surround_resolve}['loc'] = 'player_{team}_PC_1'")
-                                        exec(f"player_{team}_team.{surround_resolve}['is_surrounded'] = False")
-                        potential_targets = target_finder(f'{in_transit}')
-                        if len(potential_targets) > 0:
-                            attack_click = True
+                                        exec(f"board.{surround_resolve['loc']}.occupied = False")
+                                        exec(f"board.{surround_resolve['loc']}.occupant = ''")
+                                        exec(f"board.{surround_resolve['loc']}.occupant_team = 0")
+                                        exec(f"board.{surround_resolve['loc']}.ctrl_player = 0")
+                                        exec(f"board.{surround_resolve['loc']}.passable = True")
+                                        pc_rotate(surround_resolve)
+                                        if GlobalVars.game_mode == "Classic":
+                                            surround_resolve['loc'] = f'player_{team}_PC_2'
+                                        elif GlobalVars.game_mode == "3v3":
+                                            surround_resolve['loc'] = f'player_{team}_PC_1'
+                                        surround_resolve['is_surrounded'] = False
+                        GlobalVars.potential_targets = target_finder(GlobalVars.in_transit)
+                        if len(GlobalVars.potential_targets) > 0:
+                            GlobalVars.attack_click = True
                         else:
-                            if turn_player == 1:
-                                turn_player = 2
+                            if GlobalVars.turn_player == 1:
+                                GlobalVars.turn_player = 2
                                 wait_tickdown()
-                                if first_turn:
-                                    if len(in_transit_loc) == 2:
-                                        first_turn = False
-                            elif turn_player == 2:
-                                turn_player = 1
+                                if GlobalVars.first_turn:
+                                    if len(GlobalVars.in_transit_loc) == 2:
+                                        GlobalVars.first_turn = False
+                            elif GlobalVars.turn_player == 2:
+                                GlobalVars.turn_player = 1
                                 wait_tickdown()
-                                if first_turn:
-                                    if len(in_transit_loc) == 2:
-                                        first_turn = False
-                            in_transit = ''
-                            in_transit_loc = ''
-                            unit_moved = False
-                            unit_attacked = False
+                                if GlobalVars.first_turn:
+                                    if len(GlobalVars.in_transit_loc) == 2:
+                                        GlobalVars.first_turn = False
+                            GlobalVars.in_transit = ''
+                            GlobalVars.in_transit_loc = ''
+                            GlobalVars.unit_moved = False
+                            GlobalVars.unit_attacked = False
 
-                    elif len(in_transit_loc) == 2 and x in range(eval(f"board.{in_transit_loc}.coords['x']") - 40,
-                                                                      eval(f"board.{in_transit_loc}.coords['x']") + 40) and y in range(
-                                                                        eval(f"board.{in_transit_loc}.coords['y']") - 40,
-                                                                        eval(f"board.{in_transit_loc}.coords['y']") + 40):
-                        potential_targets = target_finder(f'{in_transit}')
-                        if len(potential_targets) > 0:
-                            attack_click = True
+                    elif len(GlobalVars.in_transit_loc) == 2 and x in range(eval(f"board.{GlobalVars.in_transit_loc}.coords['x']") - 40,
+                                                                      eval(f"board.{GlobalVars.in_transit_loc}.coords['x']") + 40) and y in range(
+                                                                        eval(f"board.{GlobalVars.in_transit_loc}.coords['y']") - 40,
+                                                                        eval(f"board.{GlobalVars.in_transit_loc}.coords['y']") + 40):
+                        GlobalVars.potential_targets = target_finder(GlobalVars.in_transit)
+                        if len(GlobalVars.potential_targets) > 0:
+                            GlobalVars.attack_click = True
                         else:
-                            in_transit = ''
-                            in_transit_loc = ''
-                            move_click = False
+                            GlobalVars.in_transit = ''
+                            GlobalVars.in_transit_loc = ''
+                            GlobalVars.move_click = False
                         
 
-                move_click = False
-                checked_moves = []
+                GlobalVars.move_click = False
+                GlobalVars.checked_moves = []
                 
                 self.pkmn_list.update()
 
-            elif attack_click:
-                for targets in potential_targets:
-                    global evo_complete
+            elif GlobalVars.attack_click:
+                for targets in GlobalVars.potential_targets:
                     if x in range(eval(f"board.{targets}.coords['x']") - 40, eval(f"board.{targets}.coords['x']") + 40) and y in range(
                                         eval(f"board.{targets}.coords['y']") - 40, eval(f"board.{targets}.coords['y']") + 40):
-                        unit_attacked = True
-                        winner_check = battle_spin_compare(f'{in_transit_combatant}', eval(f'board.{targets}.occupant'))
+                        GlobalVars.unit_attacked = True
+                        winner_check = battle_spin_compare(GlobalVars.in_transit_combatant, eval(f'board.{targets}.occupant'))
 
                         #Add effects checks
                         if winner_check == 0:
                             pass
                         
                         if winner_check == 1:
-                            winner_ctrl = eval(f"{in_transit}['ctrl']")
+                            winner_ctrl = GlobalVars.in_transit['ctrl']
                             loser_ctrl_temp = eval(f"board.{targets}.occupant")
-                            loser_ctrl = eval(f"{loser_ctrl_temp}['ctrl']")
-                            gamelog.append(f"Player {loser_ctrl}s Pokemon was sent to the PC.")
+                            loser_ctrl = loser_ctrl_temp['ctrl']
+                            GlobalVars.gamelog.append(f"Player {loser_ctrl}s {loser_ctrl_temp['name']} was sent to the PC.")
                             exec(f"board.{targets}.occupied = False")
                             exec(f"board.{targets}.occupant = ''")
                             exec(f"board.{targets}.occupant_team = 0")
                             exec(f"board.{targets}.ctrl_player = 0")
                             exec(f"board.{targets}.passable = True")
-                            pc_rotate(loser_ctrl)
-                            if game_mode == "Classic":
-                                exec(f"{loser_ctrl_temp}['loc'] = 'player_{loser_ctrl}_PC_2'")
-                            elif game_mode == "3v3":
-                                exec(f"{loser_ctrl}['loc'] = 'player_{loser_ctrl}_PC_1'")
-                            self.evolution_check(eval(f"{in_transit}"))
-                            if evo_complete:
-                                print(evo_complete)
-                                exec(f"{in_transit}.update(PKMN_STATS['{evo_complete}'])")
-                                new_evo_path = eval(f"{in_transit}")['spritefile']
-                                exec(f"{in_transit}['stage'] += 1")
+                            pc_rotate(loser_ctrl_temp)
+                            if GlobalVars.game_mode == "Classic":
+                                exec(f"loser_ctrl_temp['loc'] = 'player_{loser_ctrl}_PC_2'")
+                            elif GlobalVars.game_mode == "3v3":
+                                exec(f"loser_ctrl_temp['loc'] = 'player_{loser_ctrl}_PC_1'")
+                            self.evolution_check(GlobalVars.in_transit)
+                            if GlobalVars.evo_complete:
+                                GlobalVars.in_transit.update(GlobalConstants.PKMN_STATS[f'{GlobalVars.evo_complete}'])
+                                new_evo_path = GlobalVars.in_transit['spritefile']
+                                GlobalVars.in_transit['stage'] += 1
 
                                 for x in range(1,10):
-                                    if type(eval(f"{in_transit}['attack{x}power']")) == int:
-                                        if eval(f"{in_transit}['attack{x}color']") == 'White' or eval(f"{in_transit}['attack{x}color']") == 'Gold':
-                                            exec(f"{in_transit}['attack{x}power'] += 10*{in_transit}['stage']")
-                                        elif eval(f"{in_transit}['attack{x}color']") == 'Purple':
-                                            exec(f"{in_transit}['attack{x}power'] += 1*{in_transit}['stage']")
+                                    if type(GlobalVars.in_transit[f'attack{x}power']) == int:
+                                        if GlobalVars.in_transit[f'attack{x}color'] == 'White' or GlobalVars.in_transit[f'attack{x}color'] == 'Gold':
+                                            GlobalVars.in_transit[f'attack{x}power'] += 10*GlobalVars.in_transit['stage']
+                                        elif GlobalVars.in_transit[f'attack{x}color'] == 'Purple':
+                                            GlobalVars.in_transit[f'attack{x}power'] += 1*GlobalVars.in_transit['stage']
                                     else:
                                         continue
                                     
-                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{in_transit[-1]})")
-                                exec(f"self.player_{winner_ctrl}_pkmn_{in_transit[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', SPRITE_SCALING)")
-                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{in_transit[-1]})")
+                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]})")
+                                exec(f"self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', GlobalConstants.SPRITE_SCALING)")
+                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]})")
                                 self.pkmn_list.update()
                         elif winner_check == 2:
                             winner_ctrl_temp = eval(f"board.{targets}.occupant")
-                            winner_ctrl = eval(f"{winner_ctrl_temp}['ctrl']")
-                            loser_ctrl = eval(f"{in_transit}['ctrl']")
-                            gamelog.append(f"Player {loser_ctrl}s Pokemon was sent to the PC.")
-                            exec(f"board.{in_transit_loc}.occupied = False")
-                            exec(f"board.{in_transit_loc}.occupant = ''")
-                            exec(f"board.{in_transit_loc}.occupant_team = 0")
-                            exec(f"board.{in_transit_loc}.ctrl_player = 0")
-                            exec(f"board.{in_transit_loc}.passable = True")
-                            pc_rotate(loser_ctrl)
-                            if game_mode == "Classic":
-                                exec(f"{in_transit}['loc'] = 'player_{loser_ctrl}_PC_2'")
-                            elif game_mode == "3v3":
-                                exec(f"{in_transit}['loc'] = 'player_{loser_ctrl}_PC_1'")
+                            winner_ctrl = winner_ctrl_temp['ctrl']
+                            loser_ctrl = GlobalVars.in_transit['ctrl']
+                            GlobalVars.gamelog.append(f"Player {loser_ctrl}s {GlobalVars.in_transit['name']} was sent to the PC.")
+                            exec(f"board.{GlobalVars.in_transit_loc}.occupied = False")
+                            exec(f"board.{GlobalVars.in_transit_loc}.occupant = ''")
+                            exec(f"board.{GlobalVars.in_transit_loc}.occupant_team = 0")
+                            exec(f"board.{GlobalVars.in_transit_loc}.ctrl_player = 0")
+                            exec(f"board.{GlobalVars.in_transit_loc}.passable = True")
+                            pc_rotate(GlobalVars.in_transit)
+                            if GlobalVars.game_mode == "Classic":
+                                GlobalVars.in_transit['loc'] = f'player_{loser_ctrl}_PC_2'
+                            elif GlobalVars.game_mode == "3v3":
+                                GlobalVars.in_transit['loc'] = f'player_{loser_ctrl}_PC_1'
                             self.evolution_check(winner_ctrl_temp)
-                            if evo_complete:
-                                exec(f"{winner_ctrl_temp}.update(PKMN_STATS['{evo_complete}'])")
-                                new_evo_path = eval(f"{winner_ctrl_temp}")['spritefile']
-                                exec(f"{winner_ctrl_temp}['stage'] += 1")
+                            if GlobalVars.evo_complete:
+                                winner_ctrl_temp.update(GlobalConstants.PKMN_STATS[f'{GlobalVars.evo_complete}'])
+                                new_evo_path = winner_ctrl_temp['spritefile']
+                                winner_ctrl_temp['stage'] += 1
 
                                 for x in range(1,10):
-                                    if type(eval(f"{winner_ctrl_temp}['attack{x}power']")) == int:
-                                        if eval(f"{winner_ctrl_temp}['attack{x}color']") == 'White' or eval(f"{winner_ctrl_temp}['attack{x}color']") == 'Gold':
-                                            exec(f"{winner_ctrl_temp}['attack{x}power'] += 10*{winner_ctrl_temp}['stage']")
-                                        elif eval(f"{winner_ctrl_temp}['attack{x}color']") == 'Purple':
-                                            exec(f"{winner_ctrl_temp}['attack{x}power'] += 1*{winner_ctrl_temp}['stage']")
+                                    if type(winner_ctrl_temp[f'attack{x}power']) == int:
+                                        if winner_ctrl_temp[f'attack{x}color'] == 'White' or winner_ctrl_temp[f'attack{x}color'] == 'Gold':
+                                            winner_ctrl_temp[f'attack{x}power'] += 10*winner_ctrl_temp['stage']
+                                        elif winner_ctrl_temp[f'attack{x}color'] == 'Purple':
+                                            winner_ctrl_temp[f'attack{x}power'] += 1*winner_ctrl_temp['stage']
                                     else:
                                         continue
                                     
-                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp[-1]})")
-                                exec(f"self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', SPRITE_SCALING)")
-                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp[-1]})")
+                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp['orig_loc'][-1]})")
+                                exec(f"self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp['orig_loc'][-1]} = arcade.Sprite('images/sprites/{new_evo_path}', GlobalConstants.SPRITE_SCALING)")
+                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp['orig_loc'][-1]})")
                                 self.pkmn_list.update()
                         elif winner_check == 3:
                             pass
@@ -1256,48 +1197,44 @@ class GameView(arcade.View):
                         elif winner_check == 7:
                             pass
 
-                if unit_moved or unit_attacked:
-                    if turn_player == 1:
-                        turn_player = 2
+                if GlobalVars.unit_moved or GlobalVars.unit_attacked:
+                    if GlobalVars.turn_player == 1:
+                        GlobalVars.turn_player = 2
                         wait_tickdown()
-                    elif turn_player == 2:
-                        turn_player = 1
+                    elif GlobalVars.turn_player == 2:
+                        GlobalVars.turn_player = 1
                         wait_tickdown()
-                attack_click = False
-                in_transit = ''
-                in_transit_loc = ''
-                potential_targets = []
-                unit_moved = False
-                unit_attacked = False
-                attack_click = False
+                GlobalVars.attack_click = False
+                GlobalVars.in_transit = ''
+                GlobalVars.in_transit_loc = ''
+                GlobalVars.potential_targets = []
+                GlobalVars.unit_moved = False
+                GlobalVars.unit_attacked = False
+                GlobalVars.attack_click = False
                 
                 self.pkmn_list.update()
-                self.pkmn_list.draw()
 
-            if player_1_win == True or player_2_win == True:
+            if GlobalVars.player_1_win == True or GlobalVars.player_2_win == True:
                 arcade.close_window()
                 exit()
             
             if board.A4.ctrl_player == 2:
-                player_2_win = True
-                gamelog.append("Player 2 wins! Click anywhere to exit.")
+                GlobalVars.player_2_win = True
+                GlobalVars.gamelog.append("Player 2 wins! Click anywhere to exit.")
                 write_log()
                 self.pkmn_list.update()
-                self.pkmn_list.draw()
                 
             elif board.E4.ctrl_player == 1:
-                player_1_win = True
-                gamelog.append("Player 1 wins! Click anywhere to exit.")
+                GlobalVars.player_1_win = True
+                GlobalVars.gamelog.append("Player 1 wins! Click anywhere to exit.")
                 write_log()
                 self.pkmn_list.update()
-                self.pkmn_list.draw()
 
         elif button == arcade.MOUSE_BUTTON_RIGHT:
-            global stats_x, stats_y
-            
-            stats_x = x
-            stats_y = y
+            GlobalVars.stats_x = x
+            GlobalVars.stats_y = y
             stats_window = StatsWindow(self)
+            
             self.window.show_view(stats_window)
 
 class StatsWindow(arcade.View):
@@ -1305,67 +1242,48 @@ class StatsWindow(arcade.View):
     def __init__(self, game_view):
         super().__init__()
         self.game_view = game_view
-    
-    global stats_x, stats_y
-    
+    #FIX THIS
     def on_draw(self):
         arcade.start_render()
-        for units in dir(player_1_team):
+        stat_text = []
+        for units in dir(GlobalVars.player_1_team):
             if units.startswith("pkmn"):
-                units_loc_str = "player_1_team." + units + "['loc']"
-                units_loc_str = eval(units_loc_str)
-                selected_stats = "player_1_team." + units
-                if stats_x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                              eval(f"board.{units_loc_str}.coords['x']") + 40
-                              ) and stats_y in range(
-                                  eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                  eval(f"board.{units_loc_str}.coords['y']") + 40):
-                    line_counter = 0
-                    selected_stats = eval(selected_stats)
+                selected_stats = eval(f"GlobalVars.player_1_team.{units}")
+                if GlobalVars.stats_x in range(eval(f"board.{selected_stats['loc']}.coords['x']") - 40,
+                              eval(f"board.{selected_stats['loc']}.coords['x']") + 40
+                              ) and GlobalVars.stats_y in range(
+                                  eval(f"board.{selected_stats['loc']}.coords['y']") - 40,
+                                  eval(f"board.{selected_stats['loc']}.coords['y']") + 40):
                     for stats in selected_stats:
                         if selected_stats[stats] != 'null' and selected_stats[stats] != None:
-                            arcade.draw_text(stats + ":    " + str(selected_stats[stats]), 10, 1000 - 12*line_counter, arcade.color.WHITE)
-                            line_counter += 1
-                    line_counter = 0
-        for units in dir(player_2_team):
+                            stat_text.append(stats + ":    " + str(selected_stats[stats]))
+        for units in dir(GlobalVars.player_2_team):
             if units.startswith("pkmn"):
-                units_loc_str = "player_2_team." + units + "['loc']"
-                units_loc_str = eval(units_loc_str)
-                selected_stats = "player_2_team." + units
-                if stats_x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                              eval(f"board.{units_loc_str}.coords['x']") + 40
-                              ) and stats_y in range(
-                                  eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                  eval(f"board.{units_loc_str}.coords['y']") + 40):
+                selected_stats = eval(f"GlobalVars.player_2_team.{units}")
+                if GlobalVars.stats_x in range(eval(f"board.{selected_stats['loc']}.coords['x']") - 40,
+                              eval(f"board.{selected_stats['loc']}.coords['x']") + 40
+                              ) and GlobalVars.stats_y in range(
+                                  eval(f"board.{selected_stats['loc']}.coords['y']") - 40,
+                                  eval(f"board.{selected_stats['loc']}.coords['y']") + 40):
                     line_counter = 0
-                    selected_stats = eval(selected_stats)
                     for stats in selected_stats:
                         if selected_stats[stats] != 'null' and selected_stats[stats] != None:
-                            arcade.draw_text(stats + ":    " + str(selected_stats[stats]), 10, 1000 - 12*line_counter, arcade.color.WHITE)
-                            line_counter += 1
-                    line_counter = 0
+                            new_text = str(stats + ":    " + str(selected_stats[stats]))
+                            if len(new_text) >= 30:
+                                slice_num = len(new_text) // 30
+                                for num in range(slice_num):
+                                    new_text = new_text[:slice_num*30] + "\n" + new_text[slice_num*30:]
+                            print(new_text)
+                            stat_text.append(new_text)
+        stat_text = "\n".join(stat_text)
+        arcade.draw_text(stat_text, 0, 0, arcade.color.WHITE)
 
     def on_mouse_press(self, x, y, button, modifiers):
         self.window.show_view(self.game_view)
 
-"""
-class SetupView(arcade.View):
-
-    def on_show(self):
-        pass
-
-    def on_draw(self):
-        arcade.start_render()
-        arcade.draw_rectangle_filled(SCREEN_WIDTH//4, SCREEN_HEIGHT//4, 100, 75, arcade.color.WHITE)
-           
-    def on_mouse_press(self, x, y, button, modifiers):
-        game = GameView()
-        self.window.show_view(game)
-"""
-
 def main():
     """ Main method """
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Game Start")
+    window = arcade.Window(GlobalConstants.SCREEN_WIDTH, GlobalConstants.SCREEN_HEIGHT, "Game Start")
     game = GameView()
     window.show_view(game)  
     arcade.run()
@@ -1374,24 +1292,20 @@ def on_select_team(player_num, event = None):
 
     if event:
         if player_num == 1:
-            player_1_select = event.widget.get()
+            GlobalVars.player_1_select = event.widget.get()
         elif player_num == 2:
-            player_2_select = event.widget.get()
+            GlobalVars.player_2_select = event.widget.get()
 
 def mode_select():
-
-    global game_mode
     
     def button_click():
-        global game_mode, background_select
-        
         if var.get() == '3v3':
-            game_mode = '3v3'
+            GlobalVars.game_mode = '3v3'
 
         elif var.get() == 'Classic':
-            game_mode = 'Classic'
+            GlobalVars.game_mode = 'Classic'
 
-        background_select = f"images/board/backgrounds/{bg_cb.get()}.png"
+        GlobalVars.background_select = f"images/board/backgrounds/{bg_cb.get()}.png"
         root.destroy()
     
     root = tk.Tk()
@@ -1399,18 +1313,19 @@ def mode_select():
 
     var = tk.StringVar()
     var.set('1')
-
+    print(GlobalConstants.BG_PATH)
     try:
         fn = lambda x: x.split('/')[-1][:-4]
-        background_textures = {fn(k) : k for k in iglob(BG_PATH + "/**/*.png", recursive=True)}
+        background_textures = {fn(k) : k for k in iglob(GlobalConstants.BG_PATH + "/**/*.png", recursive=True)}
         
     except:
+        print("error")
         pass
 
     background_list = []
     
     for items in background_textures.values():
-        background_list.append(items[len(BG_PATH)+1:-4])
+        background_list.append(items[len(GlobalConstants.BG_PATH)+1:-4])
 
     bg_label = ttk.Label(root, text = "Choose Background image from drop-down:")
     bg_label.pack()
@@ -1436,18 +1351,14 @@ def mode_select():
 
 def startup_window():
 
-    global game_mode, player_1_select, player_2_select
-
     def button_click():
-
-        global player_1_select, player_2_select
         
-        player_1_select = p1team_cb.get()
-        player_2_select = p2team_cb.get()
+        GlobalVars.player_1_select = p1team_cb.get()
+        GlobalVars.player_2_select = p2team_cb.get()
         root.destroy()
     
     root = tk.Tk()
-    root.title(f"PoDuReDux: Team Select ({game_mode})")
+    root.title(f"PoDuReDux: Team Select ({GlobalVars.game_mode})")
 
     p1team_label = ttk.Label(root, text = "Player 1 Team:")
     p1team_label.grid(row = 0, column = 0, padx = 30, pady = (30, 10))
@@ -1472,27 +1383,27 @@ def startup_window():
 
 if __name__ == "__main__":
 
+    GlobalConstants = GlobalConstants()
+    GlobalVars = GlobalVars()
+
     mode_select()
     
     team_list = []
-    if game_mode == "Classic":
-        for x in os.listdir(os.path.join(sys.path[0] + "\\saves\\classic_teams\\")):
+    if GlobalVars.game_mode == "Classic":
+        for x in os.listdir(join(abspath(expanduser(sys.path[0])), "saves", "classic_teams")):
             team_list.append(x)
-    elif game_mode == "3v3":
-        for x in os.listdir(os.path.join(sys.path[0] + "\\saves\\3v3_teams\\")):
+    elif GlobalVars.game_mode == "3v3":
+        for x in os.listdir(join(abspath(expanduser(sys.path[0])), "saves", "3v3_teams")):
             team_list.append(x)
-
+    
     startup_window()
     
-    player_1_team = PlayerTeam(1)
-    player_2_team = PlayerTeam(2)
+    GlobalVars.player_1_team = PlayerTeam(1)
+    GlobalVars.player_2_team = PlayerTeam(2)
 
-    player_1_team.TeamUpdate(1)
-    player_2_team.TeamUpdate(2)
-
-    if game_mode == "Classic":
+    if GlobalVars.game_mode == "Classic":
         board = ClassicBoardGenerator()
-    elif game_mode == "3v3":
+    elif GlobalVars.game_mode == "3v3":
         board = TvTBoardGenerator()
 
     main()
