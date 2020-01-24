@@ -56,6 +56,7 @@ class GlobalVars():
         self.in_transit = ''
         self.in_transit_loc = ''
         self.potential_targets = []
+        self.checked_targets = []
         self.move_click = False
         self.attack_click = False
         self.turn_player = random.randint(1,2)
@@ -76,17 +77,6 @@ class GlobalVars():
         self.player_2_team = None
         self.top_range = None
         self.bottom_range = None
-        
-def write_log():
-    log_stamp = time.ctime()
-    log_stamp = log_stamp.replace(' ', '_')
-    log_stamp = log_stamp.replace(':', '-')
-    LOG_PATH = join(abspath(expanduser(sys.path[0])), "saves", "gamelogs", "PoDuReDux_Log_" + f"{log_stamp}" + ".txt")
-    LOG_FILE = open(LOG_PATH, "a+")
-    for lines in GlobalVars.gamelog:
-        lines = lines + "\n"
-        LOG_FILE.write(lines)
-    LOG_FILE.close()
 
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
@@ -435,95 +425,6 @@ class TvTBoardGenerator():
         self.player_2_PC_1 = BoardNeighbors()
         self.player_2_PC_1.coords = {'x': 336, 'y': 840}
 
-def knockback_pathing():
-    """Check pathing for directional knockback effects"""
-    ## PENDING IMPLEMENTATION, NEEDS WORK
-    direction = board.B2.neighbors["C2"]
-    GlobalVars.valid_moves = []
-
-    for x in board.C2.neighbors.keys():
-        if board.C2.neighbors[x] == direction:
-            GlobalVars.valid_moves.append(x)
-        else:
-            continue
-    return GlobalVars.valid_moves
-                    
-    ## output -> ['D2']
-
-def pc_rotate(target):
-
-    for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
-        rotate_target = eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}")
-        if 'PC' in eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}['loc']"):
-            if rotate_target['loc'][-1] == str(2):
-                rotate_target['loc'] = f"player_{target['ctrl']}_PC_1"
-            else:
-                rotate_target['loc'] = rotate_target['orig_loc']
-                if rotate_target['wait'] >= 1:
-                    rotate_target['wait'] += 1
-                else:
-                    rotate_target['wait'] += 2
-        
-
-def wait_tickdown():
-    for x in range(1,3):
-        for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
-            if eval(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait']") != 0:
-                exec(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait'] -= int(1)")
-
-def surround_check(focal_unit):
-    """Checks for surround conditions of a target space"""
-    surround_counter = len(eval(f"board.{focal_unit['loc']}.neighbors.keys()"))
-    for x in eval(f"board.{focal_unit['loc']}.neighbors.keys()"):
-        if eval(f"board.{x}.occupied") == True and eval(f"board.{focal_unit['loc']}.ctrl_player") != eval(f"board.{x}.ctrl_player"):
-            surround_counter -= 1
-        else:
-            continue
-    if surround_counter == 0:
-        return True
-    else:
-        return False
-
-def path_check(loc, move, modifier = 0):
-    """Check all possible paths for various purposes, including movement and teleports"""
-
-    GlobalVars.loop_counter = 0
-
-    del GlobalVars.valid_moves[:]
-    if GlobalVars.first_turn == True:
-        modifier = -1
-        GlobalVars.gamelog.append("First turn: Movement reduced by 1.")
-    else:
-        pass
-
-    def path_iter(loc, move, modifier):
-        next_moves = []
-        for x in loc:
-            if move + modifier == 0:
-                break
-            if eval(f"board.{x}.passable") == True:
-                GlobalVars.valid_moves.append(x)
-                for y in eval(f"board.{x}.neighbors.keys()"):
-                    next_moves.append(y)
-            else:
-                continue
-        GlobalVars.loop_counter += 1
-        if GlobalVars.loop_counter < move + modifier:
-            path_iter(next_moves, modifier, move)
-
-    path_iter(loc, move, modifier)
-    GlobalVars.checked_moves = set(GlobalVars.valid_moves)
-    to_remove = []
-    for possible_moves in GlobalVars.checked_moves:
-        if eval(f"board.{possible_moves}.occupied") == True:
-            to_remove.append(possible_moves)
-        else:
-            continue
-    for invalid_move in to_remove:
-        GlobalVars.checked_moves.remove(invalid_move)
-    GlobalVars.valid_moves.clear()
-    return GlobalVars.checked_moves
-    
 class PlayerTeam():
     """Instantiate class that contains player 1 team and base stats."""
     ## WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
@@ -580,6 +481,103 @@ class PlayerTeam():
                 else:
                     exec(f"self.pkmn{x}['attack{y}origpower'] = 'null'")
 
+def write_log():
+    log_stamp = time.ctime()
+    log_stamp = log_stamp.replace(' ', '_')
+    log_stamp = log_stamp.replace(':', '-')
+    LOG_PATH = join(abspath(expanduser(sys.path[0])), "saves", "gamelogs", "PoDuReDux_Log_" + f"{log_stamp}" + ".txt")
+    LOG_FILE = open(LOG_PATH, "a+")
+    for lines in GlobalVars.gamelog:
+        lines = lines + "\n"
+        LOG_FILE.write(lines)
+    LOG_FILE.close()
+
+def knockback_pathing():
+    """Check pathing for directional knockback effects"""
+    ## PENDING IMPLEMENTATION, NEEDS WORK
+    direction = board.B2.neighbors["C2"]
+    GlobalVars.valid_moves = []
+
+    for x in board.C2.neighbors.keys():
+        if board.C2.neighbors[x] == direction:
+            GlobalVars.valid_moves.append(x)
+        else:
+            continue
+    return GlobalVars.valid_moves
+                    
+    ## output -> ['D2']
+
+def pc_rotate(target):
+
+    for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
+        rotate_target = eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}")
+        if 'PC' in eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}['loc']"):
+            if rotate_target['loc'][-1] == str(2):
+                rotate_target['loc'] = f"player_{target['ctrl']}_PC_1"
+            else:
+                rotate_target['loc'] = rotate_target['orig_loc']
+                if rotate_target['wait'] >= 1:
+                    rotate_target['wait'] += 1
+                else:
+                    rotate_target['wait'] += 2        
+
+def wait_tickdown():
+    for x in range(1,3):
+        for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
+            if eval(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait']") != 0:
+                exec(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait'] -= int(1)")
+
+def surround_check(focal_unit):
+    """Checks for surround conditions of a target space"""
+    surround_counter = len(eval(f"board.{focal_unit['loc']}.neighbors.keys()"))
+    for x in eval(f"board.{focal_unit['loc']}.neighbors.keys()"):
+        if eval(f"board.{x}.occupied") == True and eval(f"board.{focal_unit['loc']}.ctrl_player") != eval(f"board.{x}.ctrl_player"):
+            surround_counter -= 1
+        else:
+            continue
+    if surround_counter == 0:
+        return True
+    else:
+        return False
+
+def path_check(loc, move, modifier = 0):
+    """Check all possible paths for various purposes, including movement and teleports"""
+
+    del GlobalVars.valid_moves[:]
+    if GlobalVars.first_turn == True:
+        modifier = -1
+        GlobalVars.gamelog.append("First turn: Movement reduced by 1.")
+    else:
+        pass
+
+    def path_iter(loc, move, modifier):
+        next_moves = []
+        for x in loc:
+            if move + modifier == 0:
+                break
+            if eval(f"board.{x}.passable") == True:
+                GlobalVars.valid_moves.append(x)
+                for y in eval(f"board.{x}.neighbors.keys()"):
+                    next_moves.append(y)
+            else:
+                continue
+        GlobalVars.loop_counter += 1
+        if GlobalVars.loop_counter < move + modifier:
+            path_iter(next_moves, modifier, move)
+
+    path_iter(loc, move, modifier)
+    GlobalVars.checked_moves = set(GlobalVars.valid_moves)
+    to_remove = []
+    for possible_moves in GlobalVars.checked_moves:
+        if eval(f"board.{possible_moves}.occupied") == True:
+            to_remove.append(possible_moves)
+        else:
+            continue
+    for invalid_move in to_remove:
+        GlobalVars.checked_moves.remove(invalid_move)
+    GlobalVars.valid_moves.clear()
+    GlobalVars.loop_counter = 0
+    
 def spin(combatant):
     """Perform SPIN action for selected unit. Can be applied to effects and battles."""
 
@@ -602,19 +600,38 @@ def spin(combatant):
         else:
             break
 
-def target_finder(combatant, attack_distance = 1):
-    """Checks adjacent spaces for valid attack targets"""
-    ##  TO ADD:
-    ##  attack_distance variable accounts for extended
-    ##  range attackers like Kartana or Aegislash
-    ##  Need to rework function to be recursive for attack distance
-    target_list = []
-    for x in eval(f"board.{combatant['loc']}.neighbors.keys()"):
-        if len(combatant['loc']) == 2 and eval(f"board.{x}.occupied") == True:
-                if eval(f"board.{x}.ctrl_player") != eval(
-                    f"board.{combatant['loc']}.ctrl_player") or 0:
-                    target_list.append(x)
-    return target_list
+def target_finder(combatant_loc, control_player, combatant_targets, attack_distance = 1):
+    """
+    #Checks adjacent spaces for valid attack targets
+    """
+    
+    def target_iter(combatant_targets, attack_distance):
+        next_targets = []
+        for x in combatant_targets:
+            GlobalVars.potential_targets.append(x)
+            for y in eval(f"board.{x}.neighbors.keys()"):
+                next_targets.append(y)
+            else:
+                continue
+        GlobalVars.loop_counter += 1
+        if GlobalVars.loop_counter < attack_distance:
+            target_iter(next_targets, attack_distance)
+
+    if len(combatant_loc) == 2:
+        GlobalVars.potential_targets = []
+        target_iter(combatant_targets, attack_distance)
+        to_remove = []
+        for x in GlobalVars.potential_targets:
+            if eval(f"board.{x}.occupied") == False:
+                to_remove.append(x)
+            elif eval(f"board.{x}.ctrl_player") == control_player:
+                to_remove.append(x)
+            elif eval(f"board.{x}.ctrl_player") == 0:
+                to_remove.append(x)
+        GlobalVars.potential_targets = set(GlobalVars.potential_targets).difference(to_remove)
+    else:
+        GlobalVars.potential_targets = []
+    GlobalVars.loop_counter = 0
 
 def battle_spin_compare(combatant_1, combatant_2):
     """
@@ -998,7 +1015,7 @@ class GameView(arcade.View):
                                     GlobalVars.in_transit = unit
                                     GlobalVars.in_transit_combatant = GlobalVars.in_transit
                                     GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
-                                    GlobalVars.checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
+                                    path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
                                     break
                 elif GlobalVars.turn_player == 2:
                     for units in dir(GlobalVars.player_2_team):
@@ -1017,7 +1034,7 @@ class GameView(arcade.View):
                                     GlobalVars.in_transit = unit
                                     GlobalVars.in_transit_combatant = GlobalVars.in_transit
                                     GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
-                                    GlobalVars.checked_moves = path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
+                                    path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
                                     break
 
                         
@@ -1068,7 +1085,7 @@ class GameView(arcade.View):
                                         elif GlobalVars.game_mode == "3v3":
                                             surround_resolve['loc'] = f'player_{team}_PC_1'
                                         surround_resolve['is_surrounded'] = False
-                        GlobalVars.potential_targets = target_finder(GlobalVars.in_transit)
+                        target_finder(GlobalVars.in_transit['loc'], GlobalVars.in_transit['ctrl'], eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
                         if len(GlobalVars.potential_targets) > 0:
                             GlobalVars.attack_click = True
                         else:
@@ -1093,13 +1110,14 @@ class GameView(arcade.View):
                                                                       eval(f"board.{GlobalVars.in_transit_loc}.coords['x']") + 40) and y in range(
                                                                         eval(f"board.{GlobalVars.in_transit_loc}.coords['y']") - 40,
                                                                         eval(f"board.{GlobalVars.in_transit_loc}.coords['y']") + 40):
-                        GlobalVars.potential_targets = target_finder(GlobalVars.in_transit)
+                        target_finder(GlobalVars.in_transit['loc'], GlobalVars.in_transit['ctrl'], eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
                         if len(GlobalVars.potential_targets) > 0:
                             GlobalVars.attack_click = True
                         else:
                             GlobalVars.in_transit = ''
                             GlobalVars.in_transit_loc = ''
                             GlobalVars.move_click = False
+                            GlobalVars.potential_targets = []
                         
 
                 GlobalVars.move_click = False
@@ -1113,7 +1131,6 @@ class GameView(arcade.View):
                                         eval(f"board.{targets}.coords['y']") - 40, eval(f"board.{targets}.coords['y']") + 40):
                         GlobalVars.unit_attacked = True
                         winner_check = battle_spin_compare(GlobalVars.in_transit_combatant, eval(f'board.{targets}.occupant'))
-
                         #Add effects checks
                         if winner_check == 0:
                             pass
@@ -1313,7 +1330,7 @@ def mode_select():
 
     var = tk.StringVar()
     var.set('1')
-    print(GlobalConstants.BG_PATH)
+
     try:
         fn = lambda x: x.split('/')[-1][:-4]
         background_textures = {fn(k) : k for k in iglob(GlobalConstants.BG_PATH + "/**/*.png", recursive=True)}
