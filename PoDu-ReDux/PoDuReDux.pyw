@@ -1166,7 +1166,7 @@ class GameView(arcade.View):
                                         continue
                                     
                                 exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]})")
-                                exec(f"self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit[-1]} = arcade.Sprite('images/sprites/{new_evo_path}', GlobalConstants.SPRITE_SCALING)")
+                                exec(f"self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]} = arcade.Sprite('images/sprites/{new_evo_path}', GlobalConstants.SPRITE_SCALING)")
                                 exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]})")
                                 self.pkmn_list.update()
                         elif winner_check == 2:
@@ -1248,11 +1248,26 @@ class GameView(arcade.View):
                 self.pkmn_list.update()
 
         elif button == arcade.MOUSE_BUTTON_RIGHT:
+            """
             GlobalVars.stats_x = x
             GlobalVars.stats_y = y
             stats_window = StatsWindow(self)
             
             self.window.show_view(stats_window)
+            """
+            for team in range(1,3):
+                for units in dir(eval(f"GlobalVars.player_{team}_team")):
+                    if units.startswith("pkmn"):
+                        unit = eval(f"GlobalVars.player_{team}_team.{units}")
+                        units_loc_str = unit['loc']
+                        if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
+                                      eval(f"board.{units_loc_str}.coords['x']") + 40
+                                      ) and y in range(
+                                          eval(f"board.{units_loc_str}.coords['y']") - 40,
+                                          eval(f"board.{units_loc_str}.coords['y']") + 40):
+                            stats_window(unit)
+                            break
+            
 
 class StatsWindow(arcade.View):
 
@@ -1397,7 +1412,73 @@ def startup_window():
     gamestart_button.grid(row=3, column=1, padx = 30, pady = (10, 30))
     
     root.mainloop()
+def stats_window(target_figure):
 
+    root = tk.Tk()
+    root.title("Stats Window")
+
+    GlobalVars.loop_counter = 0
+    column_var = 0
+    for attribute in target_figure.keys():
+        if attribute.startswith("attack") == False:
+            attr_val = target_figure[attribute]
+            if attribute == 'ability':
+                attr_val = '\n'.join(attr_val[i:i+30] for i in range(0, len(attr_val), 30))
+            if attr_val != None:
+                attr_str = str(attribute)
+                attr_str = attr_str.replace('-', "_")
+                exec(f"{attr_str}_label = ttk.Label(root, text = attr_str)")
+                exec(f"{attr_str}_label.grid(row = GlobalVars.loop_counter, column = column_var)")
+                exec(f"{attr_str}_content = ttk.Label(root, text = attr_val)")
+                exec(f"{attr_str}_content.grid(row = GlobalVars.loop_counter, column = column_var + 1)")
+        GlobalVars.loop_counter += 1
+    
+    for attr_index in range(1,10):
+        if target_figure[f'attack{attr_index}name'] != None:
+
+            effect_text = target_figure[f'attack{attr_index}effect']
+            if effect_text != None:
+                effect_text = '\n'.join(effect_text[i:i+30] for i in range(0, len(effect_text), 30))
+            
+            
+            #Name
+            exec(f"attack{attr_index}name_label = ttk.Label(root, text = f'Attack {attr_index} Name:')")
+            exec(f"attack{attr_index}name_label.grid(row = GlobalVars.loop_counter, column = 0)")
+            exec(f"attack{attr_index}name_content = ttk.Label(root, text = target_figure['attack{attr_index}name'])")
+            exec(f"attack{attr_index}name_content.grid(row = GlobalVars.loop_counter + 1, column = 0)")
+
+            #Color
+            exec(f"attack{attr_index}color_label = ttk.Label(root, text = f'Attack {attr_index} Color:')")
+            exec(f"attack{attr_index}color_label.grid(row = GlobalVars.loop_counter, column = 1)")
+            exec(f"attack{attr_index}color_content = ttk.Label(root, text = target_figure['attack{attr_index}color'])")
+            exec(f"attack{attr_index}color_content.grid(row = GlobalVars.loop_counter + 1, column = 1)")
+
+            #Size
+            exec(f"attack{attr_index}size_label = ttk.Label(root, text = f'Attack {attr_index} Size:')")
+            exec(f"attack{attr_index}size_label.grid(row = GlobalVars.loop_counter, column = 2)")
+            exec(f"attack{attr_index}size_content = ttk.Label(root, text = target_figure['attack{attr_index}size'])")
+            exec(f"attack{attr_index}size_content.grid(row = GlobalVars.loop_counter + 1, column = 2)")
+
+            #Power
+            exec(f"attack{attr_index}power_label = ttk.Label(root, text = f'Attack {attr_index} Power:')")
+            exec(f"attack{attr_index}power_label.grid(row = GlobalVars.loop_counter, column = 3)")
+            exec(f"attack{attr_index}power_content = ttk.Label(root, text = target_figure['attack{attr_index}power'])")
+            exec(f"attack{attr_index}power_content.grid(row = GlobalVars.loop_counter + 1, column = 3)")
+
+            #Effect
+            exec(f"attack{attr_index}effect_label = ttk.Label(root, text = f'Attack {attr_index} Effect:')")
+            exec(f"attack{attr_index}effect_label.grid(row = GlobalVars.loop_counter, column = 4)")
+            exec(f"attack{attr_index}effect_content = ttk.Label(root, text = effect_text)")
+            exec(f"attack{attr_index}effect_content.grid(row = GlobalVars.loop_counter + 1, column = 4)")
+
+            GlobalVars.loop_counter += 2
+
+    GlobalVars.loop_counter = 0
+
+    display_img = tk.PhotoImage(file = f"images/Sprites/{target_figure['spritefile']}")
+    img_label = ttk.Label(root, image = display_img)
+    img_label.grid(row = 2, column = 4)
+    root.mainloop()
 if __name__ == "__main__":
 
     GlobalConstants = GlobalConstants()
