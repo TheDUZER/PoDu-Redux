@@ -26,16 +26,6 @@ import tkinter as tk
 from tkinter import ttk
 import arcade, json, sys, os, random, time
 
-
-"""
-Class to replace globals? Use this method to replace calls to teams?
-
-class GlobalVars:
-    GlobalVars.valid_moves = []
-    GlobalVars.turn_player = 1
-
-GlobalVars.GlobalVars.turn_player = 2
-"""
 class GlobalConstants():
     def __init__(self):
         self.SPRITE_SCALING = 2.5
@@ -918,7 +908,9 @@ class GameView(arcade.View):
 
         line_counter = 0
         for lines in GlobalVars.gamelog[::-1]:
-            arcade.draw_text(lines, 1030, 40 + line_counter*16, arcade.color.WHITE, font_name = "Arial")
+            lines_text = '\n'.join(lines[i:i+45] for i in range(0, len(lines), 45))
+            line_counter += len(lines_text.split('\n'))
+            arcade.draw_text(lines_text, 1030, 40 + line_counter*16, arcade.color.WHITE, font_name = "Arial")
             line_counter += 1
             if line_counter == 70:
                 break
@@ -996,7 +988,6 @@ class GameView(arcade.View):
         """
 
         if button == arcade.MOUSE_BUTTON_LEFT:
-            #GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player} turn.")
             if not GlobalVars.move_click and not GlobalVars.attack_click:
                 if GlobalVars.turn_player == 1:
                     for units in dir(GlobalVars.player_1_team):
@@ -1089,14 +1080,17 @@ class GameView(arcade.View):
                         if len(GlobalVars.potential_targets) > 0:
                             GlobalVars.attack_click = True
                         else:
+                            linebreak_text = '='*5
                             if GlobalVars.turn_player == 1:
                                 GlobalVars.turn_player = 2
+                                GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
                                 wait_tickdown()
                                 if GlobalVars.first_turn:
                                     if len(GlobalVars.in_transit_loc) == 2:
                                         GlobalVars.first_turn = False
                             elif GlobalVars.turn_player == 2:
                                 GlobalVars.turn_player = 1
+                                GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
                                 wait_tickdown()
                                 if GlobalVars.first_turn:
                                     if len(GlobalVars.in_transit_loc) == 2:
@@ -1215,11 +1209,14 @@ class GameView(arcade.View):
                             pass
 
                 if GlobalVars.unit_moved or GlobalVars.unit_attacked:
+                    linebreak_text = "="*5
                     if GlobalVars.turn_player == 1:
                         GlobalVars.turn_player = 2
+                        GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
                         wait_tickdown()
                     elif GlobalVars.turn_player == 2:
                         GlobalVars.turn_player = 1
+                        GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
                         wait_tickdown()
                 GlobalVars.attack_click = False
                 GlobalVars.in_transit = ''
@@ -1248,13 +1245,6 @@ class GameView(arcade.View):
                 self.pkmn_list.update()
 
         elif button == arcade.MOUSE_BUTTON_RIGHT:
-            """
-            GlobalVars.stats_x = x
-            GlobalVars.stats_y = y
-            stats_window = StatsWindow(self)
-            
-            self.window.show_view(stats_window)
-            """
             for team in range(1,3):
                 for units in dir(eval(f"GlobalVars.player_{team}_team")):
                     if units.startswith("pkmn"):
@@ -1267,51 +1257,6 @@ class GameView(arcade.View):
                                           eval(f"board.{units_loc_str}.coords['y']") + 40):
                             stats_window(unit)
                             break
-            
-
-class StatsWindow(arcade.View):
-
-    def __init__(self, game_view):
-        super().__init__()
-        self.game_view = game_view
-    #FIX THIS
-    def on_draw(self):
-        arcade.start_render()
-        stat_text = []
-        for units in dir(GlobalVars.player_1_team):
-            if units.startswith("pkmn"):
-                selected_stats = eval(f"GlobalVars.player_1_team.{units}")
-                if GlobalVars.stats_x in range(eval(f"board.{selected_stats['loc']}.coords['x']") - 40,
-                              eval(f"board.{selected_stats['loc']}.coords['x']") + 40
-                              ) and GlobalVars.stats_y in range(
-                                  eval(f"board.{selected_stats['loc']}.coords['y']") - 40,
-                                  eval(f"board.{selected_stats['loc']}.coords['y']") + 40):
-                    for stats in selected_stats:
-                        if selected_stats[stats] != 'null' and selected_stats[stats] != None:
-                            stat_text.append(stats + ":    " + str(selected_stats[stats]))
-        for units in dir(GlobalVars.player_2_team):
-            if units.startswith("pkmn"):
-                selected_stats = eval(f"GlobalVars.player_2_team.{units}")
-                if GlobalVars.stats_x in range(eval(f"board.{selected_stats['loc']}.coords['x']") - 40,
-                              eval(f"board.{selected_stats['loc']}.coords['x']") + 40
-                              ) and GlobalVars.stats_y in range(
-                                  eval(f"board.{selected_stats['loc']}.coords['y']") - 40,
-                                  eval(f"board.{selected_stats['loc']}.coords['y']") + 40):
-                    line_counter = 0
-                    for stats in selected_stats:
-                        if selected_stats[stats] != 'null' and selected_stats[stats] != None:
-                            new_text = str(stats + ":    " + str(selected_stats[stats]))
-                            if len(new_text) >= 30:
-                                slice_num = len(new_text) // 30
-                                for num in range(slice_num):
-                                    new_text = new_text[:slice_num*30] + "\n" + new_text[slice_num*30:]
-                            print(new_text)
-                            stat_text.append(new_text)
-        stat_text = "\n".join(stat_text)
-        arcade.draw_text(stat_text, 0, 0, arcade.color.WHITE)
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        self.window.show_view(self.game_view)
 
 def main():
     """ Main method """
