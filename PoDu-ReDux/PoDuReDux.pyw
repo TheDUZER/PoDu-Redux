@@ -87,6 +87,17 @@ class BoardNeighbors():
 
 class ClassicBoardGenerator():
     """Create board object with space labels and adjusted bools for special spaces"""
+    """
+    NOTES ABOUT VALUE OF NEIGHBOR KEYS (long overdue / overlooked)
+        -example: A1.neighbors['B1'] is 1, which means that
+        B1 is directly north of A1. Moving clockwise, 2 is
+        NE, 3 is E, 4 is SE, etc etc until 8 for NW.
+        -Knockback path checking uses this number. The yet unused
+        knockback function checks the direction of the target space
+        from the point of attack initiation for consideration of
+        effects like Psychic Shove or my custom Donphan's
+        charging mechanics.
+    """
     def __init__(self):
         self.A1 = BoardNeighbors({"B1":1, "B2":2, "A2":3})
         self.A1.player_1_entry = True
