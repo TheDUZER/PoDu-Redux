@@ -10,11 +10,14 @@ TODO LATER...:
     Priorities:
     -Fly / Fly Away / Telekinesis effects
     -Knockback / Psychic Shove
-    -Wait / Markers
+    -Markers
     -Status Affliction
     -Respin (forced, tactical, Swords Dance, Fire Spin, etc)
     -Swap (Abra, Gardevoir)
     -Draco Meteor effects
+
+    DONE:
+    -Simple Wait effects (Purple / Blue; other colors' simple Wait effects in place but not implemented yet)
 
 -PACKAGING / HOSTING
     -UUUGGGHHHH
@@ -67,6 +70,8 @@ class GlobalVars():
         self.player_2_team = None
         self.top_range = None
         self.bottom_range = None
+        self.attacker_current_spin = None
+        self.defender_current_spin = None
 
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
@@ -465,6 +470,8 @@ class PlayerTeam():
             else:
                 continue
         for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
+            if eval(f"self.pkmn{x}['name']") == 'Reshiram' or eval(f"self.pkmn{x}['name']") == 'Zekrom':
+                exec(f"self.pkmn{x}['wait'] = 9")
             for y in range(1,10):
                 if eval(f"self.pkmn{x}['attack{y}power']") != 'null':
                     exec(f"self.pkmn{x}['attack{y}origpower'] = self.pkmn{x}['attack{y}power']")
@@ -510,6 +517,9 @@ def pc_rotate(target):
                     rotate_target['wait'] += 1
                 else:
                     rotate_target['wait'] += 2        
+def apply_wait(target, duration = 2):
+    target['wait'] += duration
+    GlobalVars.gamelog.append(f"{target['name']} gained Wait {duration - 1}.")
 
 def wait_tickdown():
     for x in range(1,3):
@@ -643,9 +653,11 @@ def battle_spin_compare(combatant_1, combatant_2):
 
     GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) attacked Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]})")
     combatant_1_attack = spin(combatant_1)
+    GlobalVars.attacker_current_spin = combatant_1_attack
     GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
     GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
     combatant_2_attack = spin(combatant_2)
+    GlobalVars.defender_current_spin = combatant_2_attack
     GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
     GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
     
@@ -765,7 +777,7 @@ def battle_spin_compare(combatant_1, combatant_2):
                 GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
             return 3
         elif combatant_2_color == "Red":
             GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
@@ -910,7 +922,7 @@ class GameView(arcade.View):
         for lines in GlobalVars.gamelog[::-1]:
             lines_text = '\n'.join(lines[i:i+45] for i in range(0, len(lines), 45))
             line_counter += len(lines_text.split('\n'))
-            arcade.draw_text(lines_text, 1030, 40 + line_counter*16, arcade.color.WHITE, font_name = "Arial")
+            arcade.draw_text(lines_text, 1030, 40 + line_counter*20, arcade.color.WHITE, font_name = "Arial")
             line_counter += 1
             if line_counter == 70:
                 break
@@ -1202,9 +1214,17 @@ class GameView(arcade.View):
                         elif winner_check == 4:
                             pass
                         elif winner_check == 5:
-                            pass
+                            effect_user = GlobalVars.in_transit
+                            target_opponent = eval(f"board.{targets}.occupant")
+                            if len(effect_user[f'attack{GlobalVars.attacker_current_spin}funcs']) != 0:
+                                for effects in effect_user[f'attack{GlobalVars.attacker_current_spin}funcs']:
+                                    exec(effects)
                         elif winner_check == 6:
-                            pass
+                            effect_user = eval(f"board.{targets}.occupant")
+                            target_opponent = GlobalVars.in_transit
+                            if len(effect_user[f'attack{GlobalVars.defender_current_spin}funcs']) != 0:
+                                for effects in effect_user[f'attack{GlobalVars.defender_current_spin}funcs']:
+                                    exec(effects)
                         elif winner_check == 7:
                             pass
 
