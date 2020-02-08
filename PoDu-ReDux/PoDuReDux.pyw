@@ -75,9 +75,9 @@ class GlobalVars():
 
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
-    def __init__(self, neighbors = {}):
+    def __init__(self, coords, neighbors = {}):
         self.neighbors = neighbors
-        self.coords = {}
+        self.coords = coords
         self.force_stop = False
         self.force_attack = False
         self.occupied = False
@@ -91,12 +91,15 @@ class BoardNeighbors():
         self.player_2_goal = False
 
 class ClassicBoardGenerator():
-    """Create board object with space labels and adjusted bools for special spaces"""
     """
-    NOTES ABOUT VALUE OF NEIGHBOR KEYS (long overdue / overlooked)
-        -example: A1.neighbors['B1'] is 1, which means that
+    Create board object with space labels and adjusted bools for special spaces
+
+        NOTES ABOUT VALUE OF NEIGHBOR KEYS (long overdue / overlooked):
+        
+        -Example: board.A1.neighbors['B1'] is 1, which means that
         B1 is directly north of A1. Moving clockwise, 2 is
         NE, 3 is E, 4 is SE, etc etc until 8 for NW.
+        
         -Knockback path checking uses this number. The yet unused
         knockback function checks the direction of the target space
         from the point of attack initiation for consideration of
@@ -104,332 +107,216 @@ class ClassicBoardGenerator():
         charging mechanics.
     """
     def __init__(self):
-        self.A1 = BoardNeighbors({"B1":1, "B2":2, "A2":3})
+        self.A1 = BoardNeighbors({'x': 290, 'y': 294}, {"B1":1, "B2":2, "A2":3})
         self.A1.player_1_entry = True
-        self.A1.coords = {'x': 290, 'y': 294}
-        self.A2 = BoardNeighbors({"A1":7, "A3":3})
-        self.A2.coords = {'x': 365, 'y': 293}
-        self.A3 = BoardNeighbors({"A2":7, "A4":3})
-        self.A3.coords = {'x': 436, 'y': 293}
-        self.A4 = BoardNeighbors({"A3":7, "A5":3})
+        self.A2 = BoardNeighbors({'x': 365, 'y': 293}, {"A1":7, "A3":3})
+        self.A3 = BoardNeighbors({'x': 436, 'y': 293}, {"A2":7, "A4":3})
+        self.A4 = BoardNeighbors({'x': 512, 'y': 293}, {"A3":7, "A5":3})
         self.A4.player_1_goal = True
-        self.A4.coords = {'x': 512, 'y': 293}
-        self.A5 = BoardNeighbors({"A4":7, "A6":3, "B4":1})
-        self.A5.coords = {'x': 586, 'y': 293}
-        self.A6 = BoardNeighbors({"A5":7, "A7":3})
-        self.A6.coords = {'x': 658, 'y': 293}
-        self.A7 = BoardNeighbors({"A6":7, "B6":8, "B7":1})
+        self.A5 = BoardNeighbors({'x': 586, 'y': 293}, {"A4":7, "A6":3, "B4":1})
+        self.A6 = BoardNeighbors({'x': 658, 'y': 293}, {"A5":7, "A7":3})
+        self.A7 = BoardNeighbors({'x': 732, 'y': 293}, {"A6":7, "B6":8, "B7":1})
         self.A7.player_1_entry = True
-        self.A7.coords = {'x': 732, 'y': 293}
         
-        self.B1 = BoardNeighbors({"A1":5, "C1":1})
-        self.B1.coords = {'x': 290, 'y': 414}
-        self.B2 = BoardNeighbors({"A1":6, "B4":3, "C2":1})
-        self.B2.coords = {'x': 400, 'y': 414}
-        self.B4 = BoardNeighbors({"B2":7, "A5":5, "B6":3})
-        self.B4.coords = {'x': 512, 'y': 414}
-        self.B6 = BoardNeighbors({"B4":7, "A7":5, "C6":1})
-        self.B6.coords = {'x': 625, 'y': 414}
-        self.B7 = BoardNeighbors({"A7":5, "C7":1})
-        self.B7.coords = {'x': 732, 'y': 414}
+        self.B1 = BoardNeighbors({'x': 290, 'y': 414}, {"A1":5, "C1":1})
+        self.B2 = BoardNeighbors({'x': 400, 'y': 414}, {"A1":6, "B4":3, "C2":1})
+        self.B4 = BoardNeighbors({'x': 512, 'y': 414}, {"B2":7, "A5":5, "B6":3})
+        self.B6 = BoardNeighbors({'x': 625, 'y': 414}, {"B4":7, "A7":5, "C6":1})
+        self.B7 = BoardNeighbors({'x': 732, 'y': 414}, {"A7":5, "C7":1}) 
         
-        self.C1 = BoardNeighbors({"B1":5, "D1":1})
-        self.C1.coords = {'x': 290, 'y': 514}
-        self.C2 = BoardNeighbors({"B2":5, "D2":1})
-        self.C2.coords = {'x': 400, 'y': 514}
-        self.C6 = BoardNeighbors({"B6":5, "D6":1})
-        self.C6.coords = {'x': 625, 'y': 514}
-        self.C7 = BoardNeighbors({"B7":5, "D7":1})
-        self.C7.coords = {'x': 732, 'y': 514}
+        self.C1 = BoardNeighbors({'x': 290, 'y': 514}, {"B1":5, "D1":1}) 
+        self.C2 = BoardNeighbors({'x': 400, 'y': 514}, {"B2":5, "D2":1})
+        self.C6 = BoardNeighbors({'x': 625, 'y': 514}, {"B6":5, "D6":1}) 
+        self.C7 = BoardNeighbors({'x': 732, 'y': 514}, {"B7":5, "D7":1})
         
-        self.D1 = BoardNeighbors({"E1":1, "C1":5})
-        self.D1.coords = {'x': 290, 'y': 614}
-        self.D2 = BoardNeighbors({"E1":8, "D4":3, "C2":5})
-        self.D2.coords = {'x': 400, 'y': 614}
-        self.D4 = BoardNeighbors({"D2":7, "E3":1, "D6":3})
-        self.D4.coords = {'x': 512, 'y': 614}
-        self.D6 = BoardNeighbors({"D4":7, "E7":2, "C6":5})
-        self.D6.coords = {'x': 625, 'y': 614}
-        self.D7 = BoardNeighbors({"C7":5, "E7":1})
-        self.D7.coords = {'x': 732, 'y': 614}
+        self.D1 = BoardNeighbors({'x': 290, 'y': 614}, {"E1":1, "C1":5})
+        self.D2 = BoardNeighbors({'x': 400, 'y': 614}, {"E1":8, "D4":3, "C2":5})
+        self.D4 = BoardNeighbors({'x': 512, 'y': 614}, {"D2":7, "E3":1, "D6":3})
+        self.D6 = BoardNeighbors({'x': 625, 'y': 614}, {"D4":7, "E7":2, "C6":5})
+        self.D7 = BoardNeighbors({'x': 732, 'y': 614}, {"C7":5, "E7":1})
         
-        self.E1 = BoardNeighbors({"D1":5, "E2":3, "D2":4})
+        self.E1 = BoardNeighbors({'x': 290, 'y': 731}, {"D1":5, "E2":3, "D2":4})
         self.E1.player_2_entry = True
-        self.E1.coords = {'x': 290, 'y': 731}
-        self.E2 = BoardNeighbors({"E1":7, "E3":3})
-        self.E2.coords = {'x': 365, 'y': 731}
-        self.E3 = BoardNeighbors({"E2":7, "E4":3, "D4":5})
-        self.E3.coords = {'x': 436, 'y': 731}
-        self.E4 = BoardNeighbors({"E3":7, "E5":3})
+        self.E2 = BoardNeighbors({'x': 365, 'y': 731}, {"E1":7, "E3":3})
+        self.E3 = BoardNeighbors({'x': 436, 'y': 731}, {"E2":7, "E4":3, "D4":5})
+        self.E4 = BoardNeighbors({'x': 512, 'y': 731}, {"E3":7, "E5":3})
         self.E4.player_2_goal = True
-        self.E4.coords = {'x': 512, 'y': 731}
-        self.E5 = BoardNeighbors({"E4":7, "E6":3})
-        self.E5.coords = {'x': 586, 'y': 731}
-        self.E6 = BoardNeighbors({"E5":7, "E7":3})
-        self.E6.coords = {'x': 658, 'y': 731}
-        self.E7 = BoardNeighbors({"E6":7, "D6":6, "D7":5})
+        self.E5 = BoardNeighbors({'x': 586, 'y': 731}, {"E4":7, "E6":3})
+        self.E6 = BoardNeighbors({'x': 658, 'y': 731}, {"E5":7, "E7":3})
+        self.E7 = BoardNeighbors({'x': 732, 'y': 731}, {"E6":7, "D6":6, "D7":5})
         self.E7.player_2_entry = True
-        self.E7.coords = {'x': 732, 'y': 731}
         
-        self.player_1_bench_1 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_1 = BoardNeighbors({'x': 311, 'y': 183}, {'A1':None, 'A7':None})
         self.player_1_bench_1.occupant = GlobalVars.player_1_team.pkmn1
         self.player_1_bench_1.occupant_team = 1
         self.player_1_bench_1.occupied = True
-        self.player_1_bench_1.coords = {'x': 311, 'y': 183}
-        self.player_1_bench_2 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_2 = BoardNeighbors({'x': 411, 'y': 183}, {'A1':None, 'A7':None})
         self.player_1_bench_2.occupant = GlobalVars.player_1_team.pkmn2
         self.player_1_bench_2.occupant_team = 1
         self.player_1_bench_2.occupied = True
-        self.player_1_bench_2.coords = {'x': 411, 'y': 183}
-        self.player_1_bench_3 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_3 = BoardNeighbors({'x': 511, 'y': 183}, {'A1':None, 'A7':None})
         self.player_1_bench_3.occupant = GlobalVars.player_1_team.pkmn3
         self.player_1_bench_3.occupant_team = 1
         self.player_1_bench_3.occupied = True
-        self.player_1_bench_3.coords = {'x': 511, 'y': 183}
-        self.player_1_bench_4 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_4 = BoardNeighbors({'x': 360, 'y': 110}, {'A1':None, 'A7':None})
         self.player_1_bench_4.occupant = GlobalVars.player_1_team.pkmn4
         self.player_1_bench_4.occupant_team = 1
         self.player_1_bench_4.occupied = True
-        self.player_1_bench_4.coords = {'x': 360, 'y': 110}
-        self.player_1_bench_5 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_5 = BoardNeighbors({'x': 460, 'y': 110}, {'A1':None, 'A7':None})
         self.player_1_bench_5.occupant = GlobalVars.player_1_team.pkmn5
         self.player_1_bench_5.occupant_team = 1
         self.player_1_bench_5.occupied = True
-        self.player_1_bench_5.coords = {'x': 460, 'y': 110}
-        self.player_1_bench_6 = BoardNeighbors({'A1':None, 'A7':None})
+        self.player_1_bench_6 = BoardNeighbors({'x': 560, 'y': 110}, {'A1':None, 'A7':None})
         self.player_1_bench_6.occupant = GlobalVars.player_1_team.pkmn6
         self.player_1_bench_6.occupant_team = 1
         self.player_1_bench_6.occupied = True
-        self.player_1_bench_6.coords = {'x': 560, 'y': 110}
         
-        self.player_2_bench_1 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_1 = BoardNeighbors({'x': 715, 'y': 845}, {'E1':None, 'E7':None})
         self.player_2_bench_1.occupant = GlobalVars.player_2_team.pkmn1
         self.player_2_bench_1.occupant_team = 2
         self.player_2_bench_1.occupied = True
-        self.player_2_bench_1.coords = {'x': 715, 'y': 845}
-        self.player_2_bench_2 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_2 = BoardNeighbors({'x': 615, 'y': 845}, {'E1':None, 'E7':None})
         self.player_2_bench_2.occupant = GlobalVars.player_2_team.pkmn2
         self.player_2_bench_2.occupant_team = 2
         self.player_2_bench_2.occupied = True
-        self.player_2_bench_2.coords = {'x': 615, 'y': 845}
-        self.player_2_bench_3 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_3 = BoardNeighbors({'x': 515, 'y': 845}, {'E1':None, 'E7':None})
         self.player_2_bench_3.occupant = GlobalVars.player_2_team.pkmn3
         self.player_2_bench_3.occupant_team = 2
         self.player_2_bench_3.occupied = True
-        self.player_2_bench_3.coords = {'x': 515, 'y': 845}
-        self.player_2_bench_4 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_4 = BoardNeighbors({'x': 661, 'y': 921}, {'E1':None, 'E7':None})
         self.player_2_bench_4.occupant = GlobalVars.player_2_team.pkmn4
         self.player_2_bench_4.occupant_team = 2
         self.player_2_bench_4.occupied = True
-        self.player_2_bench_4.coords = {'x': 661, 'y': 921}
-        self.player_2_bench_5 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_5 = BoardNeighbors({'x': 561, 'y': 921}, {'E1':None, 'E7':None})
         self.player_2_bench_5.occupant = GlobalVars.player_2_team.pkmn5
         self.player_2_bench_5.occupant_team = 2
         self.player_2_bench_5.occupied = True
-        self.player_2_bench_5.coords = {'x': 561, 'y': 921}
-        self.player_2_bench_6 = BoardNeighbors({'E1':None, 'E7':None})
+        self.player_2_bench_6 = BoardNeighbors({'x': 461, 'y': 921}, {'E1':None, 'E7':None})
         self.player_2_bench_6.occupant = GlobalVars.player_2_team.pkmn6
         self.player_2_bench_6.occupant_team = 2
         self.player_2_bench_6.occupied = True
-        self.player_2_bench_6.coords = {'x': 461, 'y': 921}
         
-        self.player_1_ultra_space_1 = BoardNeighbors()
-        self.player_1_ultra_space_1.coords = {'x': 900, 'y': 280}
-        self.player_1_ultra_space_2 = BoardNeighbors()
-        self.player_1_ultra_space_2.coords = {'x': 975, 'y': 240}
-        self.player_1_ultra_space_3 = BoardNeighbors()
-        self.player_1_ultra_space_3.coords = {'x': 900, 'y': 185}
-        self.player_1_ultra_space_4 = BoardNeighbors()
-        self.player_1_ultra_space_4.coords = {'x': 975, 'y': 100}
-        self.player_1_ultra_space_5 = BoardNeighbors()
-        self.player_1_ultra_space_5.coords = {'x': 900, 'y': 140}
-        self.player_1_ultra_space_6 = BoardNeighbors()
-        self.player_1_ultra_space_6.coords = {'x': 975, 'y': 55}
+        self.player_1_ultra_space_1 = BoardNeighbors({'x': 900, 'y': 280})
+        self.player_1_ultra_space_2 = BoardNeighbors({'x': 975, 'y': 240})
+        self.player_1_ultra_space_3 = BoardNeighbors({'x': 900, 'y': 185})
+        self.player_1_ultra_space_4 = BoardNeighbors({'x': 975, 'y': 100})
+        self.player_1_ultra_space_5 = BoardNeighbors({'x': 900, 'y': 140})
+        self.player_1_ultra_space_6 = BoardNeighbors({'x': 975, 'y': 55})
         
-        self.player_2_ultra_space_1 = BoardNeighbors()
-        self.player_2_ultra_space_1.coords = {'x': 124, 'y': 752}
-        self.player_2_ultra_space_2 = BoardNeighbors()
-        self.player_2_ultra_space_2.coords = {'x': 50, 'y': 794}
-        self.player_2_ultra_space_3 = BoardNeighbors()
-        self.player_2_ultra_space_3.coords = {'x': 124, 'y': 843}
-        self.player_2_ultra_space_4 = BoardNeighbors()
-        self.player_2_ultra_space_4.coords = {'x': 50, 'y': 886}
-        self.player_2_ultra_space_5 = BoardNeighbors()
-        self.player_2_ultra_space_5.coords = {'x': 124, 'y': 940}
-        self.player_2_ultra_space_6 = BoardNeighbors()
-        self.player_2_ultra_space_6.coords = {'x': 50, 'y': 975}
+        self.player_2_ultra_space_1 = BoardNeighbors({'x': 124, 'y': 752})
+        self.player_2_ultra_space_2 = BoardNeighbors({'x': 50, 'y': 794})
+        self.player_2_ultra_space_3 = BoardNeighbors({'x': 124, 'y': 843})
+        self.player_2_ultra_space_4 = BoardNeighbors({'x': 50, 'y': 886})
+        self.player_2_ultra_space_5 = BoardNeighbors({'x': 124, 'y': 940})
+        self.player_2_ultra_space_6 = BoardNeighbors({'x': 50, 'y': 975})
         
-        self.player_1_eliminated_1 = BoardNeighbors()
-        self.player_1_eliminated_1.coords = {'x': 124, 'y': 280}
-        self.player_1_eliminated_2 = BoardNeighbors()
-        self.player_1_eliminated_2.coords = {'x': 50, 'y': 240}
-        self.player_1_eliminated_3 = BoardNeighbors()
-        self.player_1_eliminated_3.coords = {'x': 124, 'y': 185}
-        self.player_1_eliminated_4 = BoardNeighbors()
-        self.player_1_eliminated_4.coords = {'x': 50, 'y': 100}
-        self.player_1_eliminated_5 = BoardNeighbors()
-        self.player_1_eliminated_5.coords = {'x': 124, 'y': 140}
-        self.player_1_eliminated_6 = BoardNeighbors()
-        self.player_1_eliminated_6.coords = {'x': 50, 'y': 55}
+        self.player_1_eliminated_1 = BoardNeighbors({'x': 124, 'y': 280})
+        self.player_1_eliminated_2 = BoardNeighbors({'x': 50, 'y': 240})
+        self.player_1_eliminated_3 = BoardNeighbors({'x': 124, 'y': 185})
+        self.player_1_eliminated_4 = BoardNeighbors({'x': 50, 'y': 100})
+        self.player_1_eliminated_5 = BoardNeighbors({'x': 124, 'y': 140})
+        self.player_1_eliminated_6 = BoardNeighbors({'x': 50, 'y': 55})
         
-        self.player_2_eliminated_1 = BoardNeighbors()
-        self.player_2_eliminated_1.coords = {'x': 900, 'y': 752}
-        self.player_2_eliminated_2 = BoardNeighbors()
-        self.player_2_eliminated_2.coords = {'x': 975, 'y': 794}
-        self.player_2_eliminated_3 = BoardNeighbors()
-        self.player_2_eliminated_3.coords = {'x': 900, 'y': 843}
-        self.player_2_eliminated_4 = BoardNeighbors()
-        self.player_2_eliminated_4.coords = {'x': 975, 'y': 886}
-        self.player_2_eliminated_5 = BoardNeighbors()
-        self.player_2_eliminated_5.coords = {'x': 900, 'y': 940}
-        self.player_2_eliminated_6 = BoardNeighbors()
-        self.player_2_eliminated_6.coords = {'x': 975, 'y': 975}
+        self.player_2_eliminated_1 = BoardNeighbors({'x': 900, 'y': 752})
+        self.player_2_eliminated_2 = BoardNeighbors({'x': 975, 'y': 794})
+        self.player_2_eliminated_3 = BoardNeighbors({'x': 900, 'y': 843})
+        self.player_2_eliminated_4 = BoardNeighbors({'x': 975, 'y': 886})
+        self.player_2_eliminated_5 = BoardNeighbors({'x': 900, 'y': 940})
+        self.player_2_eliminated_6 = BoardNeighbors({'x': 975, 'y': 975})
         
-        self.player_1_PC_1 = BoardNeighbors()
-        self.player_1_PC_1.coords = {'x': 645, 'y': 185}
-        self.player_1_PC_2 = BoardNeighbors()
-        self.player_1_PC_2.coords = {'x': 727, 'y': 185}
+        self.player_1_PC_1 = BoardNeighbors({'x': 645, 'y': 185})
+        self.player_1_PC_2 = BoardNeighbors({'x': 727, 'y': 185})
         
-        self.player_2_PC_1 = BoardNeighbors()
-        self.player_2_PC_1.coords = {'x': 380, 'y': 840}
-        self.player_2_PC_2 = BoardNeighbors()
-        self.player_2_PC_2.coords = {'x': 297, 'y': 840}
+        self.player_2_PC_1 = BoardNeighbors({'x': 380, 'y': 840})
+        self.player_2_PC_2 = BoardNeighbors({'x': 297, 'y': 840})
 
 class TvTBoardGenerator():
     ## 3v3 Board
-    ## Update coordinates, neighbors and add mode selection WITH VALID TEAM FILES
     """Create board object with space labels and adjusted bools for special spaces"""
     def __init__(self):
-        self.A1 = BoardNeighbors({"B1":1, "B2":2, "A2":3})
+        self.A1 = BoardNeighbors({'x': 290, 'y': 294}, {"B1":1, "B2":2, "A2":3})
         self.A1.player_1_entry = True
-        self.A1.coords = {'x': 290, 'y': 294}
-        self.A2 = BoardNeighbors({"A1":7, "A3":3})
-        self.A2.coords = {'x': 365, 'y': 293}
-        self.A3 = BoardNeighbors({"A2":7, "A4":3})
-        self.A3.coords = {'x': 436, 'y': 293}
-        self.A4 = BoardNeighbors({"A3":7, "A5":3})
+        self.A2 = BoardNeighbors({'x': 365, 'y': 293}, {"A1":7, "A3":3})
+        self.A3 = BoardNeighbors({'x': 436, 'y': 293}, {"A2":7, "A4":3})
+        self.A4 = BoardNeighbors({'x': 512, 'y': 293}, {"A3":7, "A5":3})
         self.A4.player_1_goal = True
-        self.A4.coords = {'x': 512, 'y': 293}
-        self.A5 = BoardNeighbors({"A4":7, "A6":3})
-        self.A5.coords = {'x': 586, 'y': 293}
-        self.A6 = BoardNeighbors({"A5":7, "A7":3})
-        self.A6.coords = {'x': 658, 'y': 293}
+        self.A5 = BoardNeighbors({'x': 586, 'y': 293}, {"A4":7, "A6":3})
+        self.A6 = BoardNeighbors({'x': 658, 'y': 293}, {"A5":7, "A7":3})
         self.A6.player_1_entry = True
-        self.A7 = BoardNeighbors({"A6":7, "B6":8, "B7":1})
-        self.A7.coords = {'x': 732, 'y': 293}
+        self.A7 = BoardNeighbors({'x': 732, 'y': 293}, {"A6":7, "B6":8, "B7":1})
         
-        self.B1 = BoardNeighbors({"A1":5, "C1":1})
-        self.B1.coords = {'x': 290, 'y': 414}
-        self.B2 = BoardNeighbors({"A1":6, "C2":1})
-        self.B2.coords = {'x': 400, 'y': 414}
-        self.B6 = BoardNeighbors({"A7":5, "C6":1})
-        self.B6.coords = {'x': 625, 'y': 414}
-        self.B7 = BoardNeighbors({"A7":5, "C7":1})
-        self.B7.coords = {'x': 732, 'y': 414}
+        self.B1 = BoardNeighbors({'x': 290, 'y': 414}, {"A1":5, "C1":1})
+        self.B2 = BoardNeighbors({'x': 400, 'y': 414}, {"A1":6, "C2":1})
+        self.B6 = BoardNeighbors({'x': 625, 'y': 414}, {"A7":5, "C6":1})
+        self.B7 = BoardNeighbors({'x': 732, 'y': 414}, {"A7":5, "C7":1})
         
-        self.C1 = BoardNeighbors({"B1":5, "D1":1})
-        self.C1.coords = {'x': 290, 'y': 514}
-        self.C2 = BoardNeighbors({"B2":5, "D2":1, "C4":3})
-        self.C2.coords = {'x': 400, 'y': 514}
-        self.C4 = BoardNeighbors({"C2":7, "C6":3})
-        self.C4.coords = {'x': 512, 'y': 512}
-        self.C6 = BoardNeighbors({"B6":5, "D6":1, "C4":7})
-        self.C6.coords = {'x': 625, 'y': 514}
-        self.C7 = BoardNeighbors({"B7":5, "D7":1})
-        self.C7.coords = {'x': 732, 'y': 514}
+        self.C1 = BoardNeighbors({'x': 290, 'y': 514}, {"B1":5, "D1":1})
+        self.C2 = BoardNeighbors({'x': 400, 'y': 514}, {"B2":5, "D2":1, "C4":3})
+        self.C4 = BoardNeighbors({'x': 512, 'y': 512}, {"C2":7, "C6":3})
+        self.C6 = BoardNeighbors({'x': 625, 'y': 514}, {"B6":5, "D6":1, "C4":7})
+        self.C7 = BoardNeighbors({'x': 732, 'y': 514}, {"B7":5, "D7":1})
         
-        self.D1 = BoardNeighbors({"E1":1, "C1":5})
-        self.D1.coords = {'x': 290, 'y': 614}
-        self.D2 = BoardNeighbors({"E1":8, "C2":5})
-        self.D2.coords = {'x': 400, 'y': 614}
-        self.D6 = BoardNeighbors({"E7":2, "C6":5})
-        self.D6.coords = {'x': 625, 'y': 614}
-        self.D7 = BoardNeighbors({"C7":5, "E7":1})
-        self.D7.coords = {'x': 732, 'y': 614}
+        self.D1 = BoardNeighbors({'x': 290, 'y': 614}, {"E1":1, "C1":5})
+        self.D2 = BoardNeighbors({'x': 400, 'y': 614}, {"E1":8, "C2":5})
+        self.D6 = BoardNeighbors({'x': 625, 'y': 614}, {"E7":2, "C6":5})
+        self.D7 = BoardNeighbors({'x': 732, 'y': 614}, {"C7":5, "E7":1})
         
-        self.E1 = BoardNeighbors({"D1":5, "E2":3, "D2":4})
-        self.E1.coords = {'x': 290, 'y': 731}
-        self.E2 = BoardNeighbors({"E1":7, "E3":3})
+        self.E1 = BoardNeighbors({'x': 290, 'y': 731}, {"D1":5, "E2":3, "D2":4})
+        self.E2 = BoardNeighbors({'x': 365, 'y': 731}, {"E1":7, "E3":3})
         self.E2.player_2_entry = True
-        self.E2.coords = {'x': 365, 'y': 731}
-        self.E3 = BoardNeighbors({"E2":7, "E4":3})
-        self.E3.coords = {'x': 436, 'y': 731}
-        self.E4 = BoardNeighbors({"E3":7, "E5":3})
+        self.E3 = BoardNeighbors({'x': 436, 'y': 731}, {"E2":7, "E4":3})
+        self.E4 = BoardNeighbors({'x': 512, 'y': 731}, {"E3":7, "E5":3})
         self.E4.player_2_goal = True
-        self.E4.coords = {'x': 512, 'y': 731}
-        self.E5 = BoardNeighbors({"E4":7, "E6":3})
-        self.E5.coords = {'x': 586, 'y': 731}
-        self.E6 = BoardNeighbors({"E5":7, "E7":3})
-        self.E6.coords = {'x': 658, 'y': 731}
-        self.E7 = BoardNeighbors({"E6":7, "D6":6, "D7":5})
+        self.E5 = BoardNeighbors({'x': 586, 'y': 731}, {"E4":7, "E6":3})
+        self.E6 = BoardNeighbors({'x': 658, 'y': 731}, {"E5":7, "E7":3})
+        self.E7 = BoardNeighbors({'x': 732, 'y': 731}, {"E6":7, "D6":6, "D7":5})
         self.E7.player_2_entry = True
-        self.E7.coords = {'x': 732, 'y': 731}
         
-        self.player_1_bench_1 = BoardNeighbors({'A1':None, 'A6':None})
+        self.player_1_bench_1 = BoardNeighbors({'x': 311, 'y': 183}, {'A1':None, 'A6':None})
         self.player_1_bench_1.occupant = GlobalVars.player_1_team.pkmn1
         self.player_1_bench_1.occupant_team = 1
         self.player_1_bench_1.occupied = True
-        self.player_1_bench_1.coords = {'x': 311, 'y': 183}
-        self.player_1_bench_2 = BoardNeighbors({'A1':None, 'A6':None})
+        self.player_1_bench_2 = BoardNeighbors({'x': 411, 'y': 183}, {'A1':None, 'A6':None})
         self.player_1_bench_2.occupant = GlobalVars.player_1_team.pkmn2
         self.player_1_bench_2.occupant_team = 1
         self.player_1_bench_2.occupied = True
-        self.player_1_bench_2.coords = {'x': 411, 'y': 183}
-        self.player_1_bench_3 = BoardNeighbors({'A1':None, 'A6':None})
+        self.player_1_bench_3 = BoardNeighbors({'x': 511, 'y': 183}, {'A1':None, 'A6':None})
         self.player_1_bench_3.occupant = GlobalVars.player_1_team.pkmn3
         self.player_1_bench_3.occupant_team = 1
         self.player_1_bench_3.occupied = True
-        self.player_1_bench_3.coords = {'x': 511, 'y': 183}
         
-        self.player_2_bench_1 = BoardNeighbors({'E2':None, 'E7':None})
+        self.player_2_bench_1 = BoardNeighbors({'x': 715, 'y': 845}, {'E2':None, 'E7':None})
         self.player_2_bench_1.occupant = GlobalVars.player_2_team.pkmn1
         self.player_2_bench_1.occupant_team = 2
         self.player_2_bench_1.occupied = True
-        self.player_2_bench_1.coords = {'x': 715, 'y': 845}
-        self.player_2_bench_2 = BoardNeighbors({'E2':None, 'E7':None})
+        self.player_2_bench_2 = BoardNeighbors({'x': 615, 'y': 845}, {'E2':None, 'E7':None})
         self.player_2_bench_2.occupant = GlobalVars.player_2_team.pkmn2
         self.player_2_bench_2.occupant_team = 2
         self.player_2_bench_2.occupied = True
-        self.player_2_bench_2.coords = {'x': 615, 'y': 845}
-        self.player_2_bench_3 = BoardNeighbors({'E2':None, 'E7':None})
+        self.player_2_bench_3 = BoardNeighbors({'x': 515, 'y': 845}, {'E2':None, 'E7':None})
         self.player_2_bench_3.occupant = GlobalVars.player_2_team.pkmn3
         self.player_2_bench_3.occupant_team = 2
         self.player_2_bench_3.occupied = True
-        self.player_2_bench_3.coords = {'x': 515, 'y': 845}
         
-        self.player_1_ultra_space_1 = BoardNeighbors()
-        self.player_1_ultra_space_1.coords = {'x': 900, 'y': 280}
-        self.player_1_ultra_space_2 = BoardNeighbors()
-        self.player_1_ultra_space_2.coords = {'x': 975, 'y': 240}
-        self.player_1_ultra_space_3 = BoardNeighbors()
-        self.player_1_ultra_space_3.coords = {'x': 900, 'y': 185}
+        self.player_1_ultra_space_1 = BoardNeighbors({'x': 900, 'y': 280})
+        self.player_1_ultra_space_2 = BoardNeighbors({'x': 975, 'y': 240})
+        self.player_1_ultra_space_3 = BoardNeighbors({'x': 900, 'y': 185})
         
-        self.player_2_ultra_space_1 = BoardNeighbors()
-        self.player_2_ultra_space_1.coords = {'x': 124, 'y': 752}
-        self.player_2_ultra_space_2 = BoardNeighbors()
-        self.player_2_ultra_space_2.coords = {'x': 50, 'y': 794}
-        self.player_2_ultra_space_3 = BoardNeighbors()
-        self.player_2_ultra_space_3.coords = {'x': 124, 'y': 843}
+        self.player_2_ultra_space_1 = BoardNeighbors({'x': 124, 'y': 752})
+        self.player_2_ultra_space_2 = BoardNeighbors({'x': 50, 'y': 794})
+        self.player_2_ultra_space_3 = BoardNeighbors({'x': 124, 'y': 843})
         
-        self.player_1_eliminated_1 = BoardNeighbors()
-        self.player_1_eliminated_1.coords = {'x': 124, 'y': 280}
-        self.player_1_eliminated_2 = BoardNeighbors()
-        self.player_1_eliminated_2.coords = {'x': 50, 'y': 240}
-        self.player_1_eliminated_3 = BoardNeighbors()
-        self.player_1_eliminated_3.coords = {'x': 124, 'y': 185}
+        self.player_1_eliminated_1 = BoardNeighbors({'x': 124, 'y': 280})
+        self.player_1_eliminated_2 = BoardNeighbors({'x': 50, 'y': 240})
+        self.player_1_eliminated_3 = BoardNeighbors({'x': 124, 'y': 185})
         
-        self.player_2_eliminated_1 = BoardNeighbors()
-        self.player_2_eliminated_1.coords = {'x': 900, 'y': 752}
-        self.player_2_eliminated_2 = BoardNeighbors()
-        self.player_2_eliminated_2.coords = {'x': 975, 'y': 794}
-        self.player_2_eliminated_3 = BoardNeighbors()
-        self.player_2_eliminated_3.coords = {'x': 900, 'y': 843}
+        self.player_2_eliminated_1 = BoardNeighbors({'x': 900, 'y': 752})
+        self.player_2_eliminated_2 = BoardNeighbors({'x': 975, 'y': 794})
+        self.player_2_eliminated_3 = BoardNeighbors({'x': 900, 'y': 843})
         
-        self.player_1_PC_1 = BoardNeighbors()
-        self.player_1_PC_1.coords = {'x': 681, 'y': 185}
+        self.player_1_PC_1 = BoardNeighbors({'x': 681, 'y': 185})
         
-        self.player_2_PC_1 = BoardNeighbors()
-        self.player_2_PC_1.coords = {'x': 336, 'y': 840}
+        self.player_2_PC_1 = BoardNeighbors({'x': 336, 'y': 840})
 
 class PlayerTeam():
     """Instantiate class that contains player 1 team and base stats."""
@@ -500,9 +387,40 @@ def write_log():
         LOG_FILE.write(lines)
     LOG_FILE.close()
 
+#DRAFT EFFECTS
+"""
+def send_to_bench(target):
+    target['loc']
+    target['loc'] = target['orig_loc']
+    target['status'] = 'clear'
+    target['marker'] = 'clear'
+
+def attack_respin():
+    #For optional respinning like Deoxy-A or Double Chance
+    pass
+
+def attack_spin_effect():
+    #For Fire Spin, Swords Dance, etc
+    pass
+
+def apply_marker():
+    #For MP-X, Curse, Disguise, etc
+    pass
+
+def fly():
+    #For selectable flight pathing (i.e. fly to space 1-2 spaces behind opponent)
+    pass
+
+def fly_away():
+    #For pre-determined flight pathing (i.e. fly to space behind opponent)
+    pass
+    
+def knockback():
+    #For knockback resolution; implements knockback_pathing()
+    pass
+
 def knockback_pathing():
-    """Check pathing for directional knockback effects"""
-    ## PENDING IMPLEMENTATION, NEEDS WORK
+    #Check pathing for directional knockback effects
     direction = board.B2.neighbors["C2"]
     GlobalVars.valid_moves = []
 
@@ -514,6 +432,7 @@ def knockback_pathing():
     return GlobalVars.valid_moves
                     
     ## output -> ['D2']
+"""
 
 def pc_rotate(target):
 
@@ -527,16 +446,24 @@ def pc_rotate(target):
                 if rotate_target['wait'] >= 1:
                     rotate_target['wait'] += 1
                 else:
-                    rotate_target['wait'] += 2        
+                    rotate_target['wait'] += 2
+
 def apply_wait(target, duration = 2):
-    target['wait'] += duration
-    GlobalVars.gamelog.append(f"{target['name']} gained Wait {duration - 1}.")
+    if target['wait'] > 0:
+        target['wait'] += duration - 1
+        GlobalVars.gamelog.append(f"{target['name']} gained Wait {duration - 1}.")
+    else:
+        target['wait'] += duration
+        GlobalVars.gamelog.append(f"{target['name']} gained Wait {duration - 1}.")
 
 def wait_tickdown():
     for x in range(1,3):
         for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
             if eval(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait']") != 0:
                 exec(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait'] -= int(1)")
+
+def apply_status(target, status_type = 'clear'):
+    target['status'] = status_type
 
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
@@ -613,7 +540,7 @@ def spin(combatant):
 
 def target_finder(combatant_loc, control_player, combatant_targets, attack_distance = 1):
     """
-    #Checks adjacent spaces for valid attack targets
+    Checks adjacent spaces for valid attack targets
     """
     
     def target_iter(combatant_targets, attack_distance):
@@ -662,98 +589,129 @@ def battle_spin_compare(combatant_1, combatant_2):
         Purple or Blue Tie: 7
     """
 
-    GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) attacked Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]})")
     combatant_1_attack = spin(combatant_1)
     GlobalVars.attacker_current_spin = combatant_1_attack
-    GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
-    GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
     combatant_2_attack = spin(combatant_2)
     GlobalVars.defender_current_spin = combatant_2_attack
-    GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
-    GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
+    GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) attacked Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]})")
     
     if combatant_1['status'] != 'frozen':
         combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
     else:
         combatant_1_color = "Red"
-        GlobalVars.gamelog.append(f"{combatant_1}['name'] is frozen. Wheel has become Miss.")
+        GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} {combatant_1['orig_loc'][-1]} is frozen. Wheel has become Miss.")
     if not combatant_1_color == "Red" and not combatant_1_color == "Blue":
         combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
         if combatant_1_color == "White" or combatant_1_color == "Gold":
-            if combatant_1['status'] == "poison" or combatant_1['status'] == "burn":
+            if combatant_1['status'] == "poisoned" or combatant_1['status'] == "burned":
                 combatant_1_power -= 20
             elif combatant_1['status'] == "noxious":
                 combatant_1_power -= 40
-    else:
-        pass
-    #Need to rework code to prevent procs of burn/paralyzed attack effects. Delphox miss effects need to be taken into heavy consideration
+
+    #Need to rework code to prevent procs of burned/paralyzed attack effects. Delphox miss effects need to be taken into heavy consideration
     #
     #Need to add check for attacks with same name
-    if combatant_1['status'] == "paralyzed" or combatant_1['status'] == "burn":
+    if combatant_1['status'] == "paralyzed" or combatant_1['status'] == "burned":
         baseline_size = 24
         miss_candidates = []
         for x in range(1,10):
-            atk_size = eval(f"combatant_1['attack{x}size']")
-            if atk_size <= baseline_size:
-                baseline_size = atk_size
-                for y in miss_candidates:
-                    if eval(f"combatant_1['attack{x}size']") > baseline_size:
-                        miss_candidates.remove(miss_candidates.index(y))
-                miss_candidates.append(x)
-        miss_check = miss_candidates[random.randint(0, len(miss_candidates) + 1)]
+            if eval(f"combatant_1['attack{x}size']") != None:
+                if eval(f"combatant_1['attack{x}color']") != "Red":
+                    atk_size = eval(f"combatant_1['attack{x}size']")
+                    if atk_size <= baseline_size:
+                        baseline_size = atk_size
+                        for y in miss_candidates:
+                            if eval(f"combatant_1['attack{y}size']") > baseline_size:
+                                miss_candidates.remove(y)
+                        miss_candidates.append(x)
+        miss_check = miss_candidates[random.randint(0, len(miss_candidates) - 1)]
         if miss_check == combatant_1_attack:
             combatant_1_color = "Red"
-            if combatant_1['status'] == "burn":
-                GlobalVars.gamelog.append(f"{combatant_1}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
+            combatant_1_miss_check = True
+            if combatant_1['status'] == "burned":
+                GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) is burned. Smallest segment has become Miss and attack power reduced by -20.")
             elif combatant_1['status'] == "paralyzed":
-                GlobalVars.gamelog.append(f"{combatant_1}['name'] is paralyzed. Smallest segment has become Miss.")
+                GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) is paralyzed. Smallest segment has become Miss.")
+        else:
+            combatant_1_miss_check = False
     ## Checks for Confusion status and returns next available attack segment
     if combatant_1['status'] == 'confused':
-        GlobalVars.gamelog.append(f"{combatant_1}['name'] is confused. Attack has shifted one segment from {combatant_1}['attack{combatant_1_attack}name'].")
-        combatant_attack += 1
+        GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} {combatant_1['orig_loc'][-1]} is confused. Attack has shifted one segment from {combatant_1[f'attack{combatant_1_attack}name']}.")
+        combatant_1_attack += 1
         if eval(f"{combatant_1}['attack{combatant_1_attack}name']") == "null":
-            combatant_attack = 1
+            combatant_1_attack = 1
     
     if combatant_2['status'] != 'frozen':
         combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
     else:
         combatant_2_color = 'Red'
-        GlobalVars.gamelog.append(f"{combatant_2}['name'] is frozen. Wheel has become Miss.")
+        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is frozen. Wheel has become Miss.")
     if not combatant_2_color == "Red" and not combatant_2_color == "Blue":
         combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
         if combatant_2_color == "White" or combatant_2_color == "Gold":
-            if combatant_2['status'] == "poison" or combatant_2['status'] == "burn":
+            if combatant_2['status'] == "poisoned" or combatant_2['status'] == "burned":
                 combatant_2_power -= 20
             elif combatant_2['status'] == "noxious":
                 combatant_2_power -= 40
-    else:
-        pass
 
-    if combatant_2['status'] == "paralyzed" or combatant_2['status'] == "burn":
+    if combatant_2['status'] == "paralyzed" or combatant_2['status'] == "burned":
         baseline_size = 24
         miss_candidates = []
         for x in range(1,10):
-            atk_size = eval(f"combatant_1['attack{x}size']")
-            if atk_size <= baseline_size:
-                baseline_size = atk_size
-                for y in miss_candidates:
-                    if eval(f"combatant_2['attack{x}size']") > baseline_size:
-                        miss_candidates.remove(miss_candidates.index(y))
-                miss_candidates.append(x)
-        miss_check = miss_candidates[random.randint(0, len(miss_candidates) + 1)]
+            if eval(f"combatant_2['attack{x}size']") != None:
+                if eval(f"combatant_2['attack{x}color']") != "Red":
+                    atk_size = eval(f"combatant_2['attack{x}size']")
+                    if atk_size <= baseline_size:
+                        baseline_size = atk_size
+                        for y in miss_candidates:
+                            if eval(f"combatant_2['attack{y}size']") > baseline_size:
+                                miss_candidates.remove(y)
+                        miss_candidates.append(x)
+        miss_check = miss_candidates[random.randint(0, len(miss_candidates) - 1)]
         if miss_check == combatant_2_attack:
             combatant_2_color = "Red"
-            if combatant_2['status'] == "burn":
-                GlobalVars.gamelog.append(f"{combatant_2}['name'] is burned. Smallest segment has become Miss and attack power reduced by -20.")
+            combatant_2_miss_check = True
+            if combatant_2['status'] == "burned":
+                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is burned. Smallest segment has become Miss and attack power reduced by -20.")
             elif combatant_2['status'] == "paralyzed":
-                GlobalVars.gamelog.append(f"{combatant_2}['name'] is paralyzed. Smallest segment has become Miss.")
-                
-    if combatant_2['status'] == 'confused':
-        GlobalVars.gamelog.append(f"{combatant_2}['name'] is confused. Attack has shifted one segment from {combatant_2}['attack{combatant_2_attack}name'].")
-        combatant_attack += 1
-        if eval(f"{combatant_2}['attack{combatant_2_attack}name']") == "null":
-            combatant_attack = 1
+                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is paralyzed. Smallest segment has become Miss.")
+        else:
+            combatant_2_miss_check = False
 
+    if combatant_2['status'] == 'confused':
+        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is confused. Attack has shifted one segment from {combatant_2[f'attack{combatant_2_attack}name']}.")
+        combatant_2_attack += 1
+        if eval(f"{combatant_2}['attack{combatant_2_attack}name']") == "null":
+            combatant__2_attack = 1
+    
+    if combatant_1['status'] == 'frozen':
+        GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun Miss")
+        GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
+    elif combatant_1['status'] == 'paralyzed' or combatant_1['status'] == 'burned':
+        if combatant_1_miss_check == True:
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun Miss")
+            GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
+        else:
+            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
+            GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
+    else:
+        GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
+        GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
+
+    if combatant_2['status'] == 'frozen':
+        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun Miss")
+        GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
+    elif combatant_2['status'] == 'paralyzed' or combatant_2['status'] == 'burned':
+        if combatant_2_miss_check == True:
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun Miss")
+            GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
+        else:
+            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
+            GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
+    else:
+        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
+        GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
+    
     if combatant_1_color == "White":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
             if combatant_1_power > combatant_2_power:
@@ -1018,6 +976,8 @@ class GameView(arcade.View):
                             unit = eval(f"GlobalVars.player_1_team.{units}")
                             if unit['wait'] > 0:
                                 continue
+                            elif unit['status'] == 'sleep' or unit['status'] == 'frozen':
+                                continue
                             else:
                                 units_loc_str = unit['loc']
                                 if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
@@ -1036,6 +996,8 @@ class GameView(arcade.View):
                         if units.startswith("pkmn"):
                             unit = eval(f"GlobalVars.player_2_team.{units}")
                             if unit['wait'] > 0:
+                                continue
+                            elif unit['status'] == 'sleep' or unit['status'] == 'frozen':
                                 continue
                             else:
                                 units_loc_str = unit['loc']
@@ -1327,7 +1289,6 @@ def mode_select():
         background_textures = {fn(k) : k for k in iglob(GlobalConstants.BG_PATH + "/**/*.png", recursive=True)}
         
     except:
-        print("error")
         pass
 
     background_list = []
