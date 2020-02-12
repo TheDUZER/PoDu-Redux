@@ -1,0 +1,210 @@
+Player 1's team:
+--------CustomFigures--------
+Amaura
+Tyrunt
+Lileep
+Cranidos
+Tirtouga
+Shieldon
+Player 2's team:
+--------TestStarters--------
+Litten
+Litten
+Popplio
+Popplio
+Rowlet
+Rowlet
+First turn: Movement reduced by 1.
+Player 2's Litten (2) moved to D6.
+===== Player 1 Turn =====
+Player 1's Shieldon (6) moved to B6.
+===== Player 2 Turn =====
+Player 2's Rowlet (5) moved to C2.
+===== Player 1 Turn =====
+Player 1's Tyrunt (2) moved to B2.
+===== Player 2 Turn =====
+Player 2's Popplio (3) moved to C1.
+===== Player 1 Turn =====
+Player 1's Amaura (1) moved to B1.
+Player 1's Amaura (1) attacked Player 2's Popplio (3)
+Player 1's Amaura (1) spun Dodge
+    Color: Blue ----- Power: None
+Player 2's Popplio (3) spun Water Gun
+    Color: White ----- Power: 40
+Player 1s Amaura (1) wins!
+===== Player 2 Turn =====
+Player 2's Popplio (4) moved to C7.
+===== Player 1 Turn =====
+Player 1's Cranidos (4) moved to B7.
+Player 1's Cranidos (4) attacked Player 2's Popplio (4)
+Player 1's Cranidos (4) spun Miss
+    Color: Red ----- Power: None
+Player 2's Popplio (4) spun Dodge
+    Color: Blue ----- Power: None
+Player 2s Popplio (4) wins!
+===== Player 2 Turn =====
+Player 2's Popplio (4) attacked Player 1's Cranidos (4)
+Player 2's Popplio (4) spun Water Gun
+    Color: White ----- Power: 40
+Player 1's Cranidos (4) spun Head Smash
+    Color: White ----- Power: 120
+Player 1s Cranidos (4) wins!
+Player 2s Popplio was sent to the PC.
+Cranidos evolving to Rampardos
+===== Player 1 Turn =====
+Player 1's Rampardos (4) moved to D7.
+===== Player 2 Turn =====
+Player 2's Litten (1) moved to E7.
+Player 2's Litten (1) attacked Player 1's Rampardos (4)
+Player 2's Litten (1) spun Scary Face
+    Color: Purple ----- Power: 1
+Player 1's Rampardos (4) spun Head Smash
+    Color: White ----- Power: 200
+Player 2s Litten (1) wins!
+===== Player 1 Turn =====
+Player 1's Shieldon (6) moved to C6.
+Player 1's Shieldon (6) attacked Player 2's Litten (2)
+Player 1's Shieldon (6) spun Miss
+    Color: Red ----- Power: None
+Player 2's Litten (2) spun Ember
+    Color: White ----- Power: 40
+Player 2s Litten (2) wins!
+Player 1s Shieldon was sent to the PC.
+Litten evolving to Torracat
+===== Player 2 Turn =====
+Player 2's Torracat (2) moved to B4.
+===== Player 1 Turn =====
+Player 1's Lileep (3) moved to B6.
+Player 1's Lileep (3) attacked Player 2's Torracat (2)
+Player 1's Lileep (3) spun Rock Throw
+    Color: White ----- Power: 90
+Player 2's Torracat (2) spun Playful Punch
+    Color: White ----- Power: 50
+Player 1s Lileep (3) wins!
+Player 2s Torracat was sent to the PC.
+Lileep evolving to Cradily
+===== Player 2 Turn =====
+Player 2's Popplio (3) attacked Player 1's Amaura (1)
+Player 2's Popplio (3) spun Sing
+    Color: Purple ----- Power: 1
+Player 1's Amaura (1) spun Freeze-Dry
+    Color: White ----- Power: 60
+Player 2s Popplio (3) wins!
+===== Player 1 Turn =====
+Player 1's Cradily (3) moved to C6.
+===== Player 2 Turn =====
+Player 2's Rowlet (6) moved to D4.
+===== Player 1 Turn =====
+Player 1's Cradily (3) moved to D6.
+Player 1's Cradily (3) attacked Player 2's Rowlet (6)
+Player 1's Cradily (3) spun Ancient Power
+    Color: White ----- Power: 160
+Player 2's Rowlet (6) spun Sucker Punch
+    Color: Gold ----- Power: 10
+Player 1s Cradily (3) wins!
+Player 2s Rowlet was sent to the PC.
+===== Player 2 Turn =====
+Player 2's Rowlet (5) attacked Player 1's Tyrunt (2)
+Player 2's Rowlet (5) spun Leafage
+    Color: White ----- Power: 40
+Player 1's Tyrunt (2) spun Roar
+    Color: Purple ----- Power: 1
+Player 1s Tyrunt (2) wins!
+===== Player 1 Turn =====
+Player 1's Cradily (3) moved to D4.
+===== Player 2 Turn =====
+Player 2's Popplio (4) moved to E3.
+===== Player 1 Turn =====
+Player 1's Cradily (3) attacked Player 2's Popplio (4)
+Player 1's Cradily (3) spun Giga Drain
+    Color: Purple ----- Power: 2
+Player 2's Popplio (4) spun Water Gun
+    Color: White ----- Power: 40
+Player 1s Cradily (3) wins!
+===== Player 2 Turn =====
+Player 2's Rowlet (5) moved to D2.
+Player 2's Rowlet (5) attacked Player 1's Cradily (3)
+Player 2's Rowlet (5) spun Miss
+    Color: Red ----- Power: None
+Player 1's Cradily (3) spun Ancient Power
+    Color: White ----- Power: 160
+Player 1s Cradily (3) wins!
+Player 2s Rowlet was sent to the PC.
+===== Player 1 Turn =====
+Player 1's Cradily (3) attacked Player 2's Popplio (4)
+Player 1's Cradily (3) spun Ancient Power
+    Color: White ----- Power: 160
+Player 2's Popplio (4) spun Miss
+    Color: Red ----- Power: None
+Player 1s Cradily (3) wins!
+Player 2s Popplio was sent to the PC.
+===== Player 2 Turn =====
+Player 2's Torracat (2) moved to E3.
+===== Player 1 Turn =====
+Player 1's Cradily (3) attacked Player 2's Torracat (2)
+Player 1's Cradily (3) spun Ancient Seeds
+    Color: Purple ----- Power: 2
+Player 2's Torracat (2) spun Playful Punch
+    Color: White ----- Power: 50
+Player 1s Cradily (3) wins!
+===== Player 2 Turn =====
+Player 2's Rowlet (6) moved to D2.
+===== Player 1 Turn =====
+Player 1's Cradily (3) attacked Player 2's Torracat (2)
+Player 1's Cradily (3) spun Ancient Seeds
+    Color: Purple ----- Power: 2
+Player 2's Torracat (2) spun Playful Punch
+    Color: White ----- Power: 50
+Player 1s Cradily (3) wins!
+===== Player 2 Turn =====
+Player 2's Litten (1) moved to D6.
+SURROUNDED:    Player 1's Cradily (})  was sent to Player 1's PC.
+===== Player 1 Turn =====
+Player 1's Rampardos (4) moved to E7.
+Player 1's Rampardos (4) attacked Player 2's Litten (1)
+Player 1's Rampardos (4) spun Head Smash
+    Color: White ----- Power: 200
+Player 2's Litten (1) spun Ember
+    Color: White ----- Power: 40
+Player 1s Rampardos (4) wins!
+Player 2s Litten was sent to the PC.
+===== Player 2 Turn =====
+Player 2's Rowlet (6) moved to D6.
+===== Player 1 Turn =====
+Player 1's Tirtouga (5) moved to B6.
+===== Player 2 Turn =====
+Player 2's Rowlet (5) moved to C2.
+===== Player 1 Turn =====
+Player 1's Tirtouga (5) moved to C6.
+Player 1's Tirtouga (5) attacked Player 2's Rowlet (6)
+Player 1's Tirtouga (5) spun Shell Crash
+    Color: White ----- Power: 90
+Player 2's Rowlet (6) spun Leafage
+    Color: White ----- Power: 40
+Player 1s Tirtouga (5) wins!
+Player 2s Rowlet was sent to the PC.
+Tirtouga evolving to Carracosta
+===== Player 2 Turn =====
+Player 2's Torracat (2) moved to D6.
+Player 2's Torracat (2) attacked Player 1's Carracosta (5)
+Player 2's Torracat (2) spun Playful Punch
+    Color: White ----- Power: 50
+Player 1's Carracosta (5) spun Ancient Power
+    Color: White ----- Power: 130
+Player 1s Carracosta (5) wins!
+Player 2s Torracat was sent to the PC.
+===== Player 1 Turn =====
+Player 1's Rampardos (4) moved to E5.
+===== Player 2 Turn =====
+Player 2's Popplio (4) moved to E6.
+Player 2's Popplio (4) attacked Player 1's Rampardos (4)
+Player 2's Popplio (4) spun Water Gun
+    Color: White ----- Power: 40
+Player 1's Rampardos (4) spun Head Smash
+    Color: White ----- Power: 200
+Player 1s Rampardos (4) wins!
+Player 2s Popplio was sent to the PC.
+===== Player 1 Turn =====
+Player 1's Rampardos (4) moved to E4.
+===== Player 2 Turn =====
+Player 1 wins! Click anywhere to exit.

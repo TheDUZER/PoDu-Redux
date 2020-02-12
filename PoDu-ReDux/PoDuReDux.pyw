@@ -7,17 +7,27 @@ TODO LATER...:
 -Fix GlobalVars.gamelog on-screen text overflow
 
 -START ADDING ATTACK EFFECTS
+
     Priorities:
     -Fly / Fly Away / Telekinesis effects
     -Knockback / Psychic Shove
     -Markers
-    -Status Affliction
+    -Knockout effects
     -Respin (forced, tactical, Swords Dance, Fire Spin, etc)
     -Swap (Abra, Gardevoir)
     -Draco Meteor effects
 
+    -Draw opaque rings or circles as indicators of status effects
+    -Add check when attack_click == True so that tagging frozen, sleeping or marked units is allowed
+
     DONE:
     -Simple Wait effects (Purple / Blue; other colors' simple Wait effects in place but not implemented yet)
+    -Simple Status Affliction
+
+-ADD ABILITIES
+    -Establish event ID checking system for accurate timing of abilities and attack effects (i.e. the difference between
+    "White: When this unit is knocked out...", "White: Spin until you don't spin this attack. Gain X*Y", "White: If the
+    opponent spins an attack >X, this unit can't be KO'd", "Ability: Water-types can't be paralyzed", etc)
 
 -PACKAGING / HOSTING
     -UUUGGGHHHH
@@ -38,7 +48,6 @@ class GlobalConstants():
         self.STATS_PATH = join(abspath(expanduser(sys.path[0])), "pkmn-stats.json")
         self.PKMN_STATS = json.load(open(self.STATS_PATH, "r"))
         self.BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
-
 
 class GlobalVars():
     def __init__(self):
@@ -72,6 +81,18 @@ class GlobalVars():
         self.bottom_range = None
         self.attacker_current_spin = None
         self.defender_current_spin = None
+        self.p1_bench_targets = []
+        self.p1_PC_targets = []
+        self.p1_board_targets = []
+        self.p1_eliminated_targets = []
+        self.p1_ultra_space_targets = []
+        self.p2_bench_targets = []
+        self.p2_PC_targets = []
+        self.p2_board_targets = []
+        self.p2_eliminated_targets = []
+        self.p2_ultra_space_targets = []
+        self.combatant_1_power = 'None'
+        self.combatant_2_power = 'None'
 
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
@@ -351,6 +372,8 @@ class PlayerTeam():
             exec(f"self.pkmn{x}['ctrl'] = ctrl_player")
             exec(f"self.pkmn{x}['stage'] = 0")
             exec(f"self.pkmn{x}['final_song_count'] = None")
+            exec(f"self.pkmn{x}['previous_form'] = None")
+            exec(f"self.pkmn{x}['orig_form'] = None")
         
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
@@ -370,6 +393,8 @@ class PlayerTeam():
         for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
             if eval(f"self.pkmn{x}['name']") == 'Reshiram' or eval(f"self.pkmn{x}['name']") == 'Zekrom':
                 exec(f"self.pkmn{x}['wait'] = 9")
+            elif eval(f"self.pkmn{x}['name']") == "Nincada":
+                exec(f"self.pkmn{x}['wait'] = 10")
             for y in range(1,10):
                 if eval(f"self.pkmn{x}['attack{y}power']") != 'null':
                     exec(f"self.pkmn{x}['attack{y}origpower'] = self.pkmn{x}['attack{y}power']")
@@ -389,6 +414,11 @@ def write_log():
 
 #DRAFT EFFECTS
 """
+def turn_tickdown():
+    mega_evolution_tickdown()
+    wait_tickdown()
+    final_song_tickdown()
+    
 def send_to_bench(target):
     target['loc']
     target['loc'] = target['orig_loc']
@@ -419,6 +449,12 @@ def knockback():
     #For knockback resolution; implements knockback_pathing()
     pass
 
+def final_song_tickdown():
+    pass
+
+def mega_evolution_tickdown():
+    pass
+
 def knockback_pathing():
     #Check pathing for directional knockback effects
     direction = board.B2.neighbors["C2"]
@@ -435,7 +471,8 @@ def knockback_pathing():
 """
 
 def pc_rotate(target):
-
+    target['status'] = 'clear'
+    target['marker'] = 'clear'
     for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
         rotate_target = eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}")
         if 'PC' in eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}['loc']"):
@@ -464,6 +501,9 @@ def wait_tickdown():
 
 def apply_status(target, status_type = 'clear'):
     target['status'] = status_type
+
+def apply_marker(target, marker_type = 'clear'):
+    target['marker'] = marker_type
 
 def surround_check(focal_unit):
     """Checks for surround conditions of a target space"""
@@ -540,7 +580,9 @@ def spin(combatant):
 
 def target_finder(combatant_loc, control_player, combatant_targets, attack_distance = 1):
     """
-    Checks adjacent spaces for valid attack targets
+    Checks adjacent spaces for valid attack targets.
+    Use effect_targeting for targets that don't involve
+    normal attacks.
     """
     
     def target_iter(combatant_targets, attack_distance):
@@ -589,6 +631,9 @@ def battle_spin_compare(combatant_1, combatant_2):
         Purple or Blue Tie: 7
     """
 
+    GlobalVars.combatant_1_power = 'None'
+    GlobalVars.combatant_2_power = 'None'
+    
     combatant_1_attack = spin(combatant_1)
     GlobalVars.attacker_current_spin = combatant_1_attack
     combatant_2_attack = spin(combatant_2)
@@ -601,12 +646,12 @@ def battle_spin_compare(combatant_1, combatant_2):
         combatant_1_color = "Red"
         GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} {combatant_1['orig_loc'][-1]} is frozen. Wheel has become Miss.")
     if not combatant_1_color == "Red" and not combatant_1_color == "Blue":
-        combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
+        GlobalVars.combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
         if combatant_1_color == "White" or combatant_1_color == "Gold":
             if combatant_1['status'] == "poisoned" or combatant_1['status'] == "burned":
-                combatant_1_power -= 20
+                GlobalVars.combatant_1_power -= 20
             elif combatant_1['status'] == "noxious":
-                combatant_1_power -= 40
+                GlobalVars.combatant_1_power -= 40
 
     #Need to rework code to prevent procs of burned/paralyzed attack effects. Delphox miss effects need to be taken into heavy consideration
     #
@@ -647,12 +692,12 @@ def battle_spin_compare(combatant_1, combatant_2):
         combatant_2_color = 'Red'
         GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is frozen. Wheel has become Miss.")
     if not combatant_2_color == "Red" and not combatant_2_color == "Blue":
-        combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
+        GlobalVars.combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
         if combatant_2_color == "White" or combatant_2_color == "Gold":
             if combatant_2['status'] == "poisoned" or combatant_2['status'] == "burned":
-                combatant_2_power -= 20
+                GlobalVars.combatant_2_power -= 20
             elif combatant_2['status'] == "noxious":
-                combatant_2_power -= 40
+                GlobalVars.combatant_2_power -= 40
 
     if combatant_2['status'] == "paralyzed" or combatant_2['status'] == "burned":
         baseline_size = 24
@@ -693,10 +738,10 @@ def battle_spin_compare(combatant_1, combatant_2):
             GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
         else:
             GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
-            GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
+            GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {GlobalVars.combatant_1_power}")
     else:
         GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
-        GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {combatant_1[f'attack{combatant_1_attack}power']}")
+        GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {GlobalVars.combatant_1_power}")
 
     if combatant_2['status'] == 'frozen':
         GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun Miss")
@@ -707,21 +752,21 @@ def battle_spin_compare(combatant_1, combatant_2):
             GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
         else:
             GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
-            GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
+            GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {GlobalVars.combatant_2_power}")
     else:
         GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
-        GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {combatant_2[f'attack{combatant_2_attack}power']}")
+        GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {GlobalVars.combatant_2_power}")
     
     if combatant_1_color == "White":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
-            if combatant_1_power > combatant_2_power:
+            if GlobalVars.combatant_1_power > GlobalVars.combatant_2_power:
                 #Update other log entries here to this format
                 GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 1
-            elif combatant_1_power < combatant_2_power:
+            elif GlobalVars.combatant_1_power < GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 2
-            elif combatant_1_power == combatant_2_power:
+            elif GlobalVars.combatant_1_power == GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
@@ -736,13 +781,13 @@ def battle_spin_compare(combatant_1, combatant_2):
         
     elif combatant_1_color == "Gold":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
-            if combatant_1_power > combatant_2_power:
+            if GlobalVars.combatant_1_power > GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 1
-            elif combatant_1_power < combatant_2_power:
+            elif GlobalVars.combatant_1_power < GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 2
-            elif combatant_1_power == combatant_2_power:
+            elif GlobalVars.combatant_1_power == GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
@@ -757,13 +802,13 @@ def battle_spin_compare(combatant_1, combatant_2):
         
     elif combatant_1_color == "Purple":
         if combatant_2_color == "Purple":
-            if combatant_1_power > combatant_2_power:
+            if GlobalVars.combatant_1_power > GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
                 return 5
-            elif combatant_1_power < combatant_2_power:
+            elif GlobalVars.combatant_1_power < GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
                 return 6
-            elif combatant_1_power == combatant_2_power:
+            elif GlobalVars.combatant_1_power == GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append("Tie!")
                 return 7
         elif combatant_2_color == "White":
@@ -782,7 +827,7 @@ def battle_spin_compare(combatant_1, combatant_2):
     elif combatant_1_color == "Blue":
         if combatant_2_color != "Blue":
             GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
-            return 6
+            return 5
         else:
             GlobalVars.gamelog.append("Tie!")
             return 7
@@ -871,6 +916,10 @@ class GameView(arcade.View):
                 cir_color = arcade.color.AZURE
             elif x == 2:
                 cir_color = arcade.color.RASPBERRY
+            cir_color = [_ for _ in cir_color]
+            stage_cir_color = cir_color
+            #cir_color.append(150)
+            #NEEDS TWEAKING
             for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
                 pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
                 pkmn_ref_loc = pkmn_ref['loc']
@@ -879,10 +928,19 @@ class GameView(arcade.View):
                 exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
                 exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
                 exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40, cir_color)")
-                exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x - circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.BLUE_SAPPHIRE)")
-                exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['move']), self.player_{x}_pkmn_{y}.center_x - text_offset_x, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
+                if pkmn_ref['stage'] > 0:
+                    for stages in range(pkmn_ref['stage']):
+                        exec(f"arcade.draw_circle_outline(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40+10*pkmn_ref['stage'], stage_cir_color, 4)")
 
+        self.pkmn_list.draw()
+
+        for x in range(1,3):
+            for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
+                pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
+            
                 #Wait circle and text draw
+                exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x - circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.BLUE_SAPPHIRE)")
+                exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['move'] - GlobalVars.first_turn), self.player_{x}_pkmn_{y}.center_x - text_offset_x, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
                 if pkmn_ref['wait'] > 0:
                     exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x + circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.PURPLE)")
                     exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['wait']), self.player_{x}_pkmn_{y}.center_x + text_offset_x - 10, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
@@ -909,13 +967,11 @@ class GameView(arcade.View):
                 
         if len(GlobalVars.checked_moves) > 0:
             for moves in GlobalVars.checked_moves:
-                arcade.draw_circle_outline(eval(f"board.{moves}.coords['x']"), eval(f"board.{moves}.coords['y']"), 40, arcade.color.AMAZON, 5)
+                arcade.draw_circle_filled(eval(f"board.{moves}.coords['x']"), eval(f"board.{moves}.coords['y']"), 40, (59,122,87,200))
         if len(GlobalVars.potential_targets) > 0:
             for targets in GlobalVars.potential_targets:
-                arcade.draw_circle_outline(eval(f"board.{targets}.coords['x']"), eval(f"board.{targets}.coords['y']"), 40, arcade.color.YELLOW , 5)
-        # Call draw() on all your sprite lists below
-        self.pkmn_list.draw()
-            
+                arcade.draw_circle_filled(eval(f"board.{targets}.coords['x']"), eval(f"board.{targets}.coords['y']"), 40, (255,240,0,150))
+    
     def evolution_check(self, winner):
         
         def evolution_popup(winner_name, evo_list):
