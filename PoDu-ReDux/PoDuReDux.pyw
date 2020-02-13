@@ -1,8 +1,11 @@
  ##  -*- coding: utf-8 -*-
 
 """
+TODO NOW...:
+-Add tagging logic for removal of ally markers and freeze / sleep
+
 TODO LATER...:
--Properly display modified movement values on screen
+-Properly display modified movement values on screen (KINDA DONE)
 -Create functional ability button
 -Fix GlobalVars.gamelog on-screen text overflow
 
@@ -48,6 +51,13 @@ class GlobalConstants():
         self.STATS_PATH = join(abspath(expanduser(sys.path[0])), "pkmn-stats.json")
         self.PKMN_STATS = json.load(open(self.STATS_PATH, "r"))
         self.BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
+        self.STATUS_COLORS = {'burned': (175, 0, 42, 150),
+                              'paralyzed': (255, 191, 0, 150),
+                              'frozen': (127, 255, 212, 150),
+                              'poisoned': (135, 50, 96, 150),
+                              'noxious': (255, 0, 127, 150),
+                              'sleep': (100, 149, 237,150)}
+                              
 
 class GlobalVars():
     def __init__(self):
@@ -93,6 +103,7 @@ class GlobalVars():
         self.p2_ultra_space_targets = []
         self.combatant_1_power = 'None'
         self.combatant_2_power = 'None'
+        self.tag_targets = []
 
 class BoardNeighbors():
     """Create generic board spaces and assign list of neighbor spaces"""
@@ -501,6 +512,10 @@ def wait_tickdown():
 
 def apply_status(target, status_type = 'clear'):
     target['status'] = status_type
+    if status_type == 'frozen' or status_type == 'sleep':
+        exec(f"board.{target['loc']}.passable = True")
+    elif status_type == 'clear':
+        exec(f"board.{target['loc']}.passable = False")
 
 def apply_marker(target, marker_type = 'clear'):
     target['marker'] = marker_type
@@ -572,7 +587,7 @@ def spin(combatant):
                 combatant_attack = wheel_numbers
                 ## Returns segment number of SPIN result (wheel_numbers at correct iteration)
                 return combatant_attack
-                break
+
             else:
                 continue
         else:
@@ -606,12 +621,17 @@ def target_finder(combatant_loc, control_player, combatant_targets, attack_dista
                 to_remove.append(x)
             elif eval(f"board.{x}.ctrl_player") == control_player:
                 to_remove.append(x)
+
+                #add MP markers to this check when markers are implemented
+                if eval(f"eval(f'board.{x}.occupant')")['status'] == 'frozen' or eval(f"eval(f'board.{x}.occupant')")['status'] == 'sleep':
+                    GlobalVars.tag_targets.append(x)
             elif eval(f"board.{x}.ctrl_player") == 0:
                 to_remove.append(x)
         GlobalVars.potential_targets = set(GlobalVars.potential_targets).difference(to_remove)
     else:
         GlobalVars.potential_targets = []
     GlobalVars.loop_counter = 0
+    #print(GlobalVars.tag_targets)
 
 def battle_spin_compare(combatant_1, combatant_2):
     """
@@ -727,7 +747,7 @@ def battle_spin_compare(combatant_1, combatant_2):
         GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is confused. Attack has shifted one segment from {combatant_2[f'attack{combatant_2_attack}name']}.")
         combatant_2_attack += 1
         if eval(f"{combatant_2}['attack{combatant_2_attack}name']") == "null":
-            combatant__2_attack = 1
+            combatant_2_attack = 1
     
     if combatant_1['status'] == 'frozen':
         GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun Miss")
@@ -931,6 +951,9 @@ class GameView(arcade.View):
                 if pkmn_ref['stage'] > 0:
                     for stages in range(pkmn_ref['stage']):
                         exec(f"arcade.draw_circle_outline(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40+10*pkmn_ref['stage'], stage_cir_color, 4)")
+                for colors in GlobalConstants.STATUS_COLORS.keys():
+                    if pkmn_ref['status'] == colors:
+                        exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 35, GlobalConstants.STATUS_COLORS[colors])")
 
         self.pkmn_list.draw()
 
@@ -1046,7 +1069,16 @@ class GameView(arcade.View):
                                     GlobalVars.in_transit_combatant = GlobalVars.in_transit
                                     GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
                                     path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
-                                    break
+                                    if len(units_loc_str) == 2:
+                                        for _ in eval(f"board.{units_loc_str}.neighbors.keys()"):
+                                            if eval(f"board.{_}.occupied") == True:
+                                                if _ == eval(f"list(board.{units_loc_str}.neighbors.keys())[-1]"):
+                                                    target_finder(GlobalVars.in_transit['loc'],
+                                                                  GlobalVars.in_transit['ctrl'],
+                                                                  eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
+                                                    if len(GlobalVars.potential_targets) > 0:
+                                                        GlobalVars.move_click = False
+                                                        GlobalVars.attack_click = True
                 elif GlobalVars.turn_player == 2:
                     for units in dir(GlobalVars.player_2_team):
                         if units.startswith("pkmn"):
@@ -1067,9 +1099,16 @@ class GameView(arcade.View):
                                     GlobalVars.in_transit_combatant = GlobalVars.in_transit
                                     GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
                                     path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
-                                    break
-
-                        
+                                    if len(units_loc_str) == 2:
+                                        for _ in eval(f"board.{units_loc_str}.neighbors.keys()"):
+                                            if eval(f"board.{_}.occupied") == True:
+                                                if _ == eval(f"list(board.{units_loc_str}.neighbors.keys())[-1]"):
+                                                    target_finder(GlobalVars.in_transit['loc'],
+                                                                  GlobalVars.in_transit['ctrl'],
+                                                                  eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
+                                                    if len(GlobalVars.potential_targets) > 0:
+                                                        GlobalVars.move_click = False
+                                                        GlobalVars.attack_click = True
             elif GlobalVars.move_click:
                 for moves in GlobalVars.checked_moves:
                     #Make space clearing its own function?
@@ -1166,6 +1205,11 @@ class GameView(arcade.View):
                                         eval(f"board.{targets}.coords['y']") - 40, eval(f"board.{targets}.coords['y']") + 40):
                         GlobalVars.unit_attacked = True
                         winner_check = battle_spin_compare(GlobalVars.in_transit_combatant, eval(f'board.{targets}.occupant'))
+
+                        if eval(f"board.{targets}.occupant['status']") == 'frozen' or eval(f"board.{targets}.occupant['status']") == 'sleep':
+                            exec(f"board.{targets}.occupant['status'] = 'clear'")
+                        if GlobalVars.in_transit_combatant['status'] == 'frozen' or GlobalVars.in_transit_combatant['status'] == 'sleep':
+                            GlobalVars.in_transit_combatant['status'] = 'clear'
                         #Add effects checks
                         if winner_check == 0:
                             pass
