@@ -1079,6 +1079,8 @@ class GameView(arcade.View):
                                                     if len(GlobalVars.potential_targets) > 0:
                                                         GlobalVars.move_click = False
                                                         GlobalVars.attack_click = True
+                                            else:
+                                                break
                 elif GlobalVars.turn_player == 2:
                     for units in dir(GlobalVars.player_2_team):
                         if units.startswith("pkmn"):
@@ -1109,6 +1111,8 @@ class GameView(arcade.View):
                                                     if len(GlobalVars.potential_targets) > 0:
                                                         GlobalVars.move_click = False
                                                         GlobalVars.attack_click = True
+                                            else:
+                                                break
             elif GlobalVars.move_click:
                 for moves in GlobalVars.checked_moves:
                     #Make space clearing its own function?
