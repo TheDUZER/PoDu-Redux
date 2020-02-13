@@ -950,7 +950,7 @@ class GameView(arcade.View):
                 exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40, cir_color)")
                 if pkmn_ref['stage'] > 0:
                     for stages in range(pkmn_ref['stage']):
-                        exec(f"arcade.draw_circle_outline(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40+10*pkmn_ref['stage'], stage_cir_color, 4)")
+                        exec(f"arcade.draw_circle_outline(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40+5*(stages+1), stage_cir_color, 4)")
                 for colors in GlobalConstants.STATUS_COLORS.keys():
                     if pkmn_ref['status'] == colors:
                         exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 35, GlobalConstants.STATUS_COLORS[colors])")
