@@ -1,7 +1,9 @@
- ##  -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """
 TODO NOW...:
+-Update Classic board properties for new OOP system
+-Create new stats viewer
 -Add tagging logic for removal of ally markers and freeze / sleep
 
 TODO LATER...:
@@ -13,24 +15,35 @@ TODO LATER...:
 
     Priorities:
     -Fly / Fly Away / Telekinesis effects
-    -Knockback / Psychic Shove
+    -Psychic Shove
     -Markers
     -Knockout effects
-    -Respin (forced, tactical, Swords Dance, Fire Spin, etc)
+    -Respin .Forced, tactical, Swords Dance, Fire Spin, etc)
     -Swap (Abra, Gardevoir)
     -Draco Meteor effects
 
-    -Draw opaque rings or circles as indicators of status effects
-    -Add check when attack_click == True so that tagging frozen, sleeping or marked units is allowed
+    -Add check when attack_click == True so that tagging frozen,
+    sleeping or marked units is allowed
 
     DONE:
-    -Simple Wait effects (Purple / Blue; other colors' simple Wait effects in place but not implemented yet)
+    -MOVED TO OBJECT-ORIENTED SYSTEM
+    -Simple, compulsory, linear knockback effects of varying
+        distances (no optional or traced paths, i.e. 'opponent
+        chooses the point' or around-the-corner pathing)
+    -Updated evolution functions so that they occur outside
+        of the game loop, allowing for use of evolution effects
+    -Draw opaque rings or circles as indicators of status effects
+    -Simple Wait effects (Purple / Blue; other colors' simple Wait
+    effects in place but not implemented yet)
     -Simple Status Affliction
 
 -ADD ABILITIES
-    -Establish event ID checking system for accurate timing of abilities and attack effects (i.e. the difference between
-    "White: When this unit is knocked out...", "White: Spin until you don't spin this attack. Gain X*Y", "White: If the
-    opponent spins an attack >X, this unit can't be KO'd", "Ability: Water-types can't be paralyzed", etc)
+    -Establish event ID checking system for accurate timing of
+    abilities and attack effects (i.e. the difference between
+    "White: When this unit is knocked out...", "White: Spin
+    until you don't spin this attack. Gain X*Y", "White: if the
+    opponent spins an attack >X, this unit can't be KO'd",
+    "Ability: Water-types can't be paralyzed", etc)
 
 -PACKAGING / HOSTING
     -UUUGGGHHHH
@@ -40,24 +53,40 @@ from glob import iglob
 from os.path import abspath, expanduser, join
 import tkinter as tk
 from tkinter import ttk
-import arcade, json, sys, os, random, time
+import arcade
+import json
+import sys
+import os
+import random
+import time
+
 
 class GlobalConstants():
     def __init__(self):
         self.SPRITE_SCALING = 2.5
-        self.SCREEN_WIDTH = 1440
-        self.SCREEN_HEIGHT = 1024
-        self.SCREEN_TITLE = "PoDu ReDux v0.1.3"
-        self.STATS_PATH = join(abspath(expanduser(sys.path[0])), "pkmn-stats.json")
+        self.SCREEN_WIDTH = 1400
+        self.SCREEN_HEIGHT = 1000
+        self.SCREEN_TITLE = "PoDu ReDux v0.2.0"
+        self.STATS_PATH = join(
+            abspath(
+                expanduser(
+                    sys.path[0])),
+            "pkmn-stats.json")
         self.PKMN_STATS = json.load(open(self.STATS_PATH, "r"))
-        self.BG_PATH = join(abspath(expanduser(sys.path[0])), "images", "board", "backgrounds")
-        self.STATUS_COLORS = {'burned': (175, 0, 42, 150),
-                              'paralyzed': (255, 191, 0, 150),
-                              'frozen': (127, 255, 212, 150),
-                              'poisoned': (135, 50, 96, 150),
-                              'noxious': (255, 0, 127, 150),
-                              'sleep': (100, 149, 237,150)}
-                              
+        self.BG_PATH = join(
+            abspath(
+                expanduser(
+                    sys.path[0])),
+            "images",
+            "board",
+            "backgrounds")
+        self.STATUS_COLORS = {'burned': (175, 0, 42),
+                              'paralyzed': (255, 191, 0),
+                              'frozen': (127, 255, 212),
+                              'poisoned': (135, 50, 96),
+                              'noxious': (255, 0, 127),
+                              'sleep': (100, 149, 237)}
+
 
 class GlobalVars():
     def __init__(self):
@@ -71,7 +100,7 @@ class GlobalVars():
         self.checked_targets = []
         self.move_click = False
         self.attack_click = False
-        self.turn_player = random.randint(1,2)
+        self.turn_player = random.randint(1, 2)
         self.first_turn = True
         self.gamelog = []
         self.player_1_win = False
@@ -85,8 +114,6 @@ class GlobalVars():
         self.evo_complete = False
         self.unit_attacked = False
         self.unit_moved = False
-        self.player_1_team = None
-        self.player_2_team = None
         self.top_range = None
         self.bottom_range = None
         self.attacker_current_spin = None
@@ -104,296 +131,905 @@ class GlobalVars():
         self.combatant_1_power = 'None'
         self.combatant_2_power = 'None'
         self.tag_targets = []
+        self.counter = 0
+        self.hover_pkmn = None
+        self.effect_targets = []
+        self.checked_targets = []
+        self.next_target = None
+        self.turn_change = False
 
 class BoardNeighbors():
-    """Create generic board spaces and assign list of neighbor spaces"""
-    def __init__(self, coords, neighbors = {}):
-        self.neighbors = neighbors
-        self.coords = coords
-        self.force_stop = False
-        self.force_attack = False
-        self.occupied = False
-        self.occupant = ''
-        self.occupant_team = 0
-        self.passable = True
-        self.ctrl_player = 0
-        self.player_1_entry = False
-        self.player_1_goal = False
-        self.player_2_entry = False
-        self.player_2_goal = False
+    """
+    Create generic board spaces and
+    assign list of neighbor spaces
+    """
+
+    def __init__(self):
+        self.Label = ''
+        self.Neighbors = {}
+        self.Coords = ()
+        self.ForceStop = False
+        self.ForceAttack = False
+        self.Occupied = False
+        self.Occupant = ''
+        self.OccupantTeam = 0
+        self.Passable = True
+        self.Ctrl = 0
+        self.Player1Entry = False
+        self.Player1Goal = False
+        self.Player2Entry = False
+        self.Player2Goal = False
+
+    def __str__(self):
+        return self.Label
 
 class ClassicBoardGenerator():
+    #6v6 Board
     """
-    Create board object with space labels and adjusted bools for special spaces
+    Create board object with space Labels
+    and adjusted bools for special spaces
+    """
 
-        NOTES ABOUT VALUE OF NEIGHBOR KEYS (long overdue / overlooked):
-        
-        -Example: board.A1.neighbors['B1'] is 1, which means that
-        B1 is directly north of A1. Moving clockwise, 2 is
-        NE, 3 is E, 4 is SE, etc etc until 8 for NW.
-        
-        -Knockback path checking uses this number. The yet unused
-        knockback function checks the direction of the target space
-        from the point of attack initiation for consideration of
-        effects like Psychic Shove or my custom Donphan's
-        charging mechanics.
-    """
     def __init__(self):
-        self.A1 = BoardNeighbors({'x': 290, 'y': 294}, {"B1":1, "B2":2, "A2":3})
-        self.A1.player_1_entry = True
-        self.A2 = BoardNeighbors({'x': 365, 'y': 293}, {"A1":7, "A3":3})
-        self.A3 = BoardNeighbors({'x': 436, 'y': 293}, {"A2":7, "A4":3})
-        self.A4 = BoardNeighbors({'x': 512, 'y': 293}, {"A3":7, "A5":3})
-        self.A4.player_1_goal = True
-        self.A5 = BoardNeighbors({'x': 586, 'y': 293}, {"A4":7, "A6":3, "B4":1})
-        self.A6 = BoardNeighbors({'x': 658, 'y': 293}, {"A5":7, "A7":3})
-        self.A7 = BoardNeighbors({'x': 732, 'y': 293}, {"A6":7, "B6":8, "B7":1})
-        self.A7.player_1_entry = True
+
+        """In-Play Spaces"""
+        self.A1 = BoardNeighbors()
+        self.A2 = BoardNeighbors()
+        self.A3 = BoardNeighbors()
+        self.A4 = BoardNeighbors()
+        self.A5 = BoardNeighbors()
+        self.A6 = BoardNeighbors()
+        self.A7 = BoardNeighbors()
+        self.B1 = BoardNeighbors()
+        self.B2 = BoardNeighbors()
+        self.B4 = BoardNeighbors()
+        self.B6 = BoardNeighbors()
+        self.B7 = BoardNeighbors()
+        self.C1 = BoardNeighbors()
+        self.C2 = BoardNeighbors()
+        self.C6 = BoardNeighbors()
+        self.C7 = BoardNeighbors()
+        self.D1 = BoardNeighbors()
+        self.D2 = BoardNeighbors()
+        self.D4 = BoardNeighbors()
+        self.D6 = BoardNeighbors()
+        self.D7 = BoardNeighbors()
+        self.E1 = BoardNeighbors()
+        self.E2 = BoardNeighbors()
+        self.E3 = BoardNeighbors()
+        self.E4 = BoardNeighbors()
+        self.E5 = BoardNeighbors()
+        self.E6 = BoardNeighbors()
+        self.E7 = BoardNeighbors()
         
-        self.B1 = BoardNeighbors({'x': 290, 'y': 414}, {"A1":5, "C1":1})
-        self.B2 = BoardNeighbors({'x': 400, 'y': 414}, {"A1":6, "B4":3, "C2":1})
-        self.B4 = BoardNeighbors({'x': 512, 'y': 414}, {"B2":7, "A5":5, "B6":3})
-        self.B6 = BoardNeighbors({'x': 625, 'y': 414}, {"B4":7, "A7":5, "C6":1})
-        self.B7 = BoardNeighbors({'x': 732, 'y': 414}, {"A7":5, "C7":1}) 
+        self.A1.Coords = [285, 287]
+        self.A1.Label = "A1"
+        self.A1.Neighbors = (self.B1, self.B2, self.A2)
+        self.A1.Player1Entry = True
         
-        self.C1 = BoardNeighbors({'x': 290, 'y': 514}, {"B1":5, "D1":1}) 
-        self.C2 = BoardNeighbors({'x': 400, 'y': 514}, {"B2":5, "D2":1})
-        self.C6 = BoardNeighbors({'x': 625, 'y': 514}, {"B6":5, "D6":1}) 
-        self.C7 = BoardNeighbors({'x': 732, 'y': 514}, {"B7":5, "D7":1})
+        self.A2.Coords = [356, 287]
+        self.A2.Label = "A2"
+        self.A2.Neighbors = (self.A1, self.A3)
         
-        self.D1 = BoardNeighbors({'x': 290, 'y': 614}, {"E1":1, "C1":5})
-        self.D2 = BoardNeighbors({'x': 400, 'y': 614}, {"E1":8, "D4":3, "C2":5})
-        self.D4 = BoardNeighbors({'x': 512, 'y': 614}, {"D2":7, "E3":1, "D6":3})
-        self.D6 = BoardNeighbors({'x': 625, 'y': 614}, {"D4":7, "E7":2, "C6":5})
-        self.D7 = BoardNeighbors({'x': 732, 'y': 614}, {"C7":5, "E7":1})
+        self.A3.Coords = [427, 287]
+        self.A3.Label = "A3"
+        self.A3.Neighbors = (self.A2, self.A4)
         
-        self.E1 = BoardNeighbors({'x': 290, 'y': 731}, {"D1":5, "E2":3, "D2":4})
-        self.E1.player_2_entry = True
-        self.E2 = BoardNeighbors({'x': 365, 'y': 731}, {"E1":7, "E3":3})
-        self.E3 = BoardNeighbors({'x': 436, 'y': 731}, {"E2":7, "E4":3, "D4":5})
-        self.E4 = BoardNeighbors({'x': 512, 'y': 731}, {"E3":7, "E5":3})
-        self.E4.player_2_goal = True
-        self.E5 = BoardNeighbors({'x': 586, 'y': 731}, {"E4":7, "E6":3})
-        self.E6 = BoardNeighbors({'x': 658, 'y': 731}, {"E5":7, "E7":3})
-        self.E7 = BoardNeighbors({'x': 732, 'y': 731}, {"E6":7, "D6":6, "D7":5})
-        self.E7.player_2_entry = True
+        self.A4.Coords = [500, 287]
+        self.A4.Label = "A4"
+        self.A4.Neighbors = (self.A3, self.A5)
+        self.A4.Player1Goal = True
         
-        self.player_1_bench_1 = BoardNeighbors({'x': 311, 'y': 183}, {'A1':None, 'A7':None})
-        self.player_1_bench_1.occupant = GlobalVars.player_1_team.pkmn1
-        self.player_1_bench_1.occupant_team = 1
-        self.player_1_bench_1.occupied = True
-        self.player_1_bench_2 = BoardNeighbors({'x': 411, 'y': 183}, {'A1':None, 'A7':None})
-        self.player_1_bench_2.occupant = GlobalVars.player_1_team.pkmn2
-        self.player_1_bench_2.occupant_team = 1
-        self.player_1_bench_2.occupied = True
-        self.player_1_bench_3 = BoardNeighbors({'x': 511, 'y': 183}, {'A1':None, 'A7':None})
-        self.player_1_bench_3.occupant = GlobalVars.player_1_team.pkmn3
-        self.player_1_bench_3.occupant_team = 1
-        self.player_1_bench_3.occupied = True
-        self.player_1_bench_4 = BoardNeighbors({'x': 360, 'y': 110}, {'A1':None, 'A7':None})
-        self.player_1_bench_4.occupant = GlobalVars.player_1_team.pkmn4
-        self.player_1_bench_4.occupant_team = 1
-        self.player_1_bench_4.occupied = True
-        self.player_1_bench_5 = BoardNeighbors({'x': 460, 'y': 110}, {'A1':None, 'A7':None})
-        self.player_1_bench_5.occupant = GlobalVars.player_1_team.pkmn5
-        self.player_1_bench_5.occupant_team = 1
-        self.player_1_bench_5.occupied = True
-        self.player_1_bench_6 = BoardNeighbors({'x': 560, 'y': 110}, {'A1':None, 'A7':None})
-        self.player_1_bench_6.occupant = GlobalVars.player_1_team.pkmn6
-        self.player_1_bench_6.occupant_team = 1
-        self.player_1_bench_6.occupied = True
+        self.A5.Coords = [572, 287]
+        self.A5.Label = "A5"
+        self.A5.Neighbors = (self.A4, self.B4, self.A6)
         
-        self.player_2_bench_1 = BoardNeighbors({'x': 715, 'y': 845}, {'E1':None, 'E7':None})
-        self.player_2_bench_1.occupant = GlobalVars.player_2_team.pkmn1
-        self.player_2_bench_1.occupant_team = 2
-        self.player_2_bench_1.occupied = True
-        self.player_2_bench_2 = BoardNeighbors({'x': 615, 'y': 845}, {'E1':None, 'E7':None})
-        self.player_2_bench_2.occupant = GlobalVars.player_2_team.pkmn2
-        self.player_2_bench_2.occupant_team = 2
-        self.player_2_bench_2.occupied = True
-        self.player_2_bench_3 = BoardNeighbors({'x': 515, 'y': 845}, {'E1':None, 'E7':None})
-        self.player_2_bench_3.occupant = GlobalVars.player_2_team.pkmn3
-        self.player_2_bench_3.occupant_team = 2
-        self.player_2_bench_3.occupied = True
-        self.player_2_bench_4 = BoardNeighbors({'x': 661, 'y': 921}, {'E1':None, 'E7':None})
-        self.player_2_bench_4.occupant = GlobalVars.player_2_team.pkmn4
-        self.player_2_bench_4.occupant_team = 2
-        self.player_2_bench_4.occupied = True
-        self.player_2_bench_5 = BoardNeighbors({'x': 561, 'y': 921}, {'E1':None, 'E7':None})
-        self.player_2_bench_5.occupant = GlobalVars.player_2_team.pkmn5
-        self.player_2_bench_5.occupant_team = 2
-        self.player_2_bench_5.occupied = True
-        self.player_2_bench_6 = BoardNeighbors({'x': 461, 'y': 921}, {'E1':None, 'E7':None})
-        self.player_2_bench_6.occupant = GlobalVars.player_2_team.pkmn6
-        self.player_2_bench_6.occupant_team = 2
-        self.player_2_bench_6.occupied = True
+        self.A6.Coords = [643, 287]
+        self.A6.Label = "A6"
+        self.A6.Neighbors = (self.A5, self.A7)
         
-        self.player_1_ultra_space_1 = BoardNeighbors({'x': 900, 'y': 280})
-        self.player_1_ultra_space_2 = BoardNeighbors({'x': 975, 'y': 240})
-        self.player_1_ultra_space_3 = BoardNeighbors({'x': 900, 'y': 185})
-        self.player_1_ultra_space_4 = BoardNeighbors({'x': 975, 'y': 100})
-        self.player_1_ultra_space_5 = BoardNeighbors({'x': 900, 'y': 140})
-        self.player_1_ultra_space_6 = BoardNeighbors({'x': 975, 'y': 55})
+        self.A7.Coords = [713, 287]
+        self.A7.Label = "A7"
+        self.A7.Neighbors = (self.A6, self.B6, self.B7)
+        self.A7.Player1Entry = True
+
+        ####################################################
+
+        self.B1.Coords = [285, 405]
+        self.B1.Label = "B1"
+        self.B1.Neighbors = (self.A1, self.C1)
         
-        self.player_2_ultra_space_1 = BoardNeighbors({'x': 124, 'y': 752})
-        self.player_2_ultra_space_2 = BoardNeighbors({'x': 50, 'y': 794})
-        self.player_2_ultra_space_3 = BoardNeighbors({'x': 124, 'y': 843})
-        self.player_2_ultra_space_4 = BoardNeighbors({'x': 50, 'y': 886})
-        self.player_2_ultra_space_5 = BoardNeighbors({'x': 124, 'y': 940})
-        self.player_2_ultra_space_6 = BoardNeighbors({'x': 50, 'y': 975})
+        self.B2.Coords = [390, 405]
+        self.B2.Label = "B2"
+        self.B2.Neighbors = (self.A1, self.B4, self.C2)
+
+        self.B4.Coords = [500, 405]
+        self.B4.Label = "B4"
+        self.B4.Neighbors = (self.B2, self.A5, self.B6)
         
-        self.player_1_eliminated_1 = BoardNeighbors({'x': 124, 'y': 280})
-        self.player_1_eliminated_2 = BoardNeighbors({'x': 50, 'y': 240})
-        self.player_1_eliminated_3 = BoardNeighbors({'x': 124, 'y': 185})
-        self.player_1_eliminated_4 = BoardNeighbors({'x': 50, 'y': 100})
-        self.player_1_eliminated_5 = BoardNeighbors({'x': 124, 'y': 140})
-        self.player_1_eliminated_6 = BoardNeighbors({'x': 50, 'y': 55})
+        self.B6.Coords = [609, 405]
+        self.B6.Label = "B6"
+        self.B6.Neighbors = (self.A7, self.C6)
         
-        self.player_2_eliminated_1 = BoardNeighbors({'x': 900, 'y': 752})
-        self.player_2_eliminated_2 = BoardNeighbors({'x': 975, 'y': 794})
-        self.player_2_eliminated_3 = BoardNeighbors({'x': 900, 'y': 843})
-        self.player_2_eliminated_4 = BoardNeighbors({'x': 975, 'y': 886})
-        self.player_2_eliminated_5 = BoardNeighbors({'x': 900, 'y': 940})
-        self.player_2_eliminated_6 = BoardNeighbors({'x': 975, 'y': 975})
+        self.B7.Coords = [713, 405]
+        self.B7.Label = "B7"
+        self.B7.Neighbors = (self.A7, self.C7)
+
+        ####################################################
+
+        self.C1.Coords = [285, 500]
+        self.C1.Label = "C1"
+        self.C1.Neighbors = (self.B1, self.D1)
         
-        self.player_1_PC_1 = BoardNeighbors({'x': 645, 'y': 185})
-        self.player_1_PC_2 = BoardNeighbors({'x': 727, 'y': 185})
+        self.C2.Coords = [390, 500]
+        self.C2.Label = "C2"
+        self.C2.Neighbors = (self.B2, self.D2)
         
-        self.player_2_PC_1 = BoardNeighbors({'x': 380, 'y': 840})
-        self.player_2_PC_2 = BoardNeighbors({'x': 297, 'y': 840})
+        self.C6.Coords = [609, 500]
+        self.C6.Label = "C6"
+        self.C6.Neighbors = (self.B6, self.D6)
+        
+        self.C7.Coords = [713, 500]
+        self.C7.Label = "C7"
+        self.C7.Neighbors = (self.B7, self.D7)
+
+        ####################################################
+
+        self.D1.Coords = [285, 596]
+        self.D1.Label = "D1"
+        self.D1.Neighbors = (self.E1, self.C1)
+        
+        self.D2.Coords = [390, 596]
+        self.D2.Label = "D2"
+        self.D2.Neighbors = (self.E1, self.D4, self.C2)
+
+        self.D4.Coords = [500, 596]
+        self.D4.Label = "D4"
+        self.D4.Neighbors = (self.D2, self.E3, self.D6)
+        
+        self.D6.Coords = [609, 596]
+        self.D6.Label = "D6"
+        self.D6.Neighbors = (self.E7, self.D4, self.C6)
+        
+        self.D7.Coords = [713, 596]
+        self.D7.Label = "D7"
+        self.D7.Neighbors = (self.C7, self.E7)
+
+        ####################################################
+
+        self.E1.Coords = [285, 713]
+        self.E1.Label = "E1"
+        self.E1.Neighbors = (self.D1, self.E2, self.D2)
+        self.E1.Player2Entry = True
+        
+        self.E2.Coords = [356, 713]
+        self.E2.Label = "E2"
+        self.E2.Neighbors = (self.E1, self.E3)
+        
+        self.E3.Coords = [427, 713]
+        self.E3.Label = "E3"
+        self.E3.Neighbors = (self.E2, self.D4, self.E4)
+        
+        self.E4.Coords = [500, 713]
+        self.E4.Label = "E4"
+        self.E4.Neighbors = (self.E3, self.E5)
+        self.E4.Player2Goal = True
+        
+        self.E5.Coords = [572, 713]
+        self.E5.Label = "E5"
+        self.E5.Neighbors = (self.E4, self.E6)
+        
+        self.E6.Coords = [643, 713]
+        self.E6.Label = "E6"
+        self.E6.Neighbors = (self.E5, self.E7)
+        
+        self.E7.Coords = [713, 713]
+        self.E7.Label = "E7"
+        self.E7.Neighbors = (self.E6, self.D6, self.D7)
+        self.E7.Player2Entry = True
+
+        ####################################################
+
+        
+        
+        """Player 1 Bench"""
+
+        self.Player1Bench1 = BoardNeighbors()
+        self.Player1Bench1.Coords = [300, 180]
+        self.Player1Bench1.Neighbors = (self.A1, self.A7)
+        self.Player1Bench1.Occupant = PlayerTeams.Player1.Pkmn1
+        self.Player1Bench1.OccupantTeam = 1
+        self.Player1Bench1.Occupied = True
+
+        self.Player1Bench2 = BoardNeighbors()
+        self.Player1Bench2.Coords = [400, 180]
+        self.Player1Bench2.Neighbors = (self.A1, self.A7)
+        self.Player1Bench2.Occupant = PlayerTeams.Player1.Pkmn2
+        self.Player1Bench2.OccupantTeam = 1
+        self.Player1Bench2.Occupied = True
+
+        self.Player1Bench3 = BoardNeighbors()
+        self.Player1Bench3.Coords = [500, 180]
+        self.Player1Bench3.Neighbors = (self.A1, self.A7)
+        self.Player1Bench3.Occupant = PlayerTeams.Player1.Pkmn3
+        self.Player1Bench3.OccupantTeam = 1
+        self.Player1Bench3.Occupied = True
+
+        self.Player1Bench4 = BoardNeighbors()
+        self.Player1Bench4.Coords = [350, 110]
+        self.Player1Bench4.Neighbors = (self.A1, self.A7)
+        self.Player1Bench4.Occupant = PlayerTeams.Player1.Pkmn4
+        self.Player1Bench4.OccupantTeam = 1
+        self.Player1Bench4.Occupied = True
+        
+        self.Player1Bench5 = BoardNeighbors()
+        self.Player1Bench5.Coords = [450, 110]
+        self.Player1Bench5.Neighbors = (self.A1, self.A7)
+        self.Player1Bench5.Occupant = PlayerTeams.Player1.Pkmn5
+        self.Player1Bench5.OccupantTeam = 1
+        self.Player1Bench5.Occupied = True
+
+        self.Player1Bench6 = BoardNeighbors()
+        self.Player1Bench6.Coords = [550, 110]
+        self.Player1Bench6.Neighbors = (self.A1, self.A7)
+        self.Player1Bench6.Occupant = PlayerTeams.Player1.Pkmn6
+        self.Player1Bench6.OccupantTeam = 1
+        self.Player1Bench6.Occupied = True
+
+        ####################################################
+        """Player 2 Bench"""
+
+        self.Player2Bench1 = BoardNeighbors()
+        self.Player2Bench1.Coords = [500, 825]
+        self.Player2Bench1.Neighbors = (self.E1, self.E7)
+        self.Player2Bench1.Occupant = PlayerTeams.Player2.Pkmn1
+        self.Player2Bench1.OccupantTeam = 1
+        self.Player2Bench1.Occupied = True
+
+        self.Player2Bench2 = BoardNeighbors()
+        self.Player2Bench2.Coords = [600, 825]
+        self.Player2Bench2.Neighbors = (self.E1, self.E7)
+        self.Player2Bench2.Occupant = PlayerTeams.Player2.Pkmn2
+        self.Player2Bench2.OccupantTeam = 1
+        self.Player2Bench2.Occupied = True
+
+        self.Player2Bench3 = BoardNeighbors()
+        self.Player2Bench3.Coords = [700, 825]
+        self.Player2Bench3.Neighbors = (self.E1, self.E7)
+        self.Player2Bench3.Occupant = PlayerTeams.Player2.Pkmn3
+        self.Player2Bench3.OccupantTeam = 1
+        self.Player2Bench3.Occupied = True
+
+        self.Player2Bench4 = BoardNeighbors()
+        self.Player2Bench4.Coords = [450, 900]
+        self.Player2Bench4.Neighbors = (self.E1, self.E7)
+        self.Player2Bench4.Occupant = PlayerTeams.Player2.Pkmn4
+        self.Player2Bench4.OccupantTeam = 1
+        self.Player2Bench4.Occupied = True
+
+        self.Player2Bench5 = BoardNeighbors()
+        self.Player2Bench5.Coords = [550, 900]
+        self.Player2Bench5.Neighbors = (self.E1, self.E7)
+        self.Player2Bench5.Occupant = PlayerTeams.Player2.Pkmn5
+        self.Player2Bench5.OccupantTeam = 1
+        self.Player2Bench5.Occupied = True
+
+        self.Player2Bench6 = BoardNeighbors()
+        self.Player2Bench6.Coords = [650, 900]
+        self.Player2Bench6.Neighbors = (self.E1, self.E7)
+        self.Player2Bench6.Occupant = PlayerTeams.Player2.Pkmn6
+        self.Player2Bench6.OccupantTeam = 1
+        self.Player2Bench6.Occupied = True
+
+        self.Player1Bench1.Label = 'Player 1 Bench 1'
+        self.Player1Bench2.Label = 'Player 1 Bench 2'
+        self.Player1Bench3.Label = 'Player 1 Bench 3'
+        self.Player1Bench4.Label = 'Player 1 Bench 4'
+        self.Player1Bench5.Label = 'Player 1 Bench 5'
+        self.Player1Bench6.Label = 'Player 1 Bench 6'
+        self.Player2Bench1.Label = 'Player 2 Bench 1'
+        self.Player2Bench2.Label = 'Player 2 Bench 2'
+        self.Player2Bench3.Label = 'Player 2 Bench 3'
+        self.Player2Bench4.Label = 'Player 2 Bench 4'
+        self.Player2Bench5.Label = 'Player 2 Bench 5'
+        self.Player2Bench6.Label = 'Player 2 Bench 6'
+        
+
+        ####################################################
+
+
+        self.Player1UltraSpace1 = BoardNeighbors()
+        self.Player1UltraSpace1.Coords = [878, 270]
+        self.Player1UltraSpace1.Label = "Player 1 Ultra Space 1"
+        
+        self.Player1UltraSpace2 = BoardNeighbors()
+        self.Player1UltraSpace2.Coords = [878, 180]
+        self.Player1UltraSpace2.Label = "Player 1 Ultra Space 2"
+        
+        self.Player1UltraSpace3 = BoardNeighbors()
+        self.Player1UltraSpace3.Coords = [878, 100]
+        self.Player1UltraSpace3.Label = "Player 1 Ultra Space 3"
+
+        self.Player1UltraSpace4 = BoardNeighbors()
+        self.Player1UltraSpace4.Coords = [950, 225]
+        self.Player1UltraSpace4.Label = "Player 1 Ultra Space 4"
+
+        self.Player1UltraSpace5 = BoardNeighbors()
+        self.Player1UltraSpace5.Coords = [950, 140]
+        self.Player1UltraSpace5.Label = "Player 1 Ultra Space 5"
+
+        self.Player1UltraSpace6 = BoardNeighbors()
+        self.Player1UltraSpace6.Coords = [950, 50]
+        self.Player1UltraSpace6.Label = "Player 1 Ultra Space 6"
+
+        ####################################################
+
+
+        self.Player2UltraSpace1 = BoardNeighbors()
+        self.Player2UltraSpace1.Coords = [120, 270]
+        self.Player2UltraSpace1.Label = "Player 2 Ultra Space 1"
+        
+        self.Player2UltraSpace2 = BoardNeighbors()
+        self.Player2UltraSpace2.Coords = [120, 180]
+        self.Player2UltraSpace2.Label = "Player 2 Ultra Space 2"
+        
+        self.Player2UltraSpace3 = BoardNeighbors()
+        self.Player2UltraSpace3.Coords = [120, 100]
+        self.Player2UltraSpace3.Label = "Player 2 Ultra Space 3"
+
+        self.Player2UltraSpace4 = BoardNeighbors()
+        self.Player2UltraSpace4.Coords = [50, 775]
+        self.Player2UltraSpace4.Label = "Player 2 Ultra Space 4"
+
+        self.Player2UltraSpace5 = BoardNeighbors()
+        self.Player2UltraSpace5.Coords = [50, 865]
+        self.Player2UltraSpace5.Label = "Player 2 Ultra Space 5"
+
+        self.Player2UltraSpace6 = BoardNeighbors()
+        self.Player2UltraSpace6.Coords = [50, 950]
+        self.Player2UltraSpace6.Label = "Player 2 Ultra Space 6"
+
+        ####################################################
+
+
+        self.Player1Eliminated1 = BoardNeighbors()
+        self.Player1Eliminated1.Coords = [120, 735]
+        self.Player1Eliminated1.Label = "Player 1 Eliminated 1"
+        
+        self.Player1Eliminated2 = BoardNeighbors()
+        self.Player1Eliminated2.Coords = [120, 825]
+        self.Player1Eliminated2.Label = "Player 1 Eliminated 2"
+        
+        self.Player1Eliminated3 = BoardNeighbors()
+        self.Player1Eliminated3.Coords = [120, 905]
+        self.Player1Eliminated3.Label = "Player 1 Eliminated 3"
+
+        self.Player1Eliminated4 = BoardNeighbors()
+        self.Player1Eliminated4.Coords = [50, 225]
+        self.Player1Eliminated4.Label = "Player 1 Eliminated 4"
+
+        self.Player1Eliminated5 = BoardNeighbors()
+        self.Player1Eliminated5.Coords = [50, 140]
+        self.Player1Eliminated5.Label = "Player 1 Eliminated 5"
+
+        self.Player1Eliminated6 = BoardNeighbors()
+        self.Player1Eliminated6.Coords = [50, 50]
+        self.Player1Eliminated6.Label = "Player 1 Eliminated 6"
+
+        ####################################################
+
+
+        self.Player2Eliminated1 = BoardNeighbors()
+        self.Player2Eliminated1.Coords = [878, 735]
+        self.Player2Eliminated1.Label = "Player 2 Eliminated 1"
+        
+        self.Player2Eliminated2 = BoardNeighbors()
+        self.Player2Eliminated2.Coords = [878, 825]
+        self.Player2Eliminated2.Label = "Player 2 Eliminated 2"
+        
+        self.Player2Eliminated3 = BoardNeighbors()
+        self.Player2Eliminated3.Coords = [878, 905]
+        self.Player2Eliminated3.Label = "Player 2 Eliminated 3"
+
+        self.Player2Eliminated4 = BoardNeighbors()
+        self.Player2Eliminated4.Coords = [950, 775]
+        self.Player2Eliminated4.Label = "Player 2 Eliminated 4"
+
+        self.Player2Eliminated5 = BoardNeighbors()
+        self.Player2Eliminated5.Coords = [950, 865]
+        self.Player2Eliminated5.Label = "Player 2 Eliminated 5"
+
+        self.Player2Eliminated6 = BoardNeighbors()
+        self.Player2Eliminated6.Coords = [950, 950]
+        self.Player2Eliminated6.Label = "Player 2 Eliminated 6"
+
+        ####################################################
+
+
+        self.Player1PC1 = BoardNeighbors()
+        self.Player1PC1.Label = "Player 1 PC 1"
+        self.Player1PC1.Coords = [630, 180]
+
+        self.Player1PC2 = BoardNeighbors()
+        self.Player1PC2.Label = "Player 1 PC 2"
+        self.Player1PC2.Coords = [710, 180]
+
+        ####################################################
+
+
+        self.Player2PC1 = BoardNeighbors()
+        self.Player2PC1.Label = "Player 2 PC 1"
+        self.Player2PC1.Coords = [370, 820]
+
+        self.Player2PC2 = BoardNeighbors()
+        self.Player2PC2.Label = "Player 2 PC 2"
+        self.Player2PC2.Coords = [290, 820]
+
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
 
 class TvTBoardGenerator():
-    ## 3v3 Board
-    """Create board object with space labels and adjusted bools for special spaces"""
+    # 3v3 Board
+    """
+    Create board object with space Labels
+    and adjusted bools for special spaces
+    """
+
     def __init__(self):
-        self.A1 = BoardNeighbors({'x': 290, 'y': 294}, {"B1":1, "B2":2, "A2":3})
-        self.A1.player_1_entry = True
-        self.A2 = BoardNeighbors({'x': 365, 'y': 293}, {"A1":7, "A3":3})
-        self.A3 = BoardNeighbors({'x': 436, 'y': 293}, {"A2":7, "A4":3})
-        self.A4 = BoardNeighbors({'x': 512, 'y': 293}, {"A3":7, "A5":3})
-        self.A4.player_1_goal = True
-        self.A5 = BoardNeighbors({'x': 586, 'y': 293}, {"A4":7, "A6":3})
-        self.A6 = BoardNeighbors({'x': 658, 'y': 293}, {"A5":7, "A7":3})
-        self.A6.player_1_entry = True
-        self.A7 = BoardNeighbors({'x': 732, 'y': 293}, {"A6":7, "B6":8, "B7":1})
+
+        """In-Play Spaces"""
+        self.A1 = BoardNeighbors()
+        self.A2 = BoardNeighbors()
+        self.A3 = BoardNeighbors()
+        self.A4 = BoardNeighbors()
+        self.A5 = BoardNeighbors()
+        self.A6 = BoardNeighbors()
+        self.A7 = BoardNeighbors()
+        self.B1 = BoardNeighbors()
+        self.B2 = BoardNeighbors()
+        self.B6 = BoardNeighbors()
+        self.B7 = BoardNeighbors()
+        self.C1 = BoardNeighbors()
+        self.C2 = BoardNeighbors()
+        self.C4 = BoardNeighbors()
+        self.C6 = BoardNeighbors()
+        self.C7 = BoardNeighbors()
+        self.D1 = BoardNeighbors()
+        self.D2 = BoardNeighbors()
+        self.D6 = BoardNeighbors()
+        self.D7 = BoardNeighbors()
+        self.E1 = BoardNeighbors()
+        self.E2 = BoardNeighbors()
+        self.E3 = BoardNeighbors()
+        self.E4 = BoardNeighbors()
+        self.E5 = BoardNeighbors()
+        self.E6 = BoardNeighbors()
+        self.E7 = BoardNeighbors()
         
-        self.B1 = BoardNeighbors({'x': 290, 'y': 414}, {"A1":5, "C1":1})
-        self.B2 = BoardNeighbors({'x': 400, 'y': 414}, {"A1":6, "C2":1})
-        self.B6 = BoardNeighbors({'x': 625, 'y': 414}, {"A7":5, "C6":1})
-        self.B7 = BoardNeighbors({'x': 732, 'y': 414}, {"A7":5, "C7":1})
+        self.A1.Coords = [285, 287]
+        self.A1.Label = "A1"
+        self.A1.Neighbors = (self.B1, self.B2, self.A2)
+        self.A1.Player1Entry = True
         
-        self.C1 = BoardNeighbors({'x': 290, 'y': 514}, {"B1":5, "D1":1})
-        self.C2 = BoardNeighbors({'x': 400, 'y': 514}, {"B2":5, "D2":1, "C4":3})
-        self.C4 = BoardNeighbors({'x': 512, 'y': 512}, {"C2":7, "C6":3})
-        self.C6 = BoardNeighbors({'x': 625, 'y': 514}, {"B6":5, "D6":1, "C4":7})
-        self.C7 = BoardNeighbors({'x': 732, 'y': 514}, {"B7":5, "D7":1})
+        self.A2.Coords = [356, 287]
+        self.A2.Label = "A2"
+        self.A2.Neighbors = (self.A1, self.A3)
         
-        self.D1 = BoardNeighbors({'x': 290, 'y': 614}, {"E1":1, "C1":5})
-        self.D2 = BoardNeighbors({'x': 400, 'y': 614}, {"E1":8, "C2":5})
-        self.D6 = BoardNeighbors({'x': 625, 'y': 614}, {"E7":2, "C6":5})
-        self.D7 = BoardNeighbors({'x': 732, 'y': 614}, {"C7":5, "E7":1})
+        self.A3.Coords = [427, 287]
+        self.A3.Label = "A3"
+        self.A3.Neighbors = (self.A2, self.A4)
         
-        self.E1 = BoardNeighbors({'x': 290, 'y': 731}, {"D1":5, "E2":3, "D2":4})
-        self.E2 = BoardNeighbors({'x': 365, 'y': 731}, {"E1":7, "E3":3})
-        self.E2.player_2_entry = True
-        self.E3 = BoardNeighbors({'x': 436, 'y': 731}, {"E2":7, "E4":3})
-        self.E4 = BoardNeighbors({'x': 512, 'y': 731}, {"E3":7, "E5":3})
-        self.E4.player_2_goal = True
-        self.E5 = BoardNeighbors({'x': 586, 'y': 731}, {"E4":7, "E6":3})
-        self.E6 = BoardNeighbors({'x': 658, 'y': 731}, {"E5":7, "E7":3})
-        self.E7 = BoardNeighbors({'x': 732, 'y': 731}, {"E6":7, "D6":6, "D7":5})
-        self.E7.player_2_entry = True
+        self.A4.Coords = [500, 287]
+        self.A4.Label = "A4"
+        self.A4.Neighbors = (self.A3, self.A5)
+        self.A4.Player1Goal = True
         
-        self.player_1_bench_1 = BoardNeighbors({'x': 311, 'y': 183}, {'A1':None, 'A6':None})
-        self.player_1_bench_1.occupant = GlobalVars.player_1_team.pkmn1
-        self.player_1_bench_1.occupant_team = 1
-        self.player_1_bench_1.occupied = True
-        self.player_1_bench_2 = BoardNeighbors({'x': 411, 'y': 183}, {'A1':None, 'A6':None})
-        self.player_1_bench_2.occupant = GlobalVars.player_1_team.pkmn2
-        self.player_1_bench_2.occupant_team = 1
-        self.player_1_bench_2.occupied = True
-        self.player_1_bench_3 = BoardNeighbors({'x': 511, 'y': 183}, {'A1':None, 'A6':None})
-        self.player_1_bench_3.occupant = GlobalVars.player_1_team.pkmn3
-        self.player_1_bench_3.occupant_team = 1
-        self.player_1_bench_3.occupied = True
+        self.A5.Coords = [572, 287]
+        self.A5.Label = "A5"
+        self.A5.Neighbors = (self.A4, self.A6)
         
-        self.player_2_bench_1 = BoardNeighbors({'x': 715, 'y': 845}, {'E2':None, 'E7':None})
-        self.player_2_bench_1.occupant = GlobalVars.player_2_team.pkmn1
-        self.player_2_bench_1.occupant_team = 2
-        self.player_2_bench_1.occupied = True
-        self.player_2_bench_2 = BoardNeighbors({'x': 615, 'y': 845}, {'E2':None, 'E7':None})
-        self.player_2_bench_2.occupant = GlobalVars.player_2_team.pkmn2
-        self.player_2_bench_2.occupant_team = 2
-        self.player_2_bench_2.occupied = True
-        self.player_2_bench_3 = BoardNeighbors({'x': 515, 'y': 845}, {'E2':None, 'E7':None})
-        self.player_2_bench_3.occupant = GlobalVars.player_2_team.pkmn3
-        self.player_2_bench_3.occupant_team = 2
-        self.player_2_bench_3.occupied = True
+        self.A6.Coords = [643, 287]
+        self.A6.Label = "A6"
+        self.A6.Neighbors = (self.A5, self.A7)
+        self.A6.Player1Entry = True
         
-        self.player_1_ultra_space_1 = BoardNeighbors({'x': 900, 'y': 280})
-        self.player_1_ultra_space_2 = BoardNeighbors({'x': 975, 'y': 240})
-        self.player_1_ultra_space_3 = BoardNeighbors({'x': 900, 'y': 185})
+        self.A7.Coords = [713, 287]
+        self.A7.Label = "A7"
+        self.A7.Neighbors = (self.A6, self.B6, self.B7)
+
+        ####################################################
+
+        self.B1.Coords = [285, 405]
+        self.B1.Label = "B1"
+        self.B1.Neighbors = (self.A1, self.C1)
         
-        self.player_2_ultra_space_1 = BoardNeighbors({'x': 124, 'y': 752})
-        self.player_2_ultra_space_2 = BoardNeighbors({'x': 50, 'y': 794})
-        self.player_2_ultra_space_3 = BoardNeighbors({'x': 124, 'y': 843})
+        self.B2.Coords = [390, 405]
+        self.B2.Label = "B2"
+        self.B2.Neighbors = (self.A1, self.C2)
         
-        self.player_1_eliminated_1 = BoardNeighbors({'x': 124, 'y': 280})
-        self.player_1_eliminated_2 = BoardNeighbors({'x': 50, 'y': 240})
-        self.player_1_eliminated_3 = BoardNeighbors({'x': 124, 'y': 185})
+        self.B6.Coords = [609, 405]
+        self.B6.Label = "B6"
+        self.B6.Neighbors = (self.A7, self.C6)
         
-        self.player_2_eliminated_1 = BoardNeighbors({'x': 900, 'y': 752})
-        self.player_2_eliminated_2 = BoardNeighbors({'x': 975, 'y': 794})
-        self.player_2_eliminated_3 = BoardNeighbors({'x': 900, 'y': 843})
+        self.B7.Coords = [713, 405]
+        self.B7.Label = "B7"
+        self.B7.Neighbors = (self.A7, self.C7)
+
+        ####################################################
+
+        self.C1.Coords = [285, 500]
+        self.C1.Label = "C1"
+        self.C1.Neighbors = (self.B1, self.D1)
         
-        self.player_1_PC_1 = BoardNeighbors({'x': 681, 'y': 185})
+        self.C2.Coords = [390, 500]
+        self.C2.Label = "C2"
+        self.C2.Neighbors = (self.B2, self.D2, self.C4)
         
-        self.player_2_PC_1 = BoardNeighbors({'x': 336, 'y': 840})
+        self.C4.Coords = [500, 500]
+        self.C4.Label = "C4"
+        self.C4.Neighbors = (self.C2, self.C6)
+        
+        self.C6.Coords = [609, 500]
+        self.C6.Label = "C6"
+        self.C6.Neighbors = (self.B6, self.D6, self.C4)
+        
+        self.C7.Coords = [713, 500]
+        self.C7.Label = "C7"
+        self.C7.Neighbors = (self.B7, self.D7)
+
+        ####################################################
+
+        self.D1.Coords = [285, 596]
+        self.D1.Label = "D1"
+        self.D1.Neighbors = (self.E1, self.C1)
+        
+        self.D2.Coords = [390, 596]
+        self.D2.Label = "D2"
+        self.D2.Neighbors = (self.E1, self.C2)
+        
+        self.D6.Coords = [609, 596]
+        self.D6.Label = "D6"
+        self.D6.Neighbors = (self.E7, self.C6)
+        
+        self.D7.Coords = [713, 596]
+        self.D7.Label = "D7"
+        self.D7.Neighbors = (self.C7, self.E7)
+
+        ####################################################
+
+        self.E1.Coords = [285, 713]
+        self.E1.Label = "E1"
+        self.E1.Neighbors = (self.D1, self.E2, self.D2)
+        
+        self.E2.Coords = [356, 713]
+        self.E2.Label = "E2"
+        self.E2.Neighbors = (self.E1, self.E3)
+        self.E2.Player2Entry = True
+        
+        self.E3.Coords = [427, 713]
+        self.E3.Label = "E3"
+        self.E3.Neighbors = (self.E2, self.E4)
+        
+        self.E4.Coords = [500, 713]
+        self.E4.Label = "E4"
+        self.E4.Neighbors = (self.E3, self.E5)
+        self.E4.Player2Goal = True
+        
+        self.E5.Coords = [572, 713]
+        self.E5.Label = "E5"
+        self.E5.Neighbors = (self.E4, self.E6)
+        
+        self.E6.Coords = [643, 713]
+        self.E6.Label = "E6"
+        self.E6.Neighbors = (self.E5, self.E7)
+        
+        self.E7.Coords = [713, 713]
+        self.E7.Label = "E7"
+        self.E7.Neighbors = (self.E6, self.D6, self.D7)
+        self.E7.Player2Entry = True
+
+        ####################################################
+
+        
+        
+        """Player 1 Bench"""
+
+        self.Player1Bench1 = BoardNeighbors()
+        self.Player1Bench1.Coords = [300, 180]
+        self.Player1Bench1.Neighbors = (self.A1, self.A6)
+        self.Player1Bench1.Occupant = PlayerTeams.Player1.Pkmn1
+        self.Player1Bench1.OccupantTeam = 1
+        self.Player1Bench1.Occupied = True
+
+        self.Player1Bench2 = BoardNeighbors()
+        self.Player1Bench2.Coords = [400, 180]
+        self.Player1Bench2.Neighbors = (self.A1, self.A6)
+        self.Player1Bench2.Occupant = PlayerTeams.Player1.Pkmn2
+        self.Player1Bench2.OccupantTeam = 1
+        self.Player1Bench2.Occupied = True
+
+        self.Player1Bench3 = BoardNeighbors()
+        self.Player1Bench3.Coords = [500, 180]
+        self.Player1Bench3.Neighbors = (self.A1, self.A6)
+        self.Player1Bench3.Occupant = PlayerTeams.Player1.Pkmn3
+        self.Player1Bench3.OccupantTeam = 1
+        self.Player1Bench3.Occupied = True
+
+        ####################################################
+        """Player 2 Bench"""
+
+        self.Player2Bench1 = BoardNeighbors()
+        self.Player2Bench1.Coords = [500, 825]
+        self.Player2Bench1.Neighbors = (self.E2, self.E7)
+        self.Player2Bench1.Occupant = PlayerTeams.Player2.Pkmn1
+        self.Player2Bench1.OccupantTeam = 1
+        self.Player2Bench1.Occupied = True
+
+        self.Player2Bench2 = BoardNeighbors()
+        self.Player2Bench2.Coords = [600, 825]
+        self.Player2Bench2.Neighbors = (self.E2, self.E7)
+        self.Player2Bench2.Occupant = PlayerTeams.Player2.Pkmn2
+        self.Player2Bench2.OccupantTeam = 1
+        self.Player2Bench2.Occupied = True
+
+        self.Player2Bench3 = BoardNeighbors()
+        self.Player2Bench3.Coords = [700, 825]
+        self.Player2Bench3.Neighbors = (self.E2, self.E7)
+        self.Player2Bench3.Occupant = PlayerTeams.Player2.Pkmn3
+        self.Player2Bench3.OccupantTeam = 1
+        self.Player2Bench3.Occupied = True
+
+        self.Player1Bench1.Label = 'Player 1 Bench 1'
+        self.Player1Bench2.Label = 'Player 1 Bench 2'
+        self.Player1Bench3.Label = 'Player 1 Bench 3'
+        self.Player2Bench1.Label = 'Player 2 Bench 1'
+        self.Player2Bench2.Label = 'Player 2 Bench 2'
+        self.Player2Bench3.Label = 'Player 2 Bench 3'
+        
+
+        ####################################################
+
+
+        self.Player1UltraSpace1 = BoardNeighbors()
+        self.Player1UltraSpace1.Coords = [878, 270]
+        self.Player1UltraSpace1.Label = "Player 1 Ultra Space 1"
+        
+        self.Player1UltraSpace2 = BoardNeighbors()
+        self.Player1UltraSpace2.Coords = [878, 180]
+        self.Player1UltraSpace2.Label = "Player 1 Ultra Space 2"
+        
+        self.Player1UltraSpace3 = BoardNeighbors()
+        self.Player1UltraSpace3.Coords = [878, 100]
+        self.Player1UltraSpace3.Label = "Player 1 Ultra Space 3"
+
+        ####################################################
+
+
+        self.Player2UltraSpace1 = BoardNeighbors()
+        self.Player2UltraSpace1.Coords = [120, 270]
+        self.Player2UltraSpace1.Label = "Player 2 Ultra Space 1"
+        
+        self.Player2UltraSpace2 = BoardNeighbors()
+        self.Player2UltraSpace2.Coords = [120, 180]
+        self.Player2UltraSpace2.Label = "Player 2 Ultra Space 2"
+        
+        self.Player2UltraSpace3 = BoardNeighbors()
+        self.Player2UltraSpace3.Coords = [120, 100]
+        self.Player2UltraSpace3.Label = "Player 2 Ultra Space 3"
+
+        ####################################################
+
+
+        self.Player1Eliminated1 = BoardNeighbors()
+        self.Player1Eliminated1.Coords = [120, 735]
+        self.Player1Eliminated1.Label = "Player 1 Eliminated 1"
+        
+        self.Player1Eliminated2 = BoardNeighbors()
+        self.Player1Eliminated2.Coords = [120, 825]
+        self.Player1Eliminated2.Label = "Player 1 Eliminated 2"
+        
+        self.Player1Eliminated3 = BoardNeighbors()
+        self.Player1Eliminated3.Coords = [120, 905]
+        self.Player1Eliminated3.Label = "Player 1 Eliminated 3"
+
+        ####################################################
+
+
+        self.Player2Eliminated1 = BoardNeighbors()
+        self.Player2Eliminated1.Coords = [878, 735]
+        self.Player2Eliminated1.Label = "Player 2 Eliminated 1"
+        
+        self.Player2Eliminated2 = BoardNeighbors()
+        self.Player2Eliminated2.Coords = [878, 825]
+        self.Player2Eliminated2.Label = "Player 2 Eliminated 2"
+        
+        self.Player2Eliminated3 = BoardNeighbors()
+        self.Player2Eliminated3.Coords = [878, 905]
+        self.Player2Eliminated3.Label = "Player 2 Eliminated 3"
+
+        ####################################################
+
+
+        self.Player1PC1 = BoardNeighbors()
+        self.Player1PC1.Label = "Player 1 PC 1"
+        self.Player1PC1.Coords = [675, 180]
+
+        ####################################################
+
+
+        self.Player2PC1 = BoardNeighbors()
+        self.Player2PC1.Label = "Player 2 PC 1"
+        self.Player2PC1.Coords = [330, 820]
+
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
+
+class AllTeams():
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
+
+    def __str__(self):
+        return 'Player Teams'
+
+class Pokemon():
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
+
+    def __str__(self):
+        return self.Name
+
+class Attacks():
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
 
 class PlayerTeam():
-    """Instantiate class that contains player 1 team and base stats."""
-    ## WORKAROUND IMPLEMENTED DUE TO TEAM INSTANTIATION ISSUES BETWEEN PLAYERS
-    def __init__(self, ctrl_player):
+    # TEST VERSION for FULL OBJECT CONVERSION
 
-        team_file = eval(f"GlobalVars.player_{ctrl_player}_select")
-
+    def __init__(self, Ctrl):
+        team_file = eval(f"GlobalVars.player_{Ctrl}_select")
         if GlobalVars.game_mode == "Classic":
-            selected_team_path = join(abspath(expanduser(sys.path[0])), "saves", "classic_teams", f"{team_file}")
+            selected_team_path = join(
+                abspath(
+                    expanduser(
+                        sys.path[0])),
+                "saves",
+                "classic_teams",
+                f"{team_file}")
             GlobalVars.top_range = 1
             GlobalVars.bottom_range = 7
         elif GlobalVars.game_mode == "3v3":
-            selected_team_path = join(abspath(expanduser(sys.path[0])), "saves", "3v3_teams", f"{team_file}")
+            selected_team_path = join(
+                abspath(
+                    expanduser(
+                        sys.path[0])),
+                "saves",
+                "3v3_teams",
+                f"{team_file}")
             GlobalVars.top_range = 1
             GlobalVars.bottom_range = 4
-        
+
         for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
-            exec(f"self.pkmn{x} = dict()")
-            exec(f"self.pkmn{x}['loc'] = f'player_{ctrl_player}_bench_{x}'")
-            exec(f"self.pkmn{x}['orig_loc'] = f'player_{ctrl_player}_bench_{x}'")
-            exec(f"self.pkmn{x}['knocked_out'] = False")
-            exec(f"self.pkmn{x}['is_surrounded'] = False")
-            exec(f"self.pkmn{x}['to_PC'] = False")
-            exec(f"self.pkmn{x}['to_eliminated'] = False")
-            exec(f"self.pkmn{x}['to_ultra_space'] = False")
-            exec(f"self.pkmn{x}['to_bench'] = False")
-            exec(f"self.pkmn{x}['wait'] = int(0)")
-            exec(f"self.pkmn{x}['in-play'] = False")
-            exec(f"self.pkmn{x}['status'] = 'clear'")
-            exec(f"self.pkmn{x}['markers'] = 'clear'")
-            exec(f"self.pkmn{x}['ctrl'] = ctrl_player")
-            exec(f"self.pkmn{x}['stage'] = 0")
-            exec(f"self.pkmn{x}['final_song_count'] = None")
-            exec(f"self.pkmn{x}['previous_form'] = None")
-            exec(f"self.pkmn{x}['orig_form'] = None")
-        
+            exec(f"self.Pkmn{x} = Pokemon()")
+            exec(f"self.Pkmn{x}.Attacks = Attacks()")
+            exec(f"self.Pkmn{x}.Loc = None")
+            exec(f"self.Pkmn{x}.OrigLoc = None")
+            exec(f"self.Pkmn{x}.KnockedOut = False")
+            exec(f"self.Pkmn{x}.IsSurrounded = False")
+            exec(f"self.Pkmn{x}.ToPC = False")
+            exec(f"self.Pkmn{x}.ToEliminated = False")
+            exec(f"self.Pkmn{x}.ToUltraSpace = False")
+            exec(f"self.Pkmn{x}.ToBench = False")
+            exec(f"self.Pkmn{x}.Wait = 0")
+            exec(f"self.Pkmn{x}.InPlay = False")
+            exec(f"self.Pkmn{x}.Status = 'clear'")
+            exec(f"self.Pkmn{x}.Markers = 'clear'")
+            exec(f"self.Pkmn{x}.Ctrl = Ctrl")
+            exec(f"self.Pkmn{x}.Stage = 0")
+            exec(f"self.Pkmn{x}.FinalSongCount = None")
+            exec(f"self.Pkmn{x}.PreviousLoc = None")
+            exec(f"self.Pkmn{x}.OrigForm = None")
+            exec(f"self.Pkmn{x}.CombatRange = 1")
+
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
-        GlobalVars.gamelog.append(f"Player {ctrl_player}'s team:")
-        GlobalVars.gamelog.append(str("-"*8 + team_file[:-4] + "-"*8))
+        GlobalVars.gamelog.append(f"Player {Ctrl}'s team:")
+        GlobalVars.gamelog.append(str("-" * 8 + team_file[:-4] + "-" * 8))
         for line in custom_team:
-            exec(f"self.pkmn{line_counter}.update(GlobalConstants.PKMN_STATS['{line}'])")
-            GlobalVars.gamelog.append(eval(f"GlobalConstants.PKMN_STATS['{line}']['name']"))
+            pkmn_stat_dict = eval(f"GlobalConstants.PKMN_STATS['{line}']")
+            for keys, values in pkmn_stat_dict.items():
+                new_keys = keys[0].upper() + keys[1:]
+                if keys.startswith('attack') == False:
+                    exec(f"self.Pkmn{line_counter}.{new_keys} = values")
+            for keys, values in pkmn_stat_dict.items():
+                new_keys = keys[0].upper() + keys[1:]
+                if keys.startswith('attack'):
+                    new_attack_keys = keys[7].upper() + keys[8:]
+                    if new_attack_keys == 'Color' and values == None:
+                        break
+                    try:
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]}." \
+                             f"{new_attack_keys} = values")
+                    except AttributeError:
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]} = Attacks()")
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]}." \
+                             f"{new_attack_keys} = values")
+                    try:
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]}.Effect")
+                    except:
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]}.Effect = None")
+                    try:
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]}.Power")
+                    except:
+                        exec(f"self.Pkmn{line_counter}." \
+                             f"Attacks.Attack{keys[6]}.Power = None")
+            GlobalVars.gamelog.append(
+                eval(f"GlobalConstants.PKMN_STATS['{line}']['name']"))
             line_counter += 1
             if GlobalVars.game_mode == "Classic" and line_counter == 7:
                 break
@@ -401,63 +1037,99 @@ class PlayerTeam():
                 break
             else:
                 continue
-        for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
-            if eval(f"self.pkmn{x}['name']") == 'Reshiram' or eval(f"self.pkmn{x}['name']") == 'Zekrom':
-                exec(f"self.pkmn{x}['wait'] = 9")
-            elif eval(f"self.pkmn{x}['name']") == "Nincada":
-                exec(f"self.pkmn{x}['wait'] = 10")
-            for y in range(1,10):
-                if eval(f"self.pkmn{x}['attack{y}power']") != 'null':
-                    exec(f"self.pkmn{x}['attack{y}origpower'] = self.pkmn{x}['attack{y}power']")
+
+            if eval(f"self.Pkmn{line_counter}.Name") == 'Reshiram' or eval(
+                    f"self.Pkmn{line_counter}.Name") == 'Zekrom':
+                exec(f"self.Pkmn{line_counter}.Wait = 9")
+            elif eval(f"self.Pkmn{line_counter}.Name") == 'Nincada':
+                exec(f"self.Pkmn{line_counter}.Wait = 10")
+            for new_attacks in exec(f"self.Pkmn{line_counter}.Attacks"):
+                if new_attacks.Power != None:
+                    new_attacks.OrigPower = new_attacks.Power
                 else:
-                    exec(f"self.pkmn{x}['attack{y}origpower'] = 'null'")
+                    new_attacks.OrigPower = None
+        
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
+
+    def __str__(self):
+        return str(self)
+##############################################################################
+
 
 def write_log():
     log_stamp = time.ctime()
     log_stamp = log_stamp.replace(' ', '_')
     log_stamp = log_stamp.replace(':', '-')
-    LOG_PATH = join(abspath(expanduser(sys.path[0])), "saves", "gamelogs", "PoDuReDux_Log_" + f"{log_stamp}" + ".txt")
+    LOG_PATH = join(
+        abspath(
+            expanduser(
+                sys.path[0])),
+        "saves",
+        "gamelogs",
+        "PoDuReDux_Log_" +
+        f"{log_stamp}" +
+        ".txt")
     LOG_FILE = open(LOG_PATH, "a+")
     for lines in GlobalVars.gamelog:
         lines = lines + "\n"
         LOG_FILE.write(lines)
     LOG_FILE.close()
 
-#DRAFT EFFECTS
+
+# DRAFT EFFECTS
 """
 def turn_tickdown():
+    #add when other tickdown effects are added
     mega_evolution_tickdown()
     wait_tickdown()
     final_song_tickdown()
-    
+
 def send_to_bench(target):
-    target['loc']
-    target['loc'] = target['orig_loc']
-    target['status'] = 'clear'
-    target['marker'] = 'clear'
+    # add when clear differentiation made between KOs, send-to-x,
+    # etc and when Pokemon class attributes 
+    target.Loc = target.OrigLoc
+    target.Status = 'clear'
+    target.Marker = 'clear'
+
+def multitarget():
+    # Run loops over teams and use this as a decorator for simpler effects.
+    # EX:
+    # multitarget(target_group, effect, *args)
+    #     for pkmns in target_group:
+    #         effect(*args) # Translates to apply_wait(target, 5)
+    # multitarget(opposing_team, apply_wait, target, 5)
+    # !!translation: apply wait 5 for entire opposing team
 
 def attack_respin():
-    #For optional respinning like Deoxy-A or Double Chance
+    #for optional respinning like Deoxy-A or Double Chance
     pass
 
 def attack_spin_effect():
-    #For Fire Spin, Swords Dance, etc
-    pass
-
-def apply_marker():
-    #For MP-X, Curse, Disguise, etc
+    #for Fire Spin, Swords Dance, etc
     pass
 
 def fly():
-    #For selectable flight pathing (i.e. fly to space 1-2 spaces behind opponent)
+    #for selectable flight pathing (i.e.
+    #fly to space 1-2 spaces behind opponent)
     pass
 
 def fly_away():
-    #For pre-determined flight pathing (i.e. fly to space behind opponent)
+    #for pre-determined flight pathing (i.e. fly to space behind opponent)
     pass
-    
+
 def knockback():
-    #For knockback resolution; implements knockback_pathing()
+    #for knockback resolution; implements knockback_pathing()
     pass
 
 def final_song_tickdown():
@@ -465,104 +1137,251 @@ def final_song_tickdown():
 
 def mega_evolution_tickdown():
     pass
-
-def knockback_pathing():
-    #Check pathing for directional knockback effects
-    direction = board.B2.neighbors["C2"]
-    GlobalVars.valid_moves = []
-
-    for x in board.C2.neighbors.keys():
-        if board.C2.neighbors[x] == direction:
-            GlobalVars.valid_moves.append(x)
-        else:
-            continue
-    return GlobalVars.valid_moves
-                    
-    ## output -> ['D2']
 """
 
-def pc_rotate(target):
-    target['status'] = 'clear'
-    target['marker'] = 'clear'
-    for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
-        rotate_target = eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}")
-        if 'PC' in eval(f"GlobalVars.player_{target['ctrl']}_team.pkmn{pkmns}['loc']"):
-            if rotate_target['loc'][-1] == str(2):
-                rotate_target['loc'] = f"player_{target['ctrl']}_PC_1"
-            else:
-                rotate_target['loc'] = rotate_target['orig_loc']
-                if rotate_target['wait'] >= 1:
-                    rotate_target['wait'] += 1
-                else:
-                    rotate_target['wait'] += 2
-
-def apply_wait(target, duration = 2):
-    if target['wait'] > 0:
-        target['wait'] += duration - 1
-        GlobalVars.gamelog.append(f"{target['name']} gained Wait {duration - 1}.")
+def knockback_pathing(effect_user,
+                      target, distance = 1,
+                      continuous = False,
+                      multitarget = False):
+    GlobalVars.effect_targets = []
+    GlobalVars.loop_counter = 0
+    GlobalVars.gamelog.append(f"{target.Name} was knocked back " \
+                              f"{distance} step(s).")
+    if target.Loc.Coords[0] == effect_user.Loc.Coords[0]:
+        check_value = 0
+    elif target.Loc.Coords[1] == effect_user.Loc.Coords[1]:
+        check_value = 1
     else:
-        target['wait'] += duration
-        GlobalVars.gamelog.append(f"{target['name']} gained Wait {duration - 1}.")
+        check_value = None
+
+    def single_target_iter(effect_user = effect_user,
+                           target_loc = target.Loc,
+                           distance = distance):
+        for neighbors in target_loc.Neighbors:
+            if neighbors:
+                if neighbors == target_loc.Neighbors[-1]:
+                    GlobalVars.loop_counter += 1
+                if neighbors.Coords[
+                    check_value] == effect_user.Loc.Coords[check_value]:
+                    if neighbors not in GlobalVars.effect_targets \
+                       and neighbors.Occupied == False:
+                        GlobalVars.next_target = neighbors
+                        GlobalVars.effect_targets.append(neighbors)
+            else:
+                GlobalVars.loop_counter += 1
+        
+        if GlobalVars.loop_counter == distance and GlobalVars.next_target:
+            space_cleanup(target.Loc)
+            move_to_space(target, GlobalVars.next_target)
+            GlobalVars.effect_targets = []
+            GlobalVars.loop_counter = 0
+            GlobalVars.next_target = None
+        elif GlobalVars.next_target == None:
+            pass
+        else:
+            single_target_iter(effect_user,
+                               GlobalVars.next_target,
+                               distance = distance)
+    if check_value != None:
+        if multitarget == False:
+            single_target_iter()
+        elif multitarget == True and continuous == False:
+            pass
+            # add variables to establish specific target's
+            # location as the focal point
+        else:
+            pass
+    else:
+        pass
+
+        #for psychic shove
+                
+def turn_rotate():
+    linebreak_text = '-' * 5
+    if GlobalVars.turn_player == 1:
+        GlobalVars.turn_player = 2
+        GlobalVars.gamelog.append(linebreak_text*6)
+        GlobalVars.gamelog.append(
+            f"{linebreak_text}Player " \
+            f"{GlobalVars.turn_player} " \
+            f"Turn{linebreak_text}")
+        GlobalVars.gamelog.append(linebreak_text*6)
+        wait_tickdown()
+        if GlobalVars.first_turn:
+            GlobalVars.first_turn = False
+    elif GlobalVars.turn_player == 2:
+        GlobalVars.turn_player = 1
+        GlobalVars.gamelog.append(linebreak_text*6)
+        GlobalVars.gamelog.append(
+            f"{linebreak_text}Player " \
+            f"{GlobalVars.turn_player} " \
+            f"Turn{linebreak_text}")
+        GlobalVars.gamelog.append(linebreak_text*6)
+        wait_tickdown()
+        if GlobalVars.first_turn:
+            GlobalVars.first_turn = False
+    GlobalVars.in_transit = ''
+    GlobalVars.unit_moved = False
+    GlobalVars.unit_attacked = False
+    GlobalVars.turn_change = False
+
+def pc_rotate(target):
+    target.Status = 'clear'
+    target.Marker = 'clear'
+    for teams in PlayerTeams:
+        for pkmns in teams:
+            if pkmns.Ctrl == target.Ctrl:
+                if 'PC' in pkmns.Loc.Label:
+                    if GlobalVars.game_mode == 'Classic':
+                        if pkmns.Loc.Label.endswith('1'):
+                            pkmns.Loc = pkmns.OrigLoc
+                            if pkmns.Wait >= 1:
+                                pkmns.Wait += 1
+                            else:
+                                pkmns.Wait += 2
+                        else:
+                            if pkmns.Ctrl == 1:
+                                pkmns.Loc = board.Player1PC1
+                            else:
+                                pkmns.Loc = board.Player2PC1
+                    elif GlobalVars.game_mode == '3v3':
+                        pkmns.Loc = pkmns.OrigLoc
+                        if pkmns.Wait >= 1:
+                            pkmns.Wait += 1
+                        else:
+                            pkmns.Wait += 2
+            pkmns.Sprite.set_position(*pkmns.Loc.Coords)
+    if GlobalVars.game_mode == "Classic":
+        exec(f"target.Loc = board.Player{target.Ctrl}PC2")
+    elif GlobalVars.game_mode == "3v3":
+        exec(f"target.Loc = board.Player{target.Ctrl}PC1")
+    target.Sprite.set_position(*target.Loc.Coords)
+        
+
+def apply_wait(target, duration=2):
+    if target.Wait > 0:
+        target.Wait += duration - 1
+        GlobalVars.gamelog.append(
+            f"{target.Name} gained Wait {duration - 1}.")
+    else:
+        target.Wait += duration
+        GlobalVars.gamelog.append(
+            f"{target.Name} gained Wait {duration - 1}.")
+
+def apply_marker(marker_type = 'clear'):
+    #for MP-X, Curse, Disguise, etc
+    target.Marker = marker_type
 
 def wait_tickdown():
-    for x in range(1,3):
-        for pkmns in range(GlobalVars.top_range, GlobalVars.bottom_range):
-            if eval(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait']") != 0:
-                exec(f"GlobalVars.player_{x}_team.pkmn{pkmns}['wait'] -= int(1)")
+    for teams in PlayerTeams:
+        for pkmns in teams:
+            if pkmns.Wait != 0:
+                pkmns.Wait -= 1
 
-def apply_status(target, status_type = 'clear'):
-    target['status'] = status_type
+
+def apply_status(target, status_type='clear'):
+    target.Status = status_type
     if status_type == 'frozen' or status_type == 'sleep':
-        exec(f"board.{target['loc']}.passable = True")
+        target.Loc.Passable = True
     elif status_type == 'clear':
-        exec(f"board.{target['loc']}.passable = False")
+        target.Loc.Passable = False
 
-def apply_marker(target, marker_type = 'clear'):
-    target['marker'] = marker_type
 
-def surround_check(focal_unit):
+def apply_marker(target, marker_type='clear'):
+    target.Marker = marker_type
+
+
+def surround_check(target):
     """Checks for surround conditions of a target space"""
-    surround_counter = len(eval(f"board.{focal_unit['loc']}.neighbors.keys()"))
-    for x in eval(f"board.{focal_unit['loc']}.neighbors.keys()"):
-        if eval(f"board.{x}.occupied") == True and eval(f"board.{focal_unit['loc']}.ctrl_player") != eval(f"board.{x}.ctrl_player"):
-            surround_counter -= 1
+    surround_counter = len(target.Loc.Neighbors)
+    for locs in target.Loc.Neighbors:
+        if locs.Ctrl != target.Ctrl and locs.Occupied:
+            if locs.Occupant.Status not in ['frozen', 'sleep']:
+                surround_counter -= 1
         else:
             continue
     if surround_counter == 0:
         return True
     else:
         return False
+"""
+def targeting_check(effect_user,
+                    targeting_range,
+                    target_preference = effect_user.Ctrl):
+    \"""
+    Look for potential effect targets within a range.
+    Target preference options:
+    -Player 1 control = 1
+    -Player 2 control = 2
+    -Any target = 0 / False
+    \"""
 
-def path_check(loc, move, modifier = 0):
-    """Check all possible paths for various purposes, including movement and teleports"""
-
-    del GlobalVars.valid_moves[:]
-    if GlobalVars.first_turn == True:
-        modifier = -1
-        GlobalVars.gamelog.append("First turn: Movement reduced by 1.")
-    else:
-        pass
-
-    def path_iter(loc, move, modifier):
+    del GlobalVars.effects_targets[:]
+    
+    def path_iter(target, targeting_range, target_preference):
         next_moves = []
-        for x in loc:
+        for neighbors in target:
             if move + modifier == 0:
                 break
-            if eval(f"board.{x}.passable") == True:
-                GlobalVars.valid_moves.append(x)
-                for y in eval(f"board.{x}.neighbors.keys()"):
-                    next_moves.append(y)
+            if neighbors.Passable:
+                GlobalVars.effect_targets.append(neighbors)
+                for new_neighbors in GlobalVars.effect_targets:
+                    for next_neighbors in new_neighbors.Neighbors:
+                        next_moves.append(next_neighbors)
             else:
                 continue
         GlobalVars.loop_counter += 1
         if GlobalVars.loop_counter < move + modifier:
-            path_iter(next_moves, modifier, move)
+            path_iter(next_moves, move, modifier)
 
-    path_iter(loc, move, modifier)
+    path_iter(target_unit.Loc.Neighbors, modifier, target_unit.Move)
+    GlobalVars.checked_targets = set(GlobalVars.effect_targets)
+    to_remove = []
+    for possible_moves in GlobalVars.checked_targets:
+        if possible_moves.Occupied:
+            to_remove.append(possible_moves)
+        else:
+            continue
+    for invalid_move in to_remove:
+        GlobalVars.checked_targets.remove(invalid_move)
+    GlobalVars.effect_targets.clear()
+    GlobalVars.loop_counter = 0
+"""
+
+def path_check(target_unit, modifier = 0, move = 0):
+    """
+    Check all possible paths for various purposes,
+    including movement and teleports
+    """
+
+    del GlobalVars.valid_moves[:]
+    if GlobalVars.first_turn:
+        modifier = -1
+        GlobalVars.gamelog.append("First turn: Movement reduced by 1.")
+    else:
+        pass
+    
+    def path_iter(target, modifier, move):
+        next_moves = []
+        for neighbors in target:
+            if move + modifier == 0:
+                break
+            if neighbors.Passable:
+                GlobalVars.valid_moves.append(neighbors)
+                for new_neighbors in GlobalVars.valid_moves:
+                    for next_neighbors in new_neighbors.Neighbors:
+                        next_moves.append(next_neighbors)
+            else:
+                continue
+        GlobalVars.loop_counter += 1
+        if GlobalVars.loop_counter < move + modifier:
+            path_iter(next_moves, move, modifier)
+
+    path_iter(target_unit.Loc.Neighbors, modifier, target_unit.Move)
     GlobalVars.checked_moves = set(GlobalVars.valid_moves)
     to_remove = []
     for possible_moves in GlobalVars.checked_moves:
-        if eval(f"board.{possible_moves}.occupied") == True:
+        if possible_moves.Occupied:
             to_remove.append(possible_moves)
         else:
             continue
@@ -570,74 +1389,86 @@ def path_check(loc, move, modifier = 0):
         GlobalVars.checked_moves.remove(invalid_move)
     GlobalVars.valid_moves.clear()
     GlobalVars.loop_counter = 0
-    
+
+
 def spin(combatant):
-    """Perform SPIN action for selected unit. Can be applied to effects and battles."""
+    """
+    Perform SPIN action for selected unit.
+    Can be applied to effects and battles.
+    """
 
-    ## Perform number randomization for spin
-    combatant_spin = random.randint(1,24)
-    
-    ## Iterate over wheel for maximum number of possible wheel segments for any unit (9)
-    for wheel_numbers in range(1,10):
-        ## Check if wheel segment is valid
-        if eval(f"{combatant}['attack{wheel_numbers}range']") != "null":
-            ## Pull wheel information from unit data and find segment
-            ## ranges to check against combatant_spin
-            if combatant_spin <= combatant[f'attack{wheel_numbers}range']:
-                combatant_attack = wheel_numbers
-                ## Returns segment number of SPIN result (wheel_numbers at correct iteration)
-                return combatant_attack
+    # Perfor  number randomization for spin
+    combatant_spin = random.randint(1, 24)
 
-            else:
-                continue
+    for attacks in combatant.Attacks:
+        # Check if wheel segment is valid
+        if combatant_spin <= attacks.Range:
+            combatant_attack = attacks
+            return combatant_attack
         else:
-            break
+            continue
 
-def target_finder(combatant_loc, control_player, combatant_targets, attack_distance = 1):
+def move_to_space(target_pkmn, location):
+    target_pkmn.Loc = location
+    target_pkmn.Sprite.set_position(*location.Coords)
+    location.Occupied = True
+    location.Occupant = target_pkmn
+    location.OccupantTeam = target_pkmn.Ctrl
+    location.Ctrl = target_pkmn.Ctrl
+    location.Passable = False
+
+def space_cleanup(location):
+    location.Occupied = False
+    location.Occupant = None
+    location.OccupantTeam = 0
+    location.Ctrl = 0
+    location.Passable = True
+
+def target_finder(combatant):
     """
     Checks adjacent spaces for valid attack targets.
     Use effect_targeting for targets that don't involve
     normal attacks.
     """
-    
-    def target_iter(combatant_targets, attack_distance):
+
+    def target_iter(targets, attack_distance = combatant.CombatRange):
         next_targets = []
-        for x in combatant_targets:
+        for x in targets:
             GlobalVars.potential_targets.append(x)
-            for y in eval(f"board.{x}.neighbors.keys()"):
-                next_targets.append(y)
-            else:
-                continue
+            for y in GlobalVars.potential_targets:
+                for new_neighbors in x.Neighbors:
+                    next_targets.append(y)
         GlobalVars.loop_counter += 1
         if GlobalVars.loop_counter < attack_distance:
             target_iter(next_targets, attack_distance)
 
-    if len(combatant_loc) == 2:
+    if len(combatant.Loc.Label) == 2:
         GlobalVars.potential_targets = []
-        target_iter(combatant_targets, attack_distance)
+        target_iter(combatant.Loc.Neighbors)
         to_remove = []
         for x in GlobalVars.potential_targets:
-            if eval(f"board.{x}.occupied") == False:
+            if x.Occupied == False:
                 to_remove.append(x)
-            elif eval(f"board.{x}.ctrl_player") == control_player:
+            elif x.Ctrl == combatant.Ctrl:
                 to_remove.append(x)
 
-                #add MP markers to this check when markers are implemented
-                if eval(f"eval(f'board.{x}.occupant')")['status'] == 'frozen' or eval(f"eval(f'board.{x}.occupant')")['status'] == 'sleep':
+                # add MP markers to this check when markers are implemented
+                if x.Occupant.Status in ['frozen', 'sleep']:
                     GlobalVars.tag_targets.append(x)
-            elif eval(f"board.{x}.ctrl_player") == 0:
+            elif x.Ctrl == 0:
                 to_remove.append(x)
-        GlobalVars.potential_targets = set(GlobalVars.potential_targets).difference(to_remove)
+        GlobalVars.potential_targets = set(
+            GlobalVars.potential_targets).difference(to_remove)
     else:
         GlobalVars.potential_targets = []
     GlobalVars.loop_counter = 0
-    #print(GlobalVars.tag_targets)
 
 def battle_spin_compare(combatant_1, combatant_2):
     """
     Compare the SPIN of two battling units.
 
-    'If' blocks check for color matchups, then nest down to check power stats when
+    'if  .Locks check for color matchups,
+    then nest down to check power stats when
     relevant (i.e. White vs. Gold)
 
     Returns the following for win checks:
@@ -653,668 +1484,837 @@ def battle_spin_compare(combatant_1, combatant_2):
 
     GlobalVars.combatant_1_power = 'None'
     GlobalVars.combatant_2_power = 'None'
-    
+
     combatant_1_attack = spin(combatant_1)
     GlobalVars.attacker_current_spin = combatant_1_attack
     combatant_2_attack = spin(combatant_2)
     GlobalVars.defender_current_spin = combatant_2_attack
-    GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) attacked Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]})")
-    
-    if combatant_1['status'] != 'frozen':
-        combatant_1_color = eval(f"combatant_1['attack{combatant_1_attack}color']")
+    GlobalVars.gamelog.append(
+        f"Player {GlobalVars.turn_player}'s {combatant_1.Name} " \
+        f"({combatant_1.OrigLoc.Label[-1]}) attacked " \
+        f"Player {combatant_2.Ctrl}'s " \
+        f"{combatant_2.Name} ({combatant_2.OrigLoc.Label[-1]})")
+    #need to boil this down to one function rather than retyping per player
+    if combatant_1.Status != 'frozen':
+        combatant_1_color = combatant_1_attack.Color
     else:
         combatant_1_color = "Red"
-        GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} {combatant_1['orig_loc'][-1]} is frozen. Wheel has become Miss.")
-    if not combatant_1_color == "Red" and not combatant_1_color == "Blue":
-        GlobalVars.combatant_1_power = eval(f"combatant_1['attack{combatant_1_attack}power']")
-        if combatant_1_color == "White" or combatant_1_color == "Gold":
-            if combatant_1['status'] == "poisoned" or combatant_1['status'] == "burned":
+        GlobalVars.gamelog.append(
+            f"Player {combatant_1.Ctrl}s {combatant_1.Name} " \
+            f"{combatant_1.OrigLoc.Label[-1]} is frozen. " \
+            "Wheel has become Miss.")
+    if not combatant_1_color in ['Red', 'Blue']:
+        GlobalVars.combatant_1_power = combatant_1_attack.Power
+        if combatant_1_color in ['White', 'Gold']:
+            if combatant_1.Status in ['poisoned', 'burned']:
                 GlobalVars.combatant_1_power -= 20
-            elif combatant_1['status'] == "noxious":
+            elif combatant_1.Status == "noxious":
                 GlobalVars.combatant_1_power -= 40
 
-    #Need to rework code to prevent procs of burned/paralyzed attack effects. Delphox miss effects need to be taken into heavy consideration
+    # Need to rework code to prevent procs of burned/paralyzed
+    # attack effects. Delphox miss effects need to be taken
+    # into heavy consideration
     #
-    #Need to add check for attacks with same name
-    if combatant_1['status'] == "paralyzed" or combatant_1['status'] == "burned":
+    # Need to add check for attacks with same name
+    if combatant_1.Status in ['paralyzed', 'burned']:
+        if combatant_1.Status == 'burned':
+            GlobalVars.gamelog.append(
+                    f"Player {combatant_1.Ctrl}s {combatant_1.Name} " \
+                    f"({combatant_1.OrigLoc.Label[-1]}) is burned. " \
+                    "Attack power reduced by -20.")
+        elif combatant_1.Status == "paralyzed":
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_1.Ctrl}s {combatant_1.Name} " \
+                    f"({combatant_1.OrigLoc.Label[-1]}) is paralyzed.")
         baseline_size = 24
         miss_candidates = []
-        for x in range(1,10):
-            if eval(f"combatant_1['attack{x}size']") != None:
-                if eval(f"combatant_1['attack{x}color']") != "Red":
-                    atk_size = eval(f"combatant_1['attack{x}size']")
-                    if atk_size <= baseline_size:
-                        baseline_size = atk_size
-                        for y in miss_candidates:
-                            if eval(f"combatant_1['attack{y}size']") > baseline_size:
-                                miss_candidates.remove(y)
-                        miss_candidates.append(x)
-        miss_check = miss_candidates[random.randint(0, len(miss_candidates) - 1)]
+        for attacks in combatant_1.Attacks:
+            if attacks.Color != "Red" and attacks.Size <= baseline_size:
+                baseline_size = attacks.Size
+                for candidates in miss_candidates:
+                    if candidates.Size > baseline_size:
+                        miss_candidates.remove(candidates)
+                miss_candidates.append(attacks)
+        miss_check = random.choice(miss_candidates)
         if miss_check == combatant_1_attack:
             combatant_1_color = "Red"
             combatant_1_miss_check = True
-            if combatant_1['status'] == "burned":
-                GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) is burned. Smallest segment has become Miss and attack power reduced by -20.")
-            elif combatant_1['status'] == "paralyzed":
-                GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) is paralyzed. Smallest segment has become Miss.")
+            if combatant_1.Status == "burned":
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_1.Ctrl}s {combatant_1.Name} " \
+                    f"({combatant_1.OrigLoc.Label[-1]}) is burned. " \
+                    f"Segment ({miss_check.Name}) has become Miss.")
+            elif combatant_1.Status == "paralyzed":
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_1.Ctrl}s {combatant_1.Name} " \
+                    f"({combatant_1.OrigLoc.Label[-1]}) is paralyzed. " \
+                    f"Smallest segment ({miss_check.Name}) has become Miss.")
         else:
             combatant_1_miss_check = False
-    ## Checks for Confusion status and returns next available attack segment
-    if combatant_1['status'] == 'confused':
-        GlobalVars.gamelog.append(f"Player {combatant_1['ctrl']}s {combatant_1['name']} {combatant_1['orig_loc'][-1]} is confused. Attack has shifted one segment from {combatant_1[f'attack{combatant_1_attack}name']}.")
-        combatant_1_attack += 1
-        if eval(f"{combatant_1}['attack{combatant_1_attack}name']") == "null":
-            combatant_1_attack = 1
-    
-    if combatant_2['status'] != 'frozen':
-        combatant_2_color = eval(f"combatant_2['attack{combatant_2_attack}color']")
+    # Checks for Confusion status and returns next available attack segment
+    if combatant_1.Status == 'confused':
+        GlobalVars.gamelog.append(
+            f"Player {combatant_1.Ctrl}s {combatant_1.Name} " \
+            f"{combatant_1.OrigLoc.Label[-1]} is confused. " \
+            "Attack has shifted one segment from " \
+            f"{combatant_1_attack.Name}.")
+        try:
+            attack_iter = iter(combatant_1.Attacks)
+            for attack in attack_iter:
+                if attack == combatant_1_attack:
+                    combatant_1_attack = next(attack_iter)
+        except:
+            combatant_1_attack = combatant_1.Attacks.Attack1
+
+    if combatant_2.Status != 'frozen':
+        combatant_2_color = combatant_2_attack.Color
     else:
-        combatant_2_color = 'Red'
-        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is frozen. Wheel has become Miss.")
-    if not combatant_2_color == "Red" and not combatant_2_color == "Blue":
-        GlobalVars.combatant_2_power = eval(f"combatant_2['attack{combatant_2_attack}power']")
-        if combatant_2_color == "White" or combatant_2_color == "Gold":
-            if combatant_2['status'] == "poisoned" or combatant_2['status'] == "burned":
+        combatant_2_color = "Red"
+        GlobalVars.gamelog.append(
+            f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+            f"{combatant_2.OrigLoc.Label[-1]} is frozen. " \
+            "Wheel has become Miss.")
+    if not combatant_2_color in ['Red', 'Blue']:
+        GlobalVars.combatant_2_power = combatant_2_attack.Power
+        if combatant_2_color in ['White', 'Gold']:
+            if combatant_2.Status in ['poisoned', 'burned']:
                 GlobalVars.combatant_2_power -= 20
-            elif combatant_2['status'] == "noxious":
+            elif combatant_2.Status == "noxious":
                 GlobalVars.combatant_2_power -= 40
 
-    if combatant_2['status'] == "paralyzed" or combatant_2['status'] == "burned":
+    # Need to rework code to prevent procs of burned/paralyzed
+    # attack effects. Delphox miss effects need to be taken
+    # into heavy consideration
+    #
+    # Need to add check for attacks with same name
+    if combatant_2.Status in ['paralyzed', 'burned']:
+        if combatant_2.Status == 'burned':
+            GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) is burned. " \
+                    "Attack power reduced by -20.")
+        elif combatant_2.Status == "paralyzed":
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) is paralyzed.")
         baseline_size = 24
         miss_candidates = []
-        for x in range(1,10):
-            if eval(f"combatant_2['attack{x}size']") != None:
-                if eval(f"combatant_2['attack{x}color']") != "Red":
-                    atk_size = eval(f"combatant_2['attack{x}size']")
-                    if atk_size <= baseline_size:
-                        baseline_size = atk_size
-                        for y in miss_candidates:
-                            if eval(f"combatant_2['attack{y}size']") > baseline_size:
-                                miss_candidates.remove(y)
-                        miss_candidates.append(x)
-        miss_check = miss_candidates[random.randint(0, len(miss_candidates) - 1)]
+        for attacks in combatant_2.Attacks:
+            if attacks.Color != "Red" and attacks.Size <= baseline_size:
+                baseline_size = attacks.Size
+                for candidates in miss_candidates:
+                    if candidates.Size > baseline_size:
+                        miss_candidates.remove(candidates)
+                miss_candidates.append(attacks)
+        miss_check = random.choice(miss_candidates)
         if miss_check == combatant_2_attack:
             combatant_2_color = "Red"
             combatant_2_miss_check = True
-            if combatant_2['status'] == "burned":
-                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is burned. Smallest segment has become Miss and attack power reduced by -20.")
-            elif combatant_2['status'] == "paralyzed":
-                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is paralyzed. Smallest segment has become Miss.")
+            if combatant_2.Status == "burned":
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) is burned. " \
+                    f"Segment ({miss_check.Name}) has become Miss.")
+            elif combatant_2.Status == "paralyzed":
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) is paralyzed. " \
+                    f"Segment ({miss_check.Name}) has become Miss.")
         else:
             combatant_2_miss_check = False
+    # Checks for Confusion status and returns next available attack segment
+    if combatant_2.Status == 'confused':
+        GlobalVars.gamelog.append(
+            f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+            f"{combatant_2.OrigLoc.Label[-1]} is confused. " \
+            "Attack has shifted one segment from " \
+            f"{combatant_2_attack.Name}.")
+        try:
+            attack_iter = iter(combatant_2.Attacks)
+            for attack in attack_iter:
+                if attack == combatant_2_attack:
+                    combatant_2_attack = next(attack_iter)
+        except StopIteration:
+            combatant_2_attack = combatant_2.Attacks.Attack1
 
-    if combatant_2['status'] == 'confused':
-        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) is confused. Attack has shifted one segment from {combatant_2[f'attack{combatant_2_attack}name']}.")
-        combatant_2_attack += 1
-        if eval(f"{combatant_2}['attack{combatant_2_attack}name']") == "null":
-            combatant_2_attack = 1
-    
-    if combatant_1['status'] == 'frozen':
-        GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun Miss")
+    if combatant_1.Status == 'frozen':
+        GlobalVars.gamelog.append(
+            f"Player {GlobalVars.turn_player}'s {combatant_1.Name} " \
+            f"({combatant_1.OrigLoc.Label[-1]}) spun Miss")
         GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
-    elif combatant_1['status'] == 'paralyzed' or combatant_1['status'] == 'burned':
-        if combatant_1_miss_check == True:
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun Miss")
+    elif combatant_1.Status in ['paralyzed', 'burned']:
+        if combatant_1_miss_check:
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}'s " \
+                f"{combatant_1.Name} ({combatant_1.OrigLoc.Label[-1]}) " \
+                "spun Miss")
             GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
         else:
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
-            GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {GlobalVars.combatant_1_power}")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}'s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) spun " \
+                f"{combatant_1_attack.Name}")
+            GlobalVars.gamelog.append(
+                "    " \
+                f"Color: {combatant_1_attack.Color} ----- Power: " \
+                f"{GlobalVars.combatant_1_power}")
     else:
-        GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) spun {combatant_1[f'attack{combatant_1_attack}name']}")
-        GlobalVars.gamelog.append("    " + f"Color: {combatant_1[f'attack{combatant_1_attack}color']} ----- Power: {GlobalVars.combatant_1_power}")
+        GlobalVars.gamelog.append(
+            f"Player {GlobalVars.turn_player}'s {combatant_1.Name} " \
+            f"({combatant_1.OrigLoc.Label[-1]}) spun " \
+            f"{combatant_1_attack.Name}")
+        GlobalVars.gamelog.append(
+            "    " \
+            f"Color: {combatant_1_attack.Color} ----- Power: "\
+            f"{GlobalVars.combatant_1_power}")
 
-    if combatant_2['status'] == 'frozen':
-        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun Miss")
+    if combatant_2.Status == 'frozen':
+        GlobalVars.gamelog.append(
+            f"Player {combatant_2.Ctrl}'s {combatant_2.Name} " \
+            f"({combatant_2.OrigLoc.Label[-1]}) spun Miss")
         GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
-    elif combatant_2['status'] == 'paralyzed' or combatant_2['status'] == 'burned':
-        if combatant_2_miss_check == True:
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun Miss")
-            GlobalVars.gamelog.append("    " + "Color: Red ----- Power: None")
+    elif combatant_2.Status in ['paralyzed', 'burned']:
+        if combatant_2_miss_check:
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}'s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) spun Miss")
+            GlobalVars.gamelog.append("    " + "Color: Red ----- " \
+                                      "Power: None")
         else:
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
-            GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {GlobalVars.combatant_2_power}")
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}'s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) spun " \
+                f"{combatant_2_attack.Name}")
+            GlobalVars.gamelog.append(
+                "    " +
+                f"Color: {combatant_2_attack.Color} ----- Power: " \
+                f"{GlobalVars.combatant_2_power}")
     else:
-        GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}'s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) spun {combatant_2[f'attack{combatant_2_attack}name']}")
-        GlobalVars.gamelog.append("    " + f"Color: {combatant_2[f'attack{combatant_2_attack}color']} ----- Power: {GlobalVars.combatant_2_power}")
-    
+        GlobalVars.gamelog.append(
+            f"Player {combatant_2.Ctrl}'s {combatant_2.Name} " \
+            f"({combatant_2.OrigLoc.Label[-1]}) spun " \
+            f"{combatant_2_attack.Name}")
+        GlobalVars.gamelog.append(
+            "    " +
+            f"Color: {combatant_2_attack.Color} ----- Power: "\
+            f"{GlobalVars.combatant_2_power}")
+
     if combatant_1_color == "White":
-        if combatant_2_color == "White" or combatant_2_color == "Gold":
+        if combatant_2_color in ['White', 'Gold']:
             if GlobalVars.combatant_1_power > GlobalVars.combatant_2_power:
-                #Update other log entries here to this format
-                GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(
+                    f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                    f"({combatant_1.OrigLoc.Label[-1]}) wins!")
                 return 1
             elif GlobalVars.combatant_1_power < GlobalVars.combatant_2_power:
-                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) wins!")
                 return 2
             elif GlobalVars.combatant_1_power == GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 6
         elif combatant_2_color == "Red":
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) wins!")
             return 1
         elif combatant_2_color == "Blue":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 6
-        
+
     elif combatant_1_color == "Gold":
         if combatant_2_color == "White" or combatant_2_color == "Gold":
             if GlobalVars.combatant_1_power > GlobalVars.combatant_2_power:
-                GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(
+                    f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                    f"({combatant_1.OrigLoc.Label[-1]}) wins!")
                 return 1
             elif GlobalVars.combatant_1_power < GlobalVars.combatant_2_power:
-                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) wins!")
                 return 2
             elif GlobalVars.combatant_1_power == GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append("Tie!")
                 return 0
         elif combatant_2_color == "Purple":
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) wins!")
             return 3
         elif combatant_2_color == "Red":
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) wins!")
             return 1
         elif combatant_2_color == "Blue":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 6
-        
+
     elif combatant_1_color == "Purple":
         if combatant_2_color == "Purple":
             if GlobalVars.combatant_1_power > GlobalVars.combatant_2_power:
-                GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(
+                    f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                    "({combatant_1.OrigLoc.Label[-1]}) wins!")
                 return 5
             elif GlobalVars.combatant_1_power < GlobalVars.combatant_2_power:
-                GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+                GlobalVars.gamelog.append(
+                    f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                    f"({combatant_2.OrigLoc.Label[-1]}) wins!")
                 return 6
             elif GlobalVars.combatant_1_power == GlobalVars.combatant_2_power:
                 GlobalVars.gamelog.append("Tie!")
                 return 7
         elif combatant_2_color == "White":
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) wins!")
             return 5
         elif combatant_2_color == "Gold":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 4
         elif combatant_2_color == "Red":
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) wins!")
             return 5
         elif combatant_2_color == "Blue":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 6
 
     elif combatant_1_color == "Blue":
         if combatant_2_color != "Blue":
-            GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}s {combatant_1['name']} ({combatant_1['orig_loc'][-1]}) wins!")
+            GlobalVars.gamelog.append(
+                f"Player {GlobalVars.turn_player}s {combatant_1.Name} " \
+                f"({combatant_1.OrigLoc.Label[-1]}) wins!")
             return 5
         else:
             GlobalVars.gamelog.append("Tie!")
             return 7
 
     elif combatant_1_color == "Red":
-        if combatant_2_color == "White" or combatant_2_color == "Gold":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+        if combatant_2_color in ['White', 'Gold']:
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 2
-        elif combatant_2_color == "Purple" or combatant_2_color == "Blue":
-            GlobalVars.gamelog.append(f"Player {combatant_2['ctrl']}s {combatant_2['name']} ({combatant_2['orig_loc'][-1]}) wins!")
+        elif combatant_2_color in ['Purple', 'Blue']:
+            GlobalVars.gamelog.append(
+                f"Player {combatant_2.Ctrl}s {combatant_2.Name} " \
+                f"({combatant_2.OrigLoc.Label[-1]}) wins!")
             return 6
         elif combatant_2_color == "Red":
             GlobalVars.gamelog.append("Tie!")
             return 0
 
+def evolve_target(target):
+    target_evo = GlobalVars.evo_complete
+    target.Attacks = Attacks()
+    target.Status = 'clear'
+    target.Markers = 'clear'
+    target.Stage += 1
+    pkmn_stat_dict = GlobalConstants.PKMN_STATS[target_evo]
+    for keys, values in pkmn_stat_dict.items():
+        if keys.startswith('attack') == False:
+            new_keys = keys[0].upper() + keys[1:]
+            exec(f"target.{new_keys} = values")
+        
+    for keys, values in pkmn_stat_dict.items():
+        new_keys = keys[0].upper() + keys[1:]
+        if keys.startswith('attack'):
+            new_attack_keys = keys[7].upper() + keys[8:]
+            if new_attack_keys == 'Color' and values == None:
+                break
+            try:
+                exec(f"target.Attacks.Attack{keys[6]}.{new_attack_keys} " \
+                     "= values")
+            except AttributeError:
+                exec(f"target.Attacks.Attack{keys[6]} = Attacks()")
+                exec(f"target.Attacks.Attack{keys[6]}.{new_attack_keys} " \
+                     "= values")
+
+    target.Sprite = arcade.Sprite('./images/Sprites/' + target.Spritefile,
+                                  GlobalConstants.SPRITE_SCALING)
+    target.Sprite.set_position(*target.Loc.Coords)
+    for new_attacks in target.Attacks:
+        if new_attacks.Power != None:
+            if new_attacks.Color == 'White' or new_attacks.Color == 'Gold':
+                new_attacks.Power += 10*target.Stage
+            elif new_attacks.Color == 'Purple':
+                new_attacks.Power += 1*target.Stage
+            new_attacks.OrigPower = new_attacks.Power
+        else:
+            new_attacks.OrigPower = None
+    GlobalVars.evo_complete = False
+
+def evolution_check(target):
+
+    def evolution_popup(target, evo_list):
+
+        root = tk.Tk()
+        root.title(f"Select Evolution for {target.Name}")
+
+        def close_window():
+            root.destroy()
+
+        def evolution_submit(selection):
+            GlobalVars.evo_complete = selection
+            root.destroy()
+
+        evo_cb = ttk.Combobox(root, values=evo_list)
+        evo_cb.pack()
+        evo_cb.set(evo_list[0])
+
+        confirm_button = ttk.Button(
+            root,
+            text="Select",
+            command=lambda: evolution_submit(evo_cb.get()))
+        confirm_button.pack()
+
+        done_button = ttk.Button(root, text="Cancel", command=close_window)
+        done_button.pack()
+
+        root.mainloop()
+
+    evo_list = []
+    if target.Evolutions:
+        for evos in target.Evolutions:
+            if ", Mega" in evos:
+                continue
+            else:
+                evo_list.append(evos)
+        if len(evo_list) > 0:
+            evolution_popup(target, evo_list)
+            if GlobalVars.evo_complete:
+                GlobalVars.gamelog.append(f"{target.Name} evolving " \
+                                          f"to {GlobalVars.evo_complete}")
+                return True
+            else:
+                return False
+        else:
+            return False
+    else:
+        return False
+                
+def winner_resolve(winner, loser):
+    GlobalVars.gamelog.append(f"Player {loser.Ctrl}s {loser.Name} " \
+                              "was sent to the PC.")
+    space_cleanup(loser.Loc)
+    pc_rotate(loser)
+    evolve_check = evolution_check(winner)
+    if evolve_check:
+        evolve_target(winner)
+        
 class GameView(arcade.View):
 
     def __init__(self):
         super().__init__()
-        
+
         self.background = None
         self.ClassicBoard = None
         self.TvTBoard = None
 
-        #Create initial state of sprites for both teams
-        for x in range(1,3):
-            for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
-                exec(f"self.player_{x}_pkmn_{y} = None")
+        # Create initial state of sprites for both teams
+        for teams in PlayerTeams:
+            for pkmns in teams:
+                current_Ctrl = pkmns.Ctrl
+                bench_spot = pkmns.OrigLoc.Label[-1]
 
         self.pkmn_list = None
-        
+
     def on_show(self):
         # Create your sprites and sprite lists here
         self.pkmn_list = arcade.SpriteList()
-        
-        for x in range(1,3):
-            for y in range(GlobalVars.top_range,GlobalVars.bottom_range):
-                pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
-                pkmn_ref_x = eval(f"board.{pkmn_ref['loc']}.coords['x']")
-                pkmn_ref_y = eval(f"board.{pkmn_ref['loc']}.coords['y']")
-                sprite_file_name = pkmn_ref['spritefile']
-                sprite_path = f"images/Sprites/{sprite_file_name}"
-                exec(f"self.player_{x}_pkmn_{y} = arcade.Sprite('{sprite_path}', GlobalConstants.SPRITE_SCALING)")
-                exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
-                exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
-                exec(f"self.pkmn_list.append(self.player_{x}_pkmn_{y})")
+
+        for teams in PlayerTeams:
+            for pkmns in teams:
+                sprite_file_name = pkmns.Spritefile
+                current_Ctrl = pkmns.Ctrl
+                bench_spot = pkmns.OrigLoc.Label[-1]
+                sprite_path = f"./images/Sprites/{sprite_file_name}"
+                exec(f"self.player_{current_Ctrl}_pkmn_{bench_spot} = " \
+                     f"arcade.Sprite('{sprite_path}', " \
+                     "GlobalConstants.SPRITE_SCALING)")
+                exec(f"self.player_{current_Ctrl}_pkmn_{bench_spot}"\
+                     ".set_position(*pkmns.Loc.Coords)")
+                exec(f"pkmns.Sprite = self.player_{current_Ctrl}_"\
+                     f"pkmn_{bench_spot}")
+                exec(f"self.pkmn_list.append(self.player_{current_Ctrl}_"\
+                     f"pkmn_{bench_spot})")
 
         self.background = arcade.load_texture(GlobalVars.background_select)
         if GlobalVars.game_mode == "Classic":
-            self.ClassicBoard = arcade.load_texture("images/board/overlays/classic_duel_overlay.png")
+            self.ClassicBoard = arcade.load_texture(
+                "images/board/overlays/classic_duel_overlay.png")
         elif GlobalVars.game_mode == "3v3":
-            self.TvTBoard = arcade.load_texture("images/board/overlays/3v3_duel_overlay.png")
-    
+            self.TvTBoard = arcade.load_texture(
+                "images/board/overlays/3v3_duel_overlay.png")
 
     def on_draw(self):
         """
         Render the screen.
         """
 
-        # This command should happen before we start drawing. It will clear
-        # the screen to the background color, and erase what we drew last frame.
+        # This command should happen befor  we start drawing. It will clear
+        # the screen to the background color, and erase what we drew last
+        # frame.
 
         text_offset_x = -20
         text_offset_y = 35
         circle_offset_x = -25
         circle_offset_y = 27
-        
+
         arcade.start_render()
-        arcade.draw_texture_rectangle(GlobalConstants.SCREEN_HEIGHT // 2, GlobalConstants.SCREEN_HEIGHT // 2,
-                                      GlobalConstants.SCREEN_HEIGHT, GlobalConstants.SCREEN_HEIGHT, self.background)
+        arcade.draw_texture_rectangle(
+            GlobalConstants.SCREEN_HEIGHT // 2,
+            GlobalConstants.SCREEN_HEIGHT // 2,
+            GlobalConstants.SCREEN_HEIGHT,
+            GlobalConstants.SCREEN_HEIGHT,
+            self.background)
         if GlobalVars.game_mode == "Classic":
-            arcade.draw_texture_rectangle(GlobalConstants.SCREEN_HEIGHT // 2, GlobalConstants.SCREEN_HEIGHT // 2,
-                                          GlobalConstants.SCREEN_HEIGHT, GlobalConstants.SCREEN_HEIGHT, self.ClassicBoard)
+            arcade.draw_texture_rectangle(
+                GlobalConstants.SCREEN_HEIGHT // 2,
+                GlobalConstants.SCREEN_HEIGHT // 2,
+                GlobalConstants.SCREEN_HEIGHT,
+                GlobalConstants.SCREEN_HEIGHT,
+                self.ClassicBoard)
             center_text_x = 450
             center_text_y = 500
-            
+
         elif GlobalVars.game_mode == "3v3":
-            arcade.draw_texture_rectangle(GlobalConstants.SCREEN_HEIGHT // 2, GlobalConstants.SCREEN_HEIGHT // 2,
-                                          GlobalConstants.SCREEN_HEIGHT, GlobalConstants.SCREEN_HEIGHT, self.TvTBoard)
+            arcade.draw_texture_rectangle(
+                GlobalConstants.SCREEN_HEIGHT // 2,
+                GlobalConstants.SCREEN_HEIGHT // 2,
+                GlobalConstants.SCREEN_HEIGHT,
+                GlobalConstants.SCREEN_HEIGHT,
+                self.TvTBoard)
             center_text_x = 450
             center_text_y = 369
 
-        #draw unit bases
-        for x in range(1,3):
-            if x == 1:
-                cir_color = arcade.color.AZURE
-            elif x == 2:
-                cir_color = arcade.color.RASPBERRY
-            cir_color = [_ for _ in cir_color]
-            stage_cir_color = cir_color
-            #cir_color.append(150)
-            #NEEDS TWEAKING
-            for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
-                pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
-                pkmn_ref_loc = pkmn_ref['loc']
-                pkmn_ref_x = eval(f"board.{pkmn_ref_loc}.coords['x']")
-                pkmn_ref_y = eval(f"board.{pkmn_ref_loc}.coords['y']")
-                exec(f"self.player_{x}_pkmn_{y}.center_x = pkmn_ref_x")
-                exec(f"self.player_{x}_pkmn_{y}.center_y = pkmn_ref_y")
-                exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40, cir_color)")
-                if pkmn_ref['stage'] > 0:
-                    for stages in range(pkmn_ref['stage']):
-                        exec(f"arcade.draw_circle_outline(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 40+5*(stages+1), stage_cir_color, 4)")
+        # draw unit bases
+        for teams, sprites in zip(PlayerTeams, self.pkmn_list):
+            for pkmns in teams:
+                if pkmns.Ctrl == 1:
+                    cir_color = arcade.color.AZURE
+                elif pkmns.Ctrl == 2:
+                    cir_color = arcade.color.RASPBERRY
+                cir_color = [_ for _ in cir_color]
+                stage_cir_color = cir_color
+                sprites.center = pkmns.Loc.Coords
+                arcade.draw_circle_filled(
+                    *pkmns.Loc.Coords,
+                    40,
+                    cir_color)
+                if pkmns.Stage > 0:
+                    for stages in range(pkmns.Stage):
+                        arcade.draw_circle_outline(
+                            *pkmns.Loc.Coords,
+                            40+5*(stages+1),
+                            stage_cir_color, 4)
                 for colors in GlobalConstants.STATUS_COLORS.keys():
-                    if pkmn_ref['status'] == colors:
-                        exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x, self.player_{x}_pkmn_{y}.center_y, 35, GlobalConstants.STATUS_COLORS[colors])")
+                    if pkmns.Status == colors:
+                        arcade.draw_circle_filled(
+                            *pkmns.Loc.Coords,
+                            35,
+                            GlobalConstants.STATUS_COLORS[colors])
 
         self.pkmn_list.draw()
-
-        for x in range(1,3):
-            for y in range(GlobalVars.top_range, GlobalVars.bottom_range):
-                pkmn_ref = eval(f"GlobalVars.player_{x}_team.pkmn{y}")
-            
-                #Wait circle and text draw
-                exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x - circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.BLUE_SAPPHIRE)")
-                exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['move'] - GlobalVars.first_turn), self.player_{x}_pkmn_{y}.center_x - text_offset_x, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
-                if pkmn_ref['wait'] > 0:
-                    exec(f"arcade.draw_circle_filled(self.player_{x}_pkmn_{y}.center_x + circle_offset_x, self.player_{x}_pkmn_{y}.center_y - circle_offset_y, 12, arcade.color.PURPLE)")
-                    exec(f"arcade.draw_text(str(GlobalVars.player_{x}_team.pkmn{y}['wait']), self.player_{x}_pkmn_{y}.center_x + text_offset_x - 10, self.player_{x}_pkmn_{y}.center_y - text_offset_y, arcade.color.WHITE, 16)")
+        
+        for teams in PlayerTeams:
+            for pkmns in teams:
+                # Wait circle and text draw
+                arcade.draw_circle_filled(
+                    pkmns.Loc.Coords[0] - circle_offset_x,
+                    pkmns.Loc.Coords[1] - circle_offset_y,
+                    12,
+                    arcade.color.BLUE_SAPPHIRE)
+                arcade.draw_text(
+                    str(pkmns.Move - GlobalVars.first_turn),
+                    pkmns.Loc.Coords[0] - text_offset_x,
+                    pkmns.Loc.Coords[1] - text_offset_y,
+                    arcade.color.WHITE,
+                    16)
+                if pkmns.Wait > 0:
+                    arcade.draw_circle_filled(
+                        pkmns.Loc.Coords[0] + circle_offset_x,
+                        pkmns.Loc.Coords[1] - circle_offset_y,
+                        12,
+                        arcade.color.PURPLE)
+                    arcade.draw_text(
+                        str(pkmns.Wait),
+                        pkmns.Loc.Coords[0] + text_offset_x - 10,
+                        pkmns.Loc.Coords[1] - text_offset_y,
+                        arcade.color.WHITE,
+                        16)
 
         line_counter = 0
         for lines in GlobalVars.gamelog[::-1]:
-            lines_text = '\n'.join(lines[i:i+45] for i in range(0, len(lines), 45))
-            line_counter += len(lines_text.split('\n'))
-            arcade.draw_text(lines_text, 1030, 40 + line_counter*20, arcade.color.WHITE, font_name = "Arial")
-            line_counter += 1
-            if line_counter == 70:
+            lines_text = [lines[i:i + 55] for i in range(0, len(lines), 55)]
+            for split_lines in lines_text[::-1]:
+                arcade.draw_text(
+                    split_lines,
+                    1020,
+                    20 + line_counter*20,
+                    arcade.color.WHITE,
+                    10,
+                    font_name="Arial")
+                line_counter += 1
+                if line_counter == 20:
+                    break
+            if line_counter == 20:
                 break
 
-        if GlobalVars.player_1_win == True:
+        if GlobalVars.player_1_win:
             center_text = "Player 1 Wins!"
-        elif GlobalVars.player_2_win == True:
+        elif GlobalVars.player_2_win:
             center_text = "Player 2 Wins!"
         else:
             center_text = f"Player {GlobalVars.turn_player} turn."
 
-        arcade.draw_text(center_text, center_text_x, center_text_y, arcade.color.YELLOW, 18)
-        if GlobalVars.move_click == True:
-            arcade.draw_text("Click this unit again\nto attack without moving,\nif able.", center_text_x - 15, center_text_y - 45, arcade.color.YELLOW, 12, align='center')
-                
+        arcade.draw_text(
+            center_text,
+            center_text_x,
+            center_text_y,
+            arcade.color.YELLOW,
+            18)
+        if GlobalVars.move_click:
+            arcade.draw_text(
+                "Click this unit again\nto attack without moving,\nif able.",
+                center_text_x - 15,
+                center_text_y - 45,
+                arcade.color.YELLOW,
+                12,
+                align='center')
+
         if len(GlobalVars.checked_moves) > 0:
             for moves in GlobalVars.checked_moves:
-                arcade.draw_circle_filled(eval(f"board.{moves}.coords['x']"), eval(f"board.{moves}.coords['y']"), 40, (59,122,87,200))
+                arcade.draw_circle_filled(
+                    *moves.Coords,
+                    40,
+                    (59, 122, 87, 200))
         if len(GlobalVars.potential_targets) > 0:
             for targets in GlobalVars.potential_targets:
-                arcade.draw_circle_filled(eval(f"board.{targets}.coords['x']"), eval(f"board.{targets}.coords['y']"), 40, (255,240,0,150))
-    
-    def evolution_check(self, winner):
-        
-        def evolution_popup(winner_name, evo_list):
+                arcade.draw_circle_filled(
+                    *targets.Coords,
+                    40,
+                    (255, 240, 0, 150))
+        """
+        # ON HOVER STATS VIEW, NEED LOTS OF WORK
+        arcade.draw_rectangle_filled(
+            1200,715,360,550,arcade.color.AIR_FORCE_BLUE)
+        stats_counter = 0
 
-            root = tk.Tk()
-            root.title(f"Select Evolution for {winner_name}")
-
-            def close_window():
-                root.destroy()
-            
-            def evolution_submit(selection):
-                GlobalVars.evo_complete = selection
-                root.destroy()
-
-            evo_cb = ttk.Combobox(root, values = evo_list)
-            evo_cb.pack()
-            evo_cb.set(evo_list[0])
-            
-            confirm_button = ttk.Button(root, text = "Select", command = lambda: evolution_submit(evo_cb.get()))
-            confirm_button.pack()
-            
-            done_button = ttk.Button(root, text = "Cancel", command = close_window)
-            done_button.pack()
-            
-            root.mainloop()
-
-        evo_skip = False
-        evo_list = []
-        GlobalVars.evo_complete = False
-        
-        if eval(f"{winner}['evolutions']"):
-            if len(eval(f"{winner}['evolutions']")) > 0:
-                for evos in eval(f"{winner}['evolutions']"):
-                    if ", Mega" in evos:
-                        evo_skip = True
-                if evo_skip == False:
-                    winner_name = eval(f"{winner}['name']")
+        if GlobalVars.hover_pkmn:
+            hover_dict = GlobalVars.hover_pkmn.__dict__
+            for keys, stats in hover_dict.items():
+                if keys != 'Loc' and keys != 'OrigLoc':
+                    if keys != 'Attacks':
+                        stats_text = [
+                            str(stats)[i:i + 45] for i in range(
+                                0, len(str(stats)), 45)]
+                        for lines in stats_text[::-1]:
+                            arcade.draw_text(
+                                lines,
+                                1030,
+                                400 + stats_counter * 10,
+                                arcade.color.BLACK,
+                                10)
+                            stats_counter += 1
+                    elif keys == 'Attacks':
+                        for new_atks in hover_dict['Attacks']:
+                            new_atk_dict = new_atks.__dict__
+                            for atk_keys, atk_stats in new_atk_dict.items():
+                                atk_stats = str(atk_stats)
+                                if atk_stats != None:
+                                    atk_stats_text = [
+                                        atk_stats[i:i + 45] for i in range(
+                                            0, len(str(atk_stats)), 45)]
+                                    for lines in atk_stats_text[::-1]:
+                                        atk_str = str(
+                                                atk_keys + ":  " + str(lines))
+                                        arcade.draw_text(
+                                            atk_str,
+                                            1030,
+                                            400 + stats_counter * 10,
+                                            arcade.color.BLACK,
+                                            10)
+                                        stats_counter += 1
+            """
                     
-                    self.pkmn_list.update()   
-                    for evos in eval(f"{winner}['evolutions']"):
-                        if ", Mega" not in evos:
-                            evo_list.append(evos)
-                    if len(evo_list) != 0:
-                        evolution_popup(winner_name, evo_list)
-                        if GlobalVars.evo_complete != False:
-                            GlobalVars.gamelog.append(f"{winner_name} evolving to {GlobalVars.evo_complete}")
-    
+                
+
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
         Called when the user presses a mouse button.
         """
-
         if button == arcade.MOUSE_BUTTON_LEFT:
             if not GlobalVars.move_click and not GlobalVars.attack_click:
                 if GlobalVars.turn_player == 1:
-                    for units in dir(GlobalVars.player_1_team):
-                        if units.startswith("pkmn"):
-                            unit = eval(f"GlobalVars.player_1_team.{units}")
-                            if unit['wait'] > 0:
-                                continue
-                            elif unit['status'] == 'sleep' or unit['status'] == 'frozen':
-                                continue
-                            else:
-                                units_loc_str = unit['loc']
-                                if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                                              eval(f"board.{units_loc_str}.coords['x']") + 40
-                                              ) and y in range(
-                                                  eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                                  eval(f"board.{units_loc_str}.coords['y']") + 40):
-                                    GlobalVars.move_click = True
-                                    GlobalVars.in_transit = unit
-                                    GlobalVars.in_transit_combatant = GlobalVars.in_transit
-                                    GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
-                                    path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
-                                    if len(units_loc_str) == 2:
-                                        for _ in eval(f"board.{units_loc_str}.neighbors.keys()"):
-                                            if eval(f"board.{_}.occupied") == True:
-                                                if _ == eval(f"list(board.{units_loc_str}.neighbors.keys())[-1]"):
-                                                    target_finder(GlobalVars.in_transit['loc'],
-                                                                  GlobalVars.in_transit['ctrl'],
-                                                                  eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
-                                                    if len(GlobalVars.potential_targets) > 0:
-                                                        GlobalVars.move_click = False
-                                                        GlobalVars.attack_click = True
-                                            else:
-                                                break
+                    current_team = PlayerTeams.Player1
                 elif GlobalVars.turn_player == 2:
-                    for units in dir(GlobalVars.player_2_team):
-                        if units.startswith("pkmn"):
-                            unit = eval(f"GlobalVars.player_2_team.{units}")
-                            if unit['wait'] > 0:
-                                continue
-                            elif unit['status'] == 'sleep' or unit['status'] == 'frozen':
-                                continue
-                            else:
-                                units_loc_str = unit['loc']
-                                if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                                              eval(f"board.{units_loc_str}.coords['x']") + 40
-                                              ) and y in range(
-                                                  eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                                  eval(f"board.{units_loc_str}.coords['y']") + 40):
-                                    GlobalVars.move_click = True
-                                    GlobalVars.in_transit = unit
-                                    GlobalVars.in_transit_combatant = GlobalVars.in_transit
-                                    GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
-                                    path_check(eval(f"board.{units_loc_str}.neighbors.keys()"), unit['move'])
-                                    if len(units_loc_str) == 2:
-                                        for _ in eval(f"board.{units_loc_str}.neighbors.keys()"):
-                                            if eval(f"board.{_}.occupied") == True:
-                                                if _ == eval(f"list(board.{units_loc_str}.neighbors.keys())[-1]"):
-                                                    target_finder(GlobalVars.in_transit['loc'],
-                                                                  GlobalVars.in_transit['ctrl'],
-                                                                  eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
-                                                    if len(GlobalVars.potential_targets) > 0:
-                                                        GlobalVars.move_click = False
-                                                        GlobalVars.attack_click = True
-                                            else:
-                                                break
+                    current_team = PlayerTeams.Player2
+                for pkmns in current_team:
+                    if pkmns.Wait > 0:
+                        continue
+                    elif pkmns.Status in ['sleep', 'frozen']:
+                        continue
+                    else:
+                        if x in range(pkmns.Loc.Coords[0] - 40,
+                                      pkmns.Loc.Coords[0] + 40
+                                      ) and y in range(
+                                          pkmns.Loc.Coords[1] - 40,
+                                          pkmns.Loc.Coords[1] + 40):
+                            GlobalVars.move_click = True
+                            GlobalVars.in_transit = pkmns
+                            path_check(pkmns)
+                            occupancy_counter = len(pkmns.Loc.Neighbors)
+                            for locs in pkmns.Loc.Neighbors:
+                                if locs.Occupied:
+                                    occupancy_counter -= 1
+                            if occupancy_counter == 0:
+                                target_finder(pkmns)
+                                if len(GlobalVars.potential_targets) > 0:
+                                    GlobalVars.move_click = False
+                                    GlobalVars.attack_click = True
+
             elif GlobalVars.move_click:
                 for moves in GlobalVars.checked_moves:
-                    #Make space clearing its own function?
-                    if x in range(eval(f"board.{moves}.coords['x']") - 40, eval(f"board.{moves}.coords['x']") + 40) and y in range(
-                                        eval(f"board.{moves}.coords['y']") - 40, eval(f"board.{moves}.coords['y']") + 40) and eval(
-                                        f"board.{moves}.occupied") == False:
+                    if x in range(moves.Coords[0] - 40,
+                                  moves.Coords[0] + 40
+                                  ) and y in range(
+                                      moves.Coords[1] - 40,
+                                      moves.Coords[1] + 40
+                                      ) and moves.Occupied == False:
                         GlobalVars.unit_moved = True
-                        GlobalVars.gamelog.append(f"Player {GlobalVars.turn_player}'s " +  eval(f"{GlobalVars.in_transit}['name']") +  " (" + str(eval(f"{GlobalVars.in_transit}['orig_loc'][-1]")) + ") "+ f"moved to {moves}.")
-                        exec(f"board.{GlobalVars.in_transit_loc}.occupied = False")
-                        exec(f"board.{GlobalVars.in_transit_loc}.occupant = ''")
-                        exec(f"board.{GlobalVars.in_transit_loc}.occupant_team = 0")
-                        exec(f"board.{GlobalVars.in_transit_loc}.ctrl_player = 0")
-                        exec(f"board.{GlobalVars.in_transit_loc}.passable = True")
-                        exec(f"board.{moves}.occupied = True")
-                        exec(f"board.{moves}.occupant = GlobalVars.in_transit")
-                        exec(f"board.{moves}.occupant_team = GlobalVars.in_transit['ctrl']")
-                        exec(f"board.{moves}.ctrl_player = GlobalVars.in_transit['ctrl']")
-                        exec(f"board.{moves}.passable = False")
-                        GlobalVars.in_transit['loc'] = moves
-                        GlobalVars.in_transit_loc = GlobalVars.in_transit['loc']
-                        for surround_neighbors in dir(board):
-                            if len(surround_neighbors) == 2:
-                                surround_target = eval(f"board.{surround_neighbors}.occupant")
+                        GlobalVars.gamelog.append(
+                            f"Player {GlobalVars.turn_player}'s " +
+                            GlobalVars.in_transit.Name +
+                            " (" +
+                            GlobalVars.in_transit.OrigLoc.Label[-1] +
+                            ") " +
+                            f"moved to {moves}.")
+                        space_cleanup(GlobalVars.in_transit.Loc)
+                        move_to_space(GlobalVars.in_transit, moves)
+                        for surround_neighbors in board:
+                            if len(surround_neighbors.Label) == 2:
+                                surround_target = surround_neighbors.Occupant
                                 if surround_target:
-                                    surround_target['is_surrounded'] = surround_check(surround_target)
-                        for team in range(1,3):
-                            for surround_resolve_target in eval(f"dir(GlobalVars.player_{team}_team)"):
-                                if surround_resolve_target.startswith('pkmn'):
-                                    surround_resolve = eval(f"GlobalVars.player_{team}_team.{surround_resolve_target}")
-                                    winner_ctrl = surround_resolve['loc']
-                                    if surround_resolve['is_surrounded'] == True:
-                                        GlobalVars.gamelog.append(str(f"SURROUNDED:    Player {team}'s " +
-                                              surround_resolve['name'] + " (" +
-                                                f"{surround_resolve}"[-1] +
-                                                ") " +
-                                              f" was sent to Player {team}'s PC."))
-                                        exec(f"board.{surround_resolve['loc']}.occupied = False")
-                                        exec(f"board.{surround_resolve['loc']}.occupant = ''")
-                                        exec(f"board.{surround_resolve['loc']}.occupant_team = 0")
-                                        exec(f"board.{surround_resolve['loc']}.ctrl_player = 0")
-                                        exec(f"board.{surround_resolve['loc']}.passable = True")
-                                        pc_rotate(surround_resolve)
-                                        if GlobalVars.game_mode == "Classic":
-                                            surround_resolve['loc'] = f'player_{team}_PC_2'
-                                        elif GlobalVars.game_mode == "3v3":
-                                            surround_resolve['loc'] = f'player_{team}_PC_1'
-                                        surround_resolve['is_surrounded'] = False
-                        target_finder(GlobalVars.in_transit['loc'], GlobalVars.in_transit['ctrl'], eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
+                                    surround_target.IsSurrounded = \
+                                        surround_check(surround_target)
+                        for teams in PlayerTeams:
+                            for pkmns in teams:
+                                if pkmns.IsSurrounded:
+                                    GlobalVars.gamelog.append(
+                                        str(f"SURROUNDED:    Player " \
+                                            f"{pkmns.Ctrl}'s {pkmns.Name} " \
+                                            f"({pkmns.OrigLoc.Label[-1]}) " \
+                                            f"was sent to Player " \
+                                            f"{pkmns.Ctrl}'s PC."))
+                                    space_cleanup(pkmns.Loc)
+                                    pc_rotate(pkmns)
+                                    pkmns.IsSurrounded = False
+                        target_finder(GlobalVars.in_transit)
                         if len(GlobalVars.potential_targets) > 0:
                             GlobalVars.attack_click = True
                         else:
-                            linebreak_text = '='*5
-                            if GlobalVars.turn_player == 1:
-                                GlobalVars.turn_player = 2
-                                GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
-                                wait_tickdown()
-                                if GlobalVars.first_turn:
-                                    if len(GlobalVars.in_transit_loc) == 2:
-                                        GlobalVars.first_turn = False
-                            elif GlobalVars.turn_player == 2:
-                                GlobalVars.turn_player = 1
-                                GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
-                                wait_tickdown()
-                                if GlobalVars.first_turn:
-                                    if len(GlobalVars.in_transit_loc) == 2:
-                                        GlobalVars.first_turn = False
-                            GlobalVars.in_transit = ''
-                            GlobalVars.in_transit_loc = ''
-                            GlobalVars.unit_moved = False
-                            GlobalVars.unit_attacked = False
-
-                    elif len(GlobalVars.in_transit_loc) == 2 and x in range(eval(f"board.{GlobalVars.in_transit_loc}.coords['x']") - 40,
-                                                                      eval(f"board.{GlobalVars.in_transit_loc}.coords['x']") + 40) and y in range(
-                                                                        eval(f"board.{GlobalVars.in_transit_loc}.coords['y']") - 40,
-                                                                        eval(f"board.{GlobalVars.in_transit_loc}.coords['y']") + 40):
-                        target_finder(GlobalVars.in_transit['loc'], GlobalVars.in_transit['ctrl'], eval(f"board.{GlobalVars.in_transit['loc']}.neighbors.keys()"))
-                        if len(GlobalVars.potential_targets) > 0:
-                            GlobalVars.attack_click = True
-                        else:
-                            GlobalVars.in_transit = ''
-                            GlobalVars.in_transit_loc = ''
-                            GlobalVars.move_click = False
-                            GlobalVars.potential_targets = []
-                        
+                            GlobalVars.turn_change = True
+                    elif type(GlobalVars.in_transit) != str:
+                        if len(
+                            GlobalVars.in_transit.Loc.Label
+                            ) == 2 and x in range(
+                                GlobalVars.in_transit.Loc.Coords[0] - 40,
+                                GlobalVars.in_transit.Loc.Coords[0] + 40
+                                ) and y in range(
+                                    GlobalVars.in_transit.Loc.Coords[1] - 40,
+                                    GlobalVars.in_transit.Loc.Coords[1] + 40):
+                            target_finder(GlobalVars.in_transit)
+                            if len(GlobalVars.potential_targets) > 0:
+                                GlobalVars.attack_click = True
+                            else:
+                                GlobalVars.in_transit = ''
+                                GlobalVars.move_click = False
+                                GlobalVars.potential_targets = []
 
                 GlobalVars.move_click = False
                 GlobalVars.checked_moves = []
-                
+
                 self.pkmn_list.update()
 
             elif GlobalVars.attack_click:
                 for targets in GlobalVars.potential_targets:
-                    if x in range(eval(f"board.{targets}.coords['x']") - 40, eval(f"board.{targets}.coords['x']") + 40) and y in range(
-                                        eval(f"board.{targets}.coords['y']") - 40, eval(f"board.{targets}.coords['y']") + 40):
+                    if x in range(targets.Coords[0] - 40,
+                                  targets.Coords[0] + 40
+                                  ) and y in range(targets.Coords[1] - 40,
+                                                   targets.Coords[1] + 40):
                         GlobalVars.unit_attacked = True
-                        winner_check = battle_spin_compare(GlobalVars.in_transit_combatant, eval(f'board.{targets}.occupant'))
+                        winner_check = battle_spin_compare(
+                            GlobalVars.in_transit,
+                            targets.Occupant)
 
-                        if eval(f"board.{targets}.occupant['status']") == 'frozen' or eval(f"board.{targets}.occupant['status']") == 'sleep':
-                            exec(f"board.{targets}.occupant['status'] = 'clear'")
-                        if GlobalVars.in_transit_combatant['status'] == 'frozen' or GlobalVars.in_transit_combatant['status'] == 'sleep':
-                            GlobalVars.in_transit_combatant['status'] = 'clear'
-                        #Add effects checks
+                        if targets.Occupant.Status in ['frozen', 'sleep']:
+                            apply_status(targets.Occupant)
+                        if GlobalVars.in_transit.Status in ['frozen', 'sleep']:
+                            apply_status(GlobalVars.in_transit)
+                        # Add effects checks
                         if winner_check == 0:
                             pass
-                        
                         if winner_check == 1:
-                            winner_ctrl = GlobalVars.in_transit['ctrl']
-                            loser_ctrl_temp = eval(f"board.{targets}.occupant")
-                            loser_ctrl = loser_ctrl_temp['ctrl']
-                            GlobalVars.gamelog.append(f"Player {loser_ctrl}s {loser_ctrl_temp['name']} was sent to the PC.")
-                            exec(f"board.{targets}.occupied = False")
-                            exec(f"board.{targets}.occupant = ''")
-                            exec(f"board.{targets}.occupant_team = 0")
-                            exec(f"board.{targets}.ctrl_player = 0")
-                            exec(f"board.{targets}.passable = True")
-                            pc_rotate(loser_ctrl_temp)
-                            if GlobalVars.game_mode == "Classic":
-                                exec(f"loser_ctrl_temp['loc'] = 'player_{loser_ctrl}_PC_2'")
-                            elif GlobalVars.game_mode == "3v3":
-                                exec(f"loser_ctrl_temp['loc'] = 'player_{loser_ctrl}_PC_1'")
-                            self.evolution_check(GlobalVars.in_transit)
-                            if GlobalVars.evo_complete:
-                                GlobalVars.in_transit.update(GlobalConstants.PKMN_STATS[f'{GlobalVars.evo_complete}'])
-                                new_evo_path = GlobalVars.in_transit['spritefile']
-                                GlobalVars.in_transit['stage'] += 1
-
-                                for x in range(1,10):
-                                    if type(GlobalVars.in_transit[f'attack{x}power']) == int:
-                                        if GlobalVars.in_transit[f'attack{x}color'] == 'White' or GlobalVars.in_transit[f'attack{x}color'] == 'Gold':
-                                            GlobalVars.in_transit[f'attack{x}power'] += 10*GlobalVars.in_transit['stage']
-                                        elif GlobalVars.in_transit[f'attack{x}color'] == 'Purple':
-                                            GlobalVars.in_transit[f'attack{x}power'] += 1*GlobalVars.in_transit['stage']
-                                    else:
-                                        continue
-                                    
-                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]})")
-                                exec(f"self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]} = arcade.Sprite('images/sprites/{new_evo_path}', GlobalConstants.SPRITE_SCALING)")
-                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{GlobalVars.in_transit['orig_loc'][-1]})")
-                                self.pkmn_list.update()
+                            self.pkmn_list.remove(
+                                GlobalVars.in_transit.Sprite)
+                            winner_resolve(
+                                GlobalVars.in_transit,
+                                targets.Occupant)
+                            self.pkmn_list.append(
+                                GlobalVars.in_transit.Sprite)
+                            self.pkmn_list.update()
                         elif winner_check == 2:
-                            winner_ctrl_temp = eval(f"board.{targets}.occupant")
-                            winner_ctrl = winner_ctrl_temp['ctrl']
-                            loser_ctrl = GlobalVars.in_transit['ctrl']
-                            GlobalVars.gamelog.append(f"Player {loser_ctrl}s {GlobalVars.in_transit['name']} was sent to the PC.")
-                            exec(f"board.{GlobalVars.in_transit_loc}.occupied = False")
-                            exec(f"board.{GlobalVars.in_transit_loc}.occupant = ''")
-                            exec(f"board.{GlobalVars.in_transit_loc}.occupant_team = 0")
-                            exec(f"board.{GlobalVars.in_transit_loc}.ctrl_player = 0")
-                            exec(f"board.{GlobalVars.in_transit_loc}.passable = True")
-                            pc_rotate(GlobalVars.in_transit)
-                            if GlobalVars.game_mode == "Classic":
-                                GlobalVars.in_transit['loc'] = f'player_{loser_ctrl}_PC_2'
-                            elif GlobalVars.game_mode == "3v3":
-                                GlobalVars.in_transit['loc'] = f'player_{loser_ctrl}_PC_1'
-                            self.evolution_check(winner_ctrl_temp)
-                            if GlobalVars.evo_complete:
-                                winner_ctrl_temp.update(GlobalConstants.PKMN_STATS[f'{GlobalVars.evo_complete}'])
-                                new_evo_path = winner_ctrl_temp['spritefile']
-                                winner_ctrl_temp['stage'] += 1
-
-                                for x in range(1,10):
-                                    if type(winner_ctrl_temp[f'attack{x}power']) == int:
-                                        if winner_ctrl_temp[f'attack{x}color'] == 'White' or winner_ctrl_temp[f'attack{x}color'] == 'Gold':
-                                            winner_ctrl_temp[f'attack{x}power'] += 10*winner_ctrl_temp['stage']
-                                        elif winner_ctrl_temp[f'attack{x}color'] == 'Purple':
-                                            winner_ctrl_temp[f'attack{x}power'] += 1*winner_ctrl_temp['stage']
-                                    else:
-                                        continue
-                                    
-                                exec(f"self.pkmn_list.remove(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp['orig_loc'][-1]})")
-                                exec(f"self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp['orig_loc'][-1]} = arcade.Sprite('images/sprites/{new_evo_path}', GlobalConstants.SPRITE_SCALING)")
-                                exec(f"self.pkmn_list.append(self.player_{winner_ctrl}_pkmn_{winner_ctrl_temp['orig_loc'][-1]})")
-                                self.pkmn_list.update()
+                            self.pkmn_list.remove(
+                                targets.Occupant.Sprite)
+                            winner_resolve(
+                                targets.Occupant,
+                                GlobalVars.in_transit)
+                            self.pkmn_list.append(
+                                targets.Occupant.Sprite)
                         elif winner_check == 3:
                             pass
                         elif winner_check == 4:
                             pass
                         elif winner_check == 5:
                             effect_user = GlobalVars.in_transit
-                            target_opponent = eval(f"board.{targets}.occupant")
-                            if len(effect_user[f'attack{GlobalVars.attacker_current_spin}funcs']) != 0:
-                                for effects in effect_user[f'attack{GlobalVars.attacker_current_spin}funcs']:
+                            target_opponent = targets.Occupant
+                            if len(
+                                GlobalVars.attacker_current_spin.Funcs) > 0:
+                               for effects in \
+                                   GlobalVars.attacker_current_spin.Funcs:
                                     exec(effects)
                         elif winner_check == 6:
-                            effect_user = eval(f"board.{targets}.occupant")
+                            effect_user = targets.Occupant
                             target_opponent = GlobalVars.in_transit
-                            if len(effect_user[f'attack{GlobalVars.defender_current_spin}funcs']) != 0:
-                                for effects in effect_user[f'attack{GlobalVars.defender_current_spin}funcs']:
+                            if len(
+                                GlobalVars.defender_current_spin.Funcs) > 0:
+                               for effects in \
+                                   GlobalVars.defender_current_spin.Funcs:
                                     exec(effects)
                         elif winner_check == 7:
                             pass
 
                 if GlobalVars.unit_moved or GlobalVars.unit_attacked:
-                    linebreak_text = "="*5
-                    if GlobalVars.turn_player == 1:
-                        GlobalVars.turn_player = 2
-                        GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
-                        wait_tickdown()
-                    elif GlobalVars.turn_player == 2:
-                        GlobalVars.turn_player = 1
-                        GlobalVars.gamelog.append(f"{linebreak_text} Player {GlobalVars.turn_player} Turn {linebreak_text}")
-                        wait_tickdown()
+                    GlobalVars.turn_change = True
                 GlobalVars.attack_click = False
                 GlobalVars.in_transit = ''
                 GlobalVars.in_transit_loc = ''
@@ -1322,47 +2322,82 @@ class GameView(arcade.View):
                 GlobalVars.unit_moved = False
                 GlobalVars.unit_attacked = False
                 GlobalVars.attack_click = False
-                
+
                 self.pkmn_list.update()
 
-            if GlobalVars.player_1_win == True or GlobalVars.player_2_win == True:
+            if GlobalVars.player_1_win or GlobalVars.player_2_win:
                 arcade.close_window()
                 exit()
-            
-            if board.A4.ctrl_player == 2:
+
+            if board.A4.Ctrl == 2:
                 GlobalVars.player_2_win = True
-                GlobalVars.gamelog.append("Player 2 wins! Click anywhere to exit.")
-                write_log()
-                self.pkmn_list.update()
-                
-            elif board.E4.ctrl_player == 1:
-                GlobalVars.player_1_win = True
-                GlobalVars.gamelog.append("Player 1 wins! Click anywhere to exit.")
+                GlobalVars.gamelog.append(
+                    "Player 2 wins! Click anywhere to exit.")
                 write_log()
                 self.pkmn_list.update()
 
-        elif button == arcade.MOUSE_BUTTON_RIGHT:
-            for team in range(1,3):
-                for units in dir(eval(f"GlobalVars.player_{team}_team")):
-                    if units.startswith("pkmn"):
-                        unit = eval(f"GlobalVars.player_{team}_team.{units}")
-                        units_loc_str = unit['loc']
-                        if x in range(eval(f"board.{units_loc_str}.coords['x']") - 40,
-                                      eval(f"board.{units_loc_str}.coords['x']") + 40
-                                      ) and y in range(
-                                          eval(f"board.{units_loc_str}.coords['y']") - 40,
-                                          eval(f"board.{units_loc_str}.coords['y']") + 40):
-                            stats_window(unit)
-                            break
+            elif board.E4.Ctrl == 1:
+                GlobalVars.player_1_win = True
+                GlobalVars.gamelog.append(
+                    "Player 1 wins! Click anywhere to exit.")
+                write_log()
+                self.pkmn_list.update()
+        
+        for teams in PlayerTeams:
+            for pkmns in teams:
+                if len(pkmns.Loc.Label) == 2:
+                    pkmns.IsSurrounded = surround_check(pkmns)
+                    if pkmns.IsSurrounded:
+                        GlobalVars.gamelog.append(
+                                            str(f"SURROUNDED:    Player " \
+                                                f"{pkmns.Ctrl}'s {pkmns.Name} " \
+                                                f"({pkmns.OrigLoc.Label[-1]}) " \
+                                                f"was sent to Player " \
+                                                f"{pkmns.Ctrl}'s PC."))
+                        space_cleanup(pkmns.Loc)
+                        pc_rotate(pkmns)
+                        pkmns.IsSurrounded = False
+        if GlobalVars.turn_change == True:
+            turn_rotate()
+
+    #1020, 430, 1380, 990
+    def on_mouse_motion(self, x, y, dx, dy):
+        """
+        for teams in PlayerTeams:
+            for pkmns in teams:
+                coords_x = pkmns.Loc.Coords[0]
+                coords_y = pkmns.Loc.Coords[1]
+                if x in range(
+                    coords_x - 40,
+                    coords_x + 40
+                    ) and y in range(
+                        coords_y - 40,
+                        coords_y + 40):
+                    GlobalVars.hover_pkmn = pkmns
+        """
+"""
+    def on_resize(self, width, height):
+    #add this when circle, sprite and movement scaling is added
+        print(width, height)
+        GlobalConstants.SCREEN_HEIGHT = height
+        GlobalConstants.SCREEN_WIDTH = width
+"""
+                        
 
 def main():
     """ Main method """
-    window = arcade.Window(GlobalConstants.SCREEN_WIDTH, GlobalConstants.SCREEN_HEIGHT, "Game Start")
+    window = arcade.Window(
+        GlobalConstants.SCREEN_WIDTH,
+        GlobalConstants.SCREEN_HEIGHT,
+        "Game Start",
+        False,
+        True)
     game = GameView()
-    window.show_view(game)  
+    window.show_view(game)
     arcade.run()
 
-def on_select_team(player_num, event = None):
+
+def on_select_team(player_num, event=None):
 
     if event:
         if player_num == 1:
@@ -1370,8 +2405,9 @@ def on_select_team(player_num, event = None):
         elif player_num == 2:
             GlobalVars.player_2_select = event.widget.get()
 
+
 def mode_select():
-    
+
     def button_click():
         if var.get() == '3v3':
             GlobalVars.game_mode = '3v3'
@@ -1379,9 +2415,10 @@ def mode_select():
         elif var.get() == 'Classic':
             GlobalVars.game_mode = 'Classic'
 
-        GlobalVars.background_select = f"images/board/backgrounds/{bg_cb.get()}.png"
+        GlobalVars.background_select = "images/board" \
+                                       f"/backgrounds/{bg_cb.get()}.png"
         root.destroy()
-    
+
     root = tk.Tk()
     root.title("PoDuReDux: Game Mode Select")
 
@@ -1389,160 +2426,123 @@ def mode_select():
     var.set('1')
 
     try:
-        fn = lambda x: x.split('/')[-1][:-4]
-        background_textures = {fn(k) : k for k in iglob(GlobalConstants.BG_PATH + "/**/*.png", recursive=True)}
-        
-    except:
+        def fn(x): return x.split('/')[-1][:-4]
+        background_textures = {
+            fn(k): k for k in iglob(
+                GlobalConstants.BG_PATH +
+                "/**/*.png",
+                recursive=True)}
+
+    except BaseException:
         pass
 
     background_list = []
-    
+
     for items in background_textures.values():
-        background_list.append(items[len(GlobalConstants.BG_PATH)+1:-4])
+        background_list.append(items[len(GlobalConstants.BG_PATH) + 1:-4])
 
-    bg_label = ttk.Label(root, text = "Choose Background image from drop-down:")
-    bg_label.pack()
+    bg_Label = ttk.Label(root, text="Choose Background image from drop-down:")
+    bg_Label.pack()
 
-    bg_cb = ttk.Combobox(root, values = background_list)
+    bg_cb = ttk.Combobox(root, values=background_list)
     bg_cb.set(background_list[0])
     bg_cb.pack()
-    
-    mode_select_label = ttk.Label(root, text = "Choose Game Mode:")
-    mode_select_label.pack()
 
-    mode_select_classic_radio = ttk.Radiobutton(root, text = "Classic", variable = var, value = "Classic")
+    mode_select_Label = ttk.Label(root, text="Choose Game Mode:")
+    mode_select_Label.pack()
+
+    mode_select_classic_radio = ttk.Radiobutton(
+        root, text="Classic", variable=var, value="Classic")
     mode_select_classic_radio.pack()
     mode_select_classic_radio.invoke()
 
-    mode_select_3v3_radio = ttk.Radiobutton(root, text = "3v3", variable = var, value = "3v3")
+    mode_select_3v3_radio = ttk.Radiobutton(
+        root, text="3v3", variable=var, value="3v3")
     mode_select_3v3_radio.pack()
-    
-    mode_select_confirm = ttk.Button(root, text = "Confirm", command = button_click)
+
+    mode_select_confirm = ttk.Button(
+        root, text="Confirm", command=button_click)
     mode_select_confirm.pack()
 
     root.mainloop()
 
+
 def startup_window():
 
     def button_click():
-        
+
         GlobalVars.player_1_select = p1team_cb.get()
         GlobalVars.player_2_select = p2team_cb.get()
         root.destroy()
-    
+
     root = tk.Tk()
     root.title(f"PoDuReDux: Team Select ({GlobalVars.game_mode})")
 
-    p1team_label = ttk.Label(root, text = "Player 1 Team:")
-    p1team_label.grid(row = 0, column = 0, padx = 30, pady = (30, 10))
+    p1team_Label = ttk.Label(root, text="Player 1 Team:")
+    p1team_Label.grid(row=0, column=0, padx=30, pady=(30, 10))
 
-    p2team_label = ttk.Label(root, text = "Player 2 Team:")
-    p2team_label.grid(row = 0, column = 2, padx = 30, pady = (30, 10))
-    
-    p1team_cb = ttk.Combobox(root, values = team_list)
+    p2team_Label = ttk.Label(root, text="Player 2 Team:")
+    p2team_Label.grid(row=0, column=2, padx=30, pady=(30, 10))
+
+    p1team_cb = ttk.Combobox(root, values=team_list)
     p1team_cb.set(team_list[0])
-    p1team_cb.grid(row=1, column=0, padx = 30, pady = 10)
+    p1team_cb.grid(row=1, column=0, padx=30, pady=10)
     p1team_cb.bind('<<ComboboxSelected>>', on_select_team(1))
 
-    p2team_cb = ttk.Combobox(root, values = team_list)
+    p2team_cb = ttk.Combobox(root, values=team_list)
     p2team_cb.set(team_list[0])
-    p2team_cb.grid(row=1, column=2, padx = 30, pady = 10)
+    p2team_cb.grid(row=1, column=2, padx=30, pady=10)
     p2team_cb.bind('<<ComboboxSelected>>', on_select_team(2))
-    
-    gamestart_button = ttk.Button(root, text = "Start Game", command = button_click)
-    gamestart_button.grid(row=3, column=1, padx = 30, pady = (10, 30))
-    
+
+    gamestart_button = ttk.Button(
+        root, text="Start Game", command=button_click)
+    gamestart_button.grid(row=3, column=1, padx=30, pady=(10, 30))
+
     root.mainloop()
-def stats_window(target_figure):
 
-    root = tk.Tk()
-    root.title("Stats Window")
-
-    GlobalVars.loop_counter = 0
-    column_var = 0
-    for attribute in target_figure.keys():
-        if attribute.startswith("attack") == False:
-            attr_val = target_figure[attribute]
-            if attribute == 'ability':
-                attr_val = '\n'.join(attr_val[i:i+30] for i in range(0, len(attr_val), 30))
-            if attr_val != None:
-                attr_str = str(attribute)
-                attr_str = attr_str.replace('-', "_")
-                exec(f"{attr_str}_label = ttk.Label(root, text = attr_str)")
-                exec(f"{attr_str}_label.grid(row = GlobalVars.loop_counter, column = column_var)")
-                exec(f"{attr_str}_content = ttk.Label(root, text = attr_val)")
-                exec(f"{attr_str}_content.grid(row = GlobalVars.loop_counter, column = column_var + 1)")
-        GlobalVars.loop_counter += 1
-    
-    for attr_index in range(1,10):
-        if target_figure[f'attack{attr_index}name'] != None:
-
-            effect_text = target_figure[f'attack{attr_index}effect']
-            if effect_text != None:
-                effect_text = '\n'.join(effect_text[i:i+30] for i in range(0, len(effect_text), 30))
-            
-            
-            #Name
-            exec(f"attack{attr_index}name_label = ttk.Label(root, text = f'Attack {attr_index} Name:')")
-            exec(f"attack{attr_index}name_label.grid(row = GlobalVars.loop_counter, column = 0)")
-            exec(f"attack{attr_index}name_content = ttk.Label(root, text = target_figure['attack{attr_index}name'])")
-            exec(f"attack{attr_index}name_content.grid(row = GlobalVars.loop_counter + 1, column = 0)")
-
-            #Color
-            exec(f"attack{attr_index}color_label = ttk.Label(root, text = f'Attack {attr_index} Color:')")
-            exec(f"attack{attr_index}color_label.grid(row = GlobalVars.loop_counter, column = 1)")
-            exec(f"attack{attr_index}color_content = ttk.Label(root, text = target_figure['attack{attr_index}color'])")
-            exec(f"attack{attr_index}color_content.grid(row = GlobalVars.loop_counter + 1, column = 1)")
-
-            #Size
-            exec(f"attack{attr_index}size_label = ttk.Label(root, text = f'Attack {attr_index} Size:')")
-            exec(f"attack{attr_index}size_label.grid(row = GlobalVars.loop_counter, column = 2)")
-            exec(f"attack{attr_index}size_content = ttk.Label(root, text = target_figure['attack{attr_index}size'])")
-            exec(f"attack{attr_index}size_content.grid(row = GlobalVars.loop_counter + 1, column = 2)")
-
-            #Power
-            exec(f"attack{attr_index}power_label = ttk.Label(root, text = f'Attack {attr_index} Power:')")
-            exec(f"attack{attr_index}power_label.grid(row = GlobalVars.loop_counter, column = 3)")
-            exec(f"attack{attr_index}power_content = ttk.Label(root, text = target_figure['attack{attr_index}power'])")
-            exec(f"attack{attr_index}power_content.grid(row = GlobalVars.loop_counter + 1, column = 3)")
-
-            #Effect
-            exec(f"attack{attr_index}effect_label = ttk.Label(root, text = f'Attack {attr_index} Effect:')")
-            exec(f"attack{attr_index}effect_label.grid(row = GlobalVars.loop_counter, column = 4)")
-            exec(f"attack{attr_index}effect_content = ttk.Label(root, text = effect_text)")
-            exec(f"attack{attr_index}effect_content.grid(row = GlobalVars.loop_counter + 1, column = 4)")
-
-            GlobalVars.loop_counter += 2
-
-    GlobalVars.loop_counter = 0
-
-    display_img = tk.PhotoImage(file = f"images/Sprites/{target_figure['spritefile']}")
-    img_label = ttk.Label(root, image = display_img)
-    img_label.grid(row = 2, column = 4)
-    root.mainloop()
 if __name__ == "__main__":
 
     GlobalConstants = GlobalConstants()
     GlobalVars = GlobalVars()
 
     mode_select()
-    
+      
     team_list = []
     if GlobalVars.game_mode == "Classic":
-        for x in os.listdir(join(abspath(expanduser(sys.path[0])), "saves", "classic_teams")):
+        for x in os.listdir(
+            join(
+                abspath(
+                    expanduser(
+                sys.path[0])),
+                "saves",
+                "classic_teams")):
             team_list.append(x)
     elif GlobalVars.game_mode == "3v3":
-        for x in os.listdir(join(abspath(expanduser(sys.path[0])), "saves", "3v3_teams")):
+        for x in os.listdir(
+            join(
+                abspath(
+                    expanduser(
+                sys.path[0])),
+                "saves",
+                "3v3_teams")):
             team_list.append(x)
-    
+
     startup_window()
     
-    GlobalVars.player_1_team = PlayerTeam(1)
-    GlobalVars.player_2_team = PlayerTeam(2)
-
+    PlayerTeams = AllTeams()
+    
+    PlayerTeams.Player1 = PlayerTeam(1)
+    PlayerTeams.Player2 = PlayerTeam(2)
+                
     if GlobalVars.game_mode == "Classic":
         board = ClassicBoardGenerator()
     elif GlobalVars.game_mode == "3v3":
         board = TvTBoardGenerator()
+    for teams in PlayerTeams:
+        x = 1
+        for pkmns in teams:
+            exec(f"pkmns.Loc = board.Player{pkmns.Ctrl}Bench{x}")
+            pkmns.OrigLoc = pkmns.Loc
+            x += 1
 
     main()
