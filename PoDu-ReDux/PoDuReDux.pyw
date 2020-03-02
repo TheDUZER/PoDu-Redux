@@ -1444,6 +1444,7 @@ def target_finder(combatant):
 
     if len(combatant.Loc.Label) == 2:
         GlobalVars.potential_targets = []
+        GlobalVars.tag_targets = []
         target_iter(combatant.Loc.Neighbors)
         to_remove = []
         for x in GlobalVars.potential_targets:
@@ -1459,8 +1460,10 @@ def target_finder(combatant):
                 to_remove.append(x)
         GlobalVars.potential_targets = set(
             GlobalVars.potential_targets).difference(to_remove)
+        GlobalVars.tag_targets = set(GlobalVars.tag_targets)
     else:
         GlobalVars.potential_targets = []
+        GlobalVars.tag_targets = []
     GlobalVars.loop_counter = 0
 
 def battle_spin_compare(combatant_1, combatant_2):
@@ -2113,6 +2116,12 @@ class GameView(arcade.View):
                     *targets.Coords,
                     40,
                     (255, 240, 0, 150))
+        if len(GlobalVars.tag_targets) > 0:
+            for targets in GlobalVars.tag_targets:
+                arcade.draw_circle_filled(
+                    *targets.Coords,
+                    40,
+                    (255, 24, 180, 125))
         """
         # ON HOVER STATS VIEW, NEED LOTS OF WORK
         arcade.draw_rectangle_filled(
@@ -2188,7 +2197,8 @@ class GameView(arcade.View):
                                     occupancy_counter -= 1
                             if occupancy_counter == 0:
                                 target_finder(pkmns)
-                                if len(GlobalVars.potential_targets) > 0:
+                                if len(GlobalVars.potential_targets) > 0 or \
+                                   len(GlobalVars.tag_targets) > 0:
                                     GlobalVars.move_click = False
                                     GlobalVars.attack_click = True
 
@@ -2229,7 +2239,8 @@ class GameView(arcade.View):
                                     pc_rotate(pkmns)
                                     pkmns.IsSurrounded = False
                         target_finder(GlobalVars.in_transit)
-                        if len(GlobalVars.potential_targets) > 0:
+                        if len(GlobalVars.potential_targets) > 0 or \
+                           len(GlobalVars.tag_targets) > 0:
                             GlobalVars.attack_click = True
                         else:
                             GlobalVars.turn_change = True
@@ -2243,12 +2254,14 @@ class GameView(arcade.View):
                                     GlobalVars.in_transit.Loc.Coords[1] - 40,
                                     GlobalVars.in_transit.Loc.Coords[1] + 40):
                             target_finder(GlobalVars.in_transit)
-                            if len(GlobalVars.potential_targets) > 0:
+                            if len(GlobalVars.potential_targets) > 0 or \
+                               len(GlobalVars.tag_targets) > 0:
                                 GlobalVars.attack_click = True
                             else:
                                 GlobalVars.in_transit = ''
                                 GlobalVars.move_click = False
                                 GlobalVars.potential_targets = []
+                                GlobalVars.tag_targets = []
 
                 GlobalVars.move_click = False
                 GlobalVars.checked_moves = []
@@ -2273,7 +2286,7 @@ class GameView(arcade.View):
                         # Add effects checks
                         if winner_check == 0:
                             pass
-                        if winner_check == 1:
+                        elif winner_check == 1:
                             self.pkmn_list.remove(
                                 GlobalVars.in_transit.Sprite)
                             winner_resolve(
@@ -2312,6 +2325,21 @@ class GameView(arcade.View):
                                     exec(effects)
                         elif winner_check == 7:
                             pass
+                for targets in GlobalVars.tag_targets:
+                    if x in range(targets.Coords[0] - 40,
+                                  targets.Coords[0] + 40
+                                  ) and y in range(targets.Coords[1] - 40,
+                                                   targets.Coords[1] + 40):
+                        if targets.Occupant.Status in ['frozen', 'sleep']:
+                            targets.Occupant.Status = 'clear'
+                            GlobalVars.gamelog.append(
+                                f"Player {GlobalVars.turn_player} tagged " \
+                                f"their {targets.Occupant.Name} " \
+                                f"({targets.Occupant.OrigLoc.Label[-1]}). " \
+                                "Status and markers cleared.")
+                        #add statement for different markers
+                        targets.Occupant.Marker = 'clear'
+                        GlobalVars.unit_attacked = True
 
                 if GlobalVars.unit_moved or GlobalVars.unit_attacked:
                     GlobalVars.turn_change = True
@@ -2321,7 +2349,7 @@ class GameView(arcade.View):
                 GlobalVars.potential_targets = []
                 GlobalVars.unit_moved = False
                 GlobalVars.unit_attacked = False
-                GlobalVars.attack_click = False
+                GlobalVars.tag_targets = []
 
                 self.pkmn_list.update()
 
