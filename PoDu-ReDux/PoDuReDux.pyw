@@ -1839,8 +1839,12 @@ def evolve_target(target):
                 exec(f"target.Attacks.Attack{keys[6]}.{new_attack_keys} " \
                      "= values")
 
-    target.Sprite = arcade.Sprite('./images/Sprites/' + target.Spritefile,
-                                  GlobalConstants.SPRITE_SCALING)
+    target.Sprite = arcade.Sprite(os.path.join(
+                                        GlobalConstants.FILE_PATH,
+                                        "images",
+                                        "sprites",
+                                        target.Spritefile),
+                                    GlobalConstants.SPRITE_SCALING)
     target.Sprite.set_position(*target.Loc.Coords)
     for new_attacks in target.Attacks:
         if new_attacks.Power != None:
@@ -1934,27 +1938,37 @@ class GameView(arcade.View):
 
         for teams in PlayerTeams:
             for pkmns in teams:
-                sprite_file_name = pkmns.Spritefile
-                current_Ctrl = pkmns.Ctrl
                 bench_spot = pkmns.OrigLoc.Label[-1]
-                sprite_path = f"./images/Sprites/{sprite_file_name}"
-                exec(f"self.player_{current_Ctrl}_pkmn_{bench_spot} = " \
-                     f"arcade.Sprite('{sprite_path}', " \
+                sprite_path = os.path.join(
+                                GlobalConstants.FILE_PATH,
+                                "images",
+                                "sprites",
+                                pkmns.Spritefile)
+                exec(f"self.player_{pkmns.Ctrl}_pkmn_{bench_spot} = " \
+                     "arcade.Sprite(sprite_path, " \
                      "GlobalConstants.SPRITE_SCALING)")
-                exec(f"self.player_{current_Ctrl}_pkmn_{bench_spot}"\
+                exec(f"self.player_{pkmns.Ctrl}_pkmn_{bench_spot}"\
                      ".set_position(*pkmns.Loc.Coords)")
-                exec(f"pkmns.Sprite = self.player_{current_Ctrl}_"\
+                exec(f"pkmns.Sprite = self.player_{pkmns.Ctrl}_"\
                      f"pkmn_{bench_spot}")
-                exec(f"self.pkmn_list.append(self.player_{current_Ctrl}_"\
+                exec(f"self.pkmn_list.append(self.player_{pkmns.Ctrl}_"\
                      f"pkmn_{bench_spot})")
 
         self.background = arcade.load_texture(GlobalVars.background_select)
         if GlobalVars.game_mode == "Classic":
             self.ClassicBoard = arcade.load_texture(
-                "images/board/overlays/classic_duel_overlay.png")
+                os.path.join(
+                    "images",
+                    "board",
+                    "overlays",
+                    "classic_duel_overlay.png"))
         elif GlobalVars.game_mode == "3v3":
             self.TvTBoard = arcade.load_texture(
-                "images/board/overlays/3v3_duel_overlay.png")
+                os.path.join(
+                    "images",
+                    "board",
+                    "overlays",
+                    "3v3_duel_overlay.png"))
 
     def on_draw(self):
         """
@@ -2079,18 +2093,25 @@ class GameView(arcade.View):
 
         arcade.draw_text(
             center_text,
-            center_text_x,
-            center_text_y,
+            500,
+            500,
             arcade.color.YELLOW,
-            18)
+            18,
+            anchor_x="center",
+            anchor_y="center",
+            align="center",
+            font_name="Arial")
         if GlobalVars.move_click:
             arcade.draw_text(
                 "Click this unit again\nto attack without moving,\nif able.",
-                center_text_x - 15,
-                center_text_y - 45,
+                500,
+                500 - 45,
                 arcade.color.YELLOW,
                 12,
-                align='center')
+                anchor_x="center",
+                anchor_y="center",
+                align='center',
+                font_name="Arial")
 
         if len(GlobalVars.checked_moves) > 0:
             for moves in GlobalVars.checked_moves:
