@@ -1,13 +1,15 @@
 # PoDu-Redux
 
-Run main game window with PoDuReDux.py
+Run main game window with PoDuReDux.pyw
 
 Requirements:
 -Python 3.6+
 -Python Arcade library ("pip install arcade" in a command prompt)
+-python-tk on Ubuntu-based systems (sudo apt-get install python-tk)
+-OpenGL 3.3+, per the Arcade library's requirements
 
 Essential files currently include:
--PoDuReDux.py
+-PoDuReDux.pyw
 -pokemon-stats.json
 -/saves
 -/images
