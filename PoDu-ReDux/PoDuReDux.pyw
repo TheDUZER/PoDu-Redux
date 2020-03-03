@@ -67,16 +67,13 @@ class GlobalConstants():
         self.SCREEN_WIDTH = 1400
         self.SCREEN_HEIGHT = 1000
         self.SCREEN_TITLE = "PoDu ReDux v0.2.0"
-        self.STATS_PATH = join(
-            abspath(
-                expanduser(
-                    sys.path[0])),
+        self.FILE_PATH = os.path.dirname(__file__)
+        self.STATS_PATH = os.path.join(
+            self.FILE_PATH,
             "pkmn-stats.json")
         self.PKMN_STATS = json.load(open(self.STATS_PATH, "r"))
-        self.BG_PATH = join(
-            abspath(
-                expanduser(
-                    sys.path[0])),
+        self.BG_PATH = os.path.join(
+            self.FILE_PATH,
             "images",
             "board",
             "backgrounds")
@@ -947,20 +944,16 @@ class PlayerTeam():
     def __init__(self, Ctrl):
         team_file = eval(f"GlobalVars.player_{Ctrl}_select")
         if GlobalVars.game_mode == "Classic":
-            selected_team_path = join(
-                abspath(
-                    expanduser(
-                        sys.path[0])),
+            selected_team_path = os.path.join(
+                GlobalConstants.FILE_PATH,
                 "saves",
                 "classic_teams",
                 f"{team_file}")
             GlobalVars.top_range = 1
             GlobalVars.bottom_range = 7
         elif GlobalVars.game_mode == "3v3":
-            selected_team_path = join(
-                abspath(
-                    expanduser(
-                        sys.path[0])),
+            selected_team_path = os.path.join(
+                GlobalConstants.FILE_PATH,
                 "saves",
                 "3v3_teams",
                 f"{team_file}")
@@ -1071,18 +1064,13 @@ def write_log():
     log_stamp = time.ctime()
     log_stamp = log_stamp.replace(' ', '_')
     log_stamp = log_stamp.replace(':', '-')
-    LOG_PATH = join(
-        abspath(
-            expanduser(
-                sys.path[0])),
+    LOG_PATH = os.path.join(
+        GlobalConstants.FILE_PATH,
         "saves",
         "gamelogs",
-        "PoDuReDux_Log_" +
-        f"{log_stamp}" +
-        ".txt")
+        f"PoDuReDux_Log_{log_stamp}.txt")
     LOG_FILE = open(LOG_PATH, "a+")
     for lines in GlobalVars.gamelog:
-        lines = lines + "\n"
         LOG_FILE.write(lines)
     LOG_FILE.close()
 
@@ -2072,14 +2060,14 @@ class GameView(arcade.View):
                 arcade.draw_text(
                     split_lines,
                     1020,
-                    20 + line_counter*20,
+                    16 + line_counter*16,
                     arcade.color.WHITE,
                     10,
                     font_name="Arial")
                 line_counter += 1
-                if line_counter == 20:
+                if line_counter == 60:
                     break
-            if line_counter == 20:
+            if line_counter == 60:
                 break
 
         if GlobalVars.player_1_win:
