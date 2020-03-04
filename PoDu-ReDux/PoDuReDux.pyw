@@ -50,7 +50,6 @@ TODO LATER...:
 
 """
 from glob import iglob
-from os.path import abspath, expanduser, join
 import tkinter as tk
 from tkinter import ttk
 import arcade
@@ -66,8 +65,9 @@ class GlobalConstants():
         self.SPRITE_SCALING = 2.5
         self.SCREEN_WIDTH = 1400
         self.SCREEN_HEIGHT = 1000
-        self.SCREEN_TITLE = "PoDu ReDux v0.2.0"
-        self.FILE_PATH = os.path.dirname(__file__)
+        self.ASPECT_RATIO = 1400 // 1000
+        self.SCREEN_TITLE = "PoDu ReDux v0.2.1"
+        self.FILE_PATH = os.path.dirname(sys.argv[0])
         self.STATS_PATH = os.path.join(
             self.FILE_PATH,
             "pkmn-stats.json")
@@ -246,7 +246,7 @@ class ClassicBoardGenerator():
         
         self.B6.Coords = [609, 405]
         self.B6.Label = "B6"
-        self.B6.Neighbors = (self.A7, self.C6)
+        self.B6.Neighbors = (self.A7, self.C6, self.B4)
         
         self.B7.Coords = [713, 405]
         self.B7.Label = "B7"
@@ -1998,8 +1998,7 @@ class GameView(arcade.View):
                 GlobalConstants.SCREEN_HEIGHT,
                 GlobalConstants.SCREEN_HEIGHT,
                 self.ClassicBoard)
-            center_text_x = 450
-            center_text_y = 500
+            center_text_x = 500
 
         elif GlobalVars.game_mode == "3v3":
             arcade.draw_texture_rectangle(
@@ -2008,8 +2007,7 @@ class GameView(arcade.View):
                 GlobalConstants.SCREEN_HEIGHT,
                 GlobalConstants.SCREEN_HEIGHT,
                 self.TvTBoard)
-            center_text_x = 450
-            center_text_y = 369
+            center_text_x = 550
 
         # draw unit bases
         for teams, sprites in zip(PlayerTeams, self.pkmn_list):
@@ -2094,7 +2092,7 @@ class GameView(arcade.View):
         arcade.draw_text(
             center_text,
             500,
-            500,
+            500 if GlobalVars.game_mode == "Classic" else 550,
             arcade.color.YELLOW,
             18,
             anchor_x="center",
@@ -2396,7 +2394,7 @@ class GameView(arcade.View):
                         pkmns.IsSurrounded = False
         if GlobalVars.turn_change == True:
             turn_rotate()
-
+    
     #1020, 430, 1380, 990
     def on_mouse_motion(self, x, y, dx, dy):
         """
@@ -2418,8 +2416,8 @@ class GameView(arcade.View):
         print(width, height)
         GlobalConstants.SCREEN_HEIGHT = height
         GlobalConstants.SCREEN_WIDTH = width
-"""
-                        
+"""                     
+
 
 def main():
     """ Main method """
@@ -2452,8 +2450,9 @@ def mode_select():
         elif var.get() == 'Classic':
             GlobalVars.game_mode = 'Classic'
 
-        GlobalVars.background_select = "images/board" \
-                                       f"/backgrounds/{bg_cb.get()}.png"
+        GlobalVars.background_select = os.path.join(
+            GlobalConstants.BG_PATH,
+            bg_cb.get() + ".png")
         root.destroy()
 
     root = tk.Tk()
@@ -2547,19 +2546,19 @@ if __name__ == "__main__":
     team_list = []
     if GlobalVars.game_mode == "Classic":
         for x in os.listdir(
-            join(
-                abspath(
-                    expanduser(
-                sys.path[0])),
+            os.path.join(
+                os.path.abspath(
+                    os.path.expanduser(
+                GlobalConstants.FILE_PATH)),
                 "saves",
                 "classic_teams")):
             team_list.append(x)
     elif GlobalVars.game_mode == "3v3":
         for x in os.listdir(
-            join(
-                abspath(
-                    expanduser(
-                sys.path[0])),
+            os.path.join(
+                os.path.abspath(
+                    os.path.expanduser(
+                GlobalConstants.FILE_PATH)),
                 "saves",
                 "3v3_teams")):
             team_list.append(x)
