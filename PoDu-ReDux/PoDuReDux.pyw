@@ -58,14 +58,16 @@ import sys
 import os
 import random
 import time
+from math import floor
+from subprocess import call
 
 
-class GlobalConstants():
+class GlobalConst():
     def __init__(self):
-        self.SPRITE_SCALING = 2.5
-        self.SCREEN_WIDTH = 1400
-        self.SCREEN_HEIGHT = 1000
-        self.ASPECT_RATIO = 1400 // 1000
+        self.SCREEN_WIDTH = 0
+        self.SCREEN_HEIGHT = 0
+        self.ASPECT_RATIO = 0
+        self.SPRITE_SCALING = 0
         self.SCREEN_TITLE = "PoDu ReDux v0.2.1"
         self.FILE_PATH = os.path.dirname(sys.argv[0])
         self.STATS_PATH = os.path.join(
@@ -118,12 +120,12 @@ class GlobalVars():
         self.p1_bench_targets = []
         self.p1_PC_targets = []
         self.p1_board_targets = []
-        self.p1_eliminated_targets = []
+        self.p1_Elim_targets = []
         self.p1_ultra_space_targets = []
         self.p2_bench_targets = []
         self.p2_PC_targets = []
         self.p2_board_targets = []
-        self.p2_eliminated_targets = []
+        self.p2_Elim_targets = []
         self.p2_ultra_space_targets = []
         self.combatant_1_power = 'None'
         self.combatant_2_power = 'None'
@@ -198,129 +200,157 @@ class ClassicBoardGenerator():
         self.E5 = BoardNeighbors()
         self.E6 = BoardNeighbors()
         self.E7 = BoardNeighbors()
-        
-        self.A1.Coords = [285, 287]
+
+        self.A1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A1.Label = "A1"
         self.A1.Neighbors = (self.B1, self.B2, self.A2)
         self.A1.Player1Entry = True
         
-        self.A2.Coords = [356, 287]
+        self.A2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.356),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A2.Label = "A2"
         self.A2.Neighbors = (self.A1, self.A3)
         
-        self.A3.Coords = [427, 287]
+        self.A3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.427),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A3.Label = "A3"
         self.A3.Neighbors = (self.A2, self.A4)
         
-        self.A4.Coords = [500, 287]
+        self.A4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A4.Label = "A4"
         self.A4.Neighbors = (self.A3, self.A5)
         self.A4.Player1Goal = True
         
-        self.A5.Coords = [572, 287]
+        self.A5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.572),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A5.Label = "A5"
         self.A5.Neighbors = (self.A4, self.B4, self.A6)
         
-        self.A6.Coords = [643, 287]
+        self.A6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.643),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A6.Label = "A6"
         self.A6.Neighbors = (self.A5, self.A7)
         
-        self.A7.Coords = [713, 287]
+        self.A7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A7.Label = "A7"
         self.A7.Neighbors = (self.A6, self.B6, self.B7)
         self.A7.Player1Entry = True
 
         ####################################################
 
-        self.B1.Coords = [285, 405]
+        self.B1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B1.Label = "B1"
         self.B1.Neighbors = (self.A1, self.C1)
         
-        self.B2.Coords = [390, 405]
+        self.B2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.390),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B2.Label = "B2"
         self.B2.Neighbors = (self.A1, self.B4, self.C2)
 
-        self.B4.Coords = [500, 405]
+        self.B4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B4.Label = "B4"
         self.B4.Neighbors = (self.B2, self.A5, self.B6)
         
-        self.B6.Coords = [609, 405]
+        self.B6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.609),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B6.Label = "B6"
         self.B6.Neighbors = (self.A7, self.C6, self.B4)
         
-        self.B7.Coords = [713, 405]
+        self.B7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B7.Label = "B7"
         self.B7.Neighbors = (self.A7, self.C7)
 
         ####################################################
 
-        self.C1.Coords = [285, 500]
+        self.C1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C1.Label = "C1"
         self.C1.Neighbors = (self.B1, self.D1)
         
-        self.C2.Coords = [390, 500]
+        self.C2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.390),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C2.Label = "C2"
         self.C2.Neighbors = (self.B2, self.D2)
         
-        self.C6.Coords = [609, 500]
+        self.C6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.609),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C6.Label = "C6"
         self.C6.Neighbors = (self.B6, self.D6)
         
-        self.C7.Coords = [713, 500]
+        self.C7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C7.Label = "C7"
         self.C7.Neighbors = (self.B7, self.D7)
 
         ####################################################
 
-        self.D1.Coords = [285, 596]
+        self.D1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D1.Label = "D1"
         self.D1.Neighbors = (self.E1, self.C1)
         
-        self.D2.Coords = [390, 596]
+        self.D2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.390),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D2.Label = "D2"
         self.D2.Neighbors = (self.E1, self.D4, self.C2)
 
-        self.D4.Coords = [500, 596]
+        self.D4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D4.Label = "D4"
         self.D4.Neighbors = (self.D2, self.E3, self.D6)
         
-        self.D6.Coords = [609, 596]
+        self.D6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.609),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D6.Label = "D6"
         self.D6.Neighbors = (self.E7, self.D4, self.C6)
         
-        self.D7.Coords = [713, 596]
+        self.D7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D7.Label = "D7"
         self.D7.Neighbors = (self.C7, self.E7)
 
         ####################################################
 
-        self.E1.Coords = [285, 713]
+        self.E1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E1.Label = "E1"
         self.E1.Neighbors = (self.D1, self.E2, self.D2)
         self.E1.Player2Entry = True
         
-        self.E2.Coords = [356, 713]
+        self.E2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.356),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E2.Label = "E2"
         self.E2.Neighbors = (self.E1, self.E3)
         
-        self.E3.Coords = [427, 713]
+        self.E3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.427),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E3.Label = "E3"
         self.E3.Neighbors = (self.E2, self.D4, self.E4)
         
-        self.E4.Coords = [500, 713]
+        self.E4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E4.Label = "E4"
         self.E4.Neighbors = (self.E3, self.E5)
         self.E4.Player2Goal = True
         
-        self.E5.Coords = [572, 713]
+        self.E5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.572),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E5.Label = "E5"
         self.E5.Neighbors = (self.E4, self.E6)
         
-        self.E6.Coords = [643, 713]
+        self.E6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.643),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E6.Label = "E6"
         self.E6.Neighbors = (self.E5, self.E7)
         
-        self.E7.Coords = [713, 713]
+        self.E7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E7.Label = "E7"
         self.E7.Neighbors = (self.E6, self.D6, self.D7)
         self.E7.Player2Entry = True
@@ -329,90 +359,102 @@ class ClassicBoardGenerator():
 
         
         
-        """Player 1 Bench"""
+        #Player 1 Bench
 
         self.Player1Bench1 = BoardNeighbors()
-        self.Player1Bench1.Coords = [300, 180]
+        self.Player1Bench1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.300),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.180)]
         self.Player1Bench1.Neighbors = (self.A1, self.A7)
         self.Player1Bench1.Occupant = PlayerTeams.Player1.Pkmn1
         self.Player1Bench1.OccupantTeam = 1
         self.Player1Bench1.Occupied = True
 
         self.Player1Bench2 = BoardNeighbors()
-        self.Player1Bench2.Coords = [400, 180]
+        self.Player1Bench2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.400),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.180)]
         self.Player1Bench2.Neighbors = (self.A1, self.A7)
         self.Player1Bench2.Occupant = PlayerTeams.Player1.Pkmn2
         self.Player1Bench2.OccupantTeam = 1
         self.Player1Bench2.Occupied = True
 
         self.Player1Bench3 = BoardNeighbors()
-        self.Player1Bench3.Coords = [500, 180]
+        self.Player1Bench3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.180)]
         self.Player1Bench3.Neighbors = (self.A1, self.A7)
         self.Player1Bench3.Occupant = PlayerTeams.Player1.Pkmn3
         self.Player1Bench3.OccupantTeam = 1
         self.Player1Bench3.Occupied = True
 
         self.Player1Bench4 = BoardNeighbors()
-        self.Player1Bench4.Coords = [350, 110]
+        self.Player1Bench4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.350),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.110)]
         self.Player1Bench4.Neighbors = (self.A1, self.A7)
         self.Player1Bench4.Occupant = PlayerTeams.Player1.Pkmn4
         self.Player1Bench4.OccupantTeam = 1
         self.Player1Bench4.Occupied = True
         
         self.Player1Bench5 = BoardNeighbors()
-        self.Player1Bench5.Coords = [450, 110]
+        self.Player1Bench5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.450),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.110)]
         self.Player1Bench5.Neighbors = (self.A1, self.A7)
         self.Player1Bench5.Occupant = PlayerTeams.Player1.Pkmn5
         self.Player1Bench5.OccupantTeam = 1
         self.Player1Bench5.Occupied = True
 
         self.Player1Bench6 = BoardNeighbors()
-        self.Player1Bench6.Coords = [550, 110]
+        self.Player1Bench6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.550),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.110)]
         self.Player1Bench6.Neighbors = (self.A1, self.A7)
         self.Player1Bench6.Occupant = PlayerTeams.Player1.Pkmn6
         self.Player1Bench6.OccupantTeam = 1
         self.Player1Bench6.Occupied = True
 
         ####################################################
-        """Player 2 Bench"""
+        #Player 2 Bench
 
         self.Player2Bench1 = BoardNeighbors()
-        self.Player2Bench1.Coords = [500, 825]
+        self.Player2Bench1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.825)]
         self.Player2Bench1.Neighbors = (self.E1, self.E7)
         self.Player2Bench1.Occupant = PlayerTeams.Player2.Pkmn1
         self.Player2Bench1.OccupantTeam = 1
         self.Player2Bench1.Occupied = True
 
         self.Player2Bench2 = BoardNeighbors()
-        self.Player2Bench2.Coords = [600, 825]
+        self.Player2Bench2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.600),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.825)]
         self.Player2Bench2.Neighbors = (self.E1, self.E7)
         self.Player2Bench2.Occupant = PlayerTeams.Player2.Pkmn2
         self.Player2Bench2.OccupantTeam = 1
         self.Player2Bench2.Occupied = True
 
         self.Player2Bench3 = BoardNeighbors()
-        self.Player2Bench3.Coords = [700, 825]
+        self.Player2Bench3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.700),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.825)]
         self.Player2Bench3.Neighbors = (self.E1, self.E7)
         self.Player2Bench3.Occupant = PlayerTeams.Player2.Pkmn3
         self.Player2Bench3.OccupantTeam = 1
         self.Player2Bench3.Occupied = True
 
         self.Player2Bench4 = BoardNeighbors()
-        self.Player2Bench4.Coords = [450, 900]
+        self.Player2Bench4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.450),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.900)]
         self.Player2Bench4.Neighbors = (self.E1, self.E7)
         self.Player2Bench4.Occupant = PlayerTeams.Player2.Pkmn4
         self.Player2Bench4.OccupantTeam = 1
         self.Player2Bench4.Occupied = True
 
         self.Player2Bench5 = BoardNeighbors()
-        self.Player2Bench5.Coords = [550, 900]
+        self.Player2Bench5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.550),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.900)]
         self.Player2Bench5.Neighbors = (self.E1, self.E7)
         self.Player2Bench5.Occupant = PlayerTeams.Player2.Pkmn5
         self.Player2Bench5.OccupantTeam = 1
         self.Player2Bench5.Occupied = True
 
         self.Player2Bench6 = BoardNeighbors()
-        self.Player2Bench6.Coords = [650, 900]
+        self.Player2Bench6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.650),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.900)]
         self.Player2Bench6.Neighbors = (self.E1, self.E7)
         self.Player2Bench6.Occupant = PlayerTeams.Player2.Pkmn6
         self.Player2Bench6.OccupantTeam = 1
@@ -435,132 +477,160 @@ class ClassicBoardGenerator():
         ####################################################
 
 
-        self.Player1UltraSpace1 = BoardNeighbors()
-        self.Player1UltraSpace1.Coords = [878, 270]
-        self.Player1UltraSpace1.Label = "Player 1 Ultra Space 1"
+        self.Player1USpace1 = BoardNeighbors()
+        self.Player1USpace1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.270)]
+        self.Player1USpace1.Label = "Player 1 Ultra Space 1"
         
-        self.Player1UltraSpace2 = BoardNeighbors()
-        self.Player1UltraSpace2.Coords = [878, 180]
-        self.Player1UltraSpace2.Label = "Player 1 Ultra Space 2"
+        self.Player1USpace2 = BoardNeighbors()
+        self.Player1USpace2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.180)]
+        self.Player1USpace2.Label = "Player 1 Ultra Space 2"
         
-        self.Player1UltraSpace3 = BoardNeighbors()
-        self.Player1UltraSpace3.Coords = [878, 100]
-        self.Player1UltraSpace3.Label = "Player 1 Ultra Space 3"
+        self.Player1USpace3 = BoardNeighbors()
+        self.Player1USpace3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.100)]
+        self.Player1USpace3.Label = "Player 1 Ultra Space 3"
 
-        self.Player1UltraSpace4 = BoardNeighbors()
-        self.Player1UltraSpace4.Coords = [950, 225]
-        self.Player1UltraSpace4.Label = "Player 1 Ultra Space 4"
+        self.Player1USpace4 = BoardNeighbors()
+        self.Player1USpace4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.950),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.225)]
+        self.Player1USpace4.Label = "Player 1 Ultra Space 4"
 
-        self.Player1UltraSpace5 = BoardNeighbors()
-        self.Player1UltraSpace5.Coords = [950, 140]
-        self.Player1UltraSpace5.Label = "Player 1 Ultra Space 5"
+        self.Player1USpace5 = BoardNeighbors()
+        self.Player1USpace5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.950),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.140)]
+        self.Player1USpace5.Label = "Player 1 Ultra Space 5"
 
-        self.Player1UltraSpace6 = BoardNeighbors()
-        self.Player1UltraSpace6.Coords = [950, 50]
-        self.Player1UltraSpace6.Label = "Player 1 Ultra Space 6"
+        self.Player1USpace6 = BoardNeighbors()
+        self.Player1USpace6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.950),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.50)]
+        self.Player1USpace6.Label = "Player 1 Ultra Space 6"
 
         ####################################################
 
 
-        self.Player2UltraSpace1 = BoardNeighbors()
-        self.Player2UltraSpace1.Coords = [120, 270]
-        self.Player2UltraSpace1.Label = "Player 2 Ultra Space 1"
+        self.Player2USpace1 = BoardNeighbors()
+        self.Player2USpace1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.270)]
+        self.Player2USpace1.Label = "Player 2 Ultra Space 1"
         
-        self.Player2UltraSpace2 = BoardNeighbors()
-        self.Player2UltraSpace2.Coords = [120, 180]
-        self.Player2UltraSpace2.Label = "Player 2 Ultra Space 2"
+        self.Player2USpace2 = BoardNeighbors()
+        self.Player2USpace2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.180)]
+        self.Player2USpace2.Label = "Player 2 Ultra Space 2"
         
-        self.Player2UltraSpace3 = BoardNeighbors()
-        self.Player2UltraSpace3.Coords = [120, 100]
-        self.Player2UltraSpace3.Label = "Player 2 Ultra Space 3"
+        self.Player2USpace3 = BoardNeighbors()
+        self.Player2USpace3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.100)]
+        self.Player2USpace3.Label = "Player 2 Ultra Space 3"
 
-        self.Player2UltraSpace4 = BoardNeighbors()
-        self.Player2UltraSpace4.Coords = [50, 775]
-        self.Player2UltraSpace4.Label = "Player 2 Ultra Space 4"
+        self.Player2USpace4 = BoardNeighbors()
+        self.Player2USpace4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.50),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.775)]
+        self.Player2USpace4.Label = "Player 2 Ultra Space 4"
 
-        self.Player2UltraSpace5 = BoardNeighbors()
-        self.Player2UltraSpace5.Coords = [50, 865]
-        self.Player2UltraSpace5.Label = "Player 2 Ultra Space 5"
+        self.Player2USpace5 = BoardNeighbors()
+        self.Player2USpace5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.50),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.865)]
+        self.Player2USpace5.Label = "Player 2 Ultra Space 5"
 
-        self.Player2UltraSpace6 = BoardNeighbors()
-        self.Player2UltraSpace6.Coords = [50, 950]
-        self.Player2UltraSpace6.Label = "Player 2 Ultra Space 6"
+        self.Player2USpace6 = BoardNeighbors()
+        self.Player2USpace6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.50),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.950)]
+        self.Player2USpace6.Label = "Player 2 Ultra Space 6"
 
         ####################################################
 
 
-        self.Player1Eliminated1 = BoardNeighbors()
-        self.Player1Eliminated1.Coords = [120, 735]
-        self.Player1Eliminated1.Label = "Player 1 Eliminated 1"
+        self.Player1Elim1 = BoardNeighbors()
+        self.Player1Elim1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.735)]
+        self.Player1Elim1.Label = "Player 1 Eliminated 1"
         
-        self.Player1Eliminated2 = BoardNeighbors()
-        self.Player1Eliminated2.Coords = [120, 825]
-        self.Player1Eliminated2.Label = "Player 1 Eliminated 2"
+        self.Player1Elim2 = BoardNeighbors()
+        self.Player1Elim2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.825)]
+        self.Player1Elim2.Label = "Player 1 Eliminated 2"
         
-        self.Player1Eliminated3 = BoardNeighbors()
-        self.Player1Eliminated3.Coords = [120, 905]
-        self.Player1Eliminated3.Label = "Player 1 Eliminated 3"
+        self.Player1Elim3 = BoardNeighbors()
+        self.Player1Elim3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.905)]
+        self.Player1Elim3.Label = "Player 1 Eliminated 3"
 
-        self.Player1Eliminated4 = BoardNeighbors()
-        self.Player1Eliminated4.Coords = [50, 225]
-        self.Player1Eliminated4.Label = "Player 1 Eliminated 4"
+        self.Player1Elim4 = BoardNeighbors()
+        self.Player1Elim4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.50),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.225)]
+        self.Player1Elim4.Label = "Player 1 Eliminated 4"
 
-        self.Player1Eliminated5 = BoardNeighbors()
-        self.Player1Eliminated5.Coords = [50, 140]
-        self.Player1Eliminated5.Label = "Player 1 Eliminated 5"
+        self.Player1Elim5 = BoardNeighbors()
+        self.Player1Elim5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.50),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.140)]
+        self.Player1Elim5.Label = "Player 1 Eliminated 5"
 
-        self.Player1Eliminated6 = BoardNeighbors()
-        self.Player1Eliminated6.Coords = [50, 50]
-        self.Player1Eliminated6.Label = "Player 1 Eliminated 6"
+        self.Player1Elim6 = BoardNeighbors()
+        self.Player1Elim6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.50),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.50)]
+        self.Player1Elim6.Label = "Player 1 Eliminated 6"
 
         ####################################################
 
 
-        self.Player2Eliminated1 = BoardNeighbors()
-        self.Player2Eliminated1.Coords = [878, 735]
-        self.Player2Eliminated1.Label = "Player 2 Eliminated 1"
+        self.Player2Elim1 = BoardNeighbors()
+        self.Player2Elim1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.735)]
+        self.Player2Elim1.Label = "Player 2 Eliminated 1"
         
-        self.Player2Eliminated2 = BoardNeighbors()
-        self.Player2Eliminated2.Coords = [878, 825]
-        self.Player2Eliminated2.Label = "Player 2 Eliminated 2"
+        self.Player2Elim2 = BoardNeighbors()
+        self.Player2Elim2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.825)]
+        self.Player2Elim2.Label = "Player 2 Eliminated 2"
         
-        self.Player2Eliminated3 = BoardNeighbors()
-        self.Player2Eliminated3.Coords = [878, 905]
-        self.Player2Eliminated3.Label = "Player 2 Eliminated 3"
+        self.Player2Elim3 = BoardNeighbors()
+        self.Player2Elim3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.905)]
+        self.Player2Elim3.Label = "Player 2 Eliminated 3"
 
-        self.Player2Eliminated4 = BoardNeighbors()
-        self.Player2Eliminated4.Coords = [950, 775]
-        self.Player2Eliminated4.Label = "Player 2 Eliminated 4"
+        self.Player2Elim4 = BoardNeighbors()
+        self.Player2Elim4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.950),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.775)]
+        self.Player2Elim4.Label = "Player 2 Eliminated 4"
 
-        self.Player2Eliminated5 = BoardNeighbors()
-        self.Player2Eliminated5.Coords = [950, 865]
-        self.Player2Eliminated5.Label = "Player 2 Eliminated 5"
+        self.Player2Elim5 = BoardNeighbors()
+        self.Player2Elim5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.950),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.865)]
+        self.Player2Elim5.Label = "Player 2 Eliminated 5"
 
-        self.Player2Eliminated6 = BoardNeighbors()
-        self.Player2Eliminated6.Coords = [950, 950]
-        self.Player2Eliminated6.Label = "Player 2 Eliminated 6"
+        self.Player2Elim6 = BoardNeighbors()
+        self.Player2Elim6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.950),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.950)]
+        self.Player2Elim6.Label = "Player 2 Eliminated 6"
 
         ####################################################
 
 
         self.Player1PC1 = BoardNeighbors()
         self.Player1PC1.Label = "Player 1 PC 1"
-        self.Player1PC1.Coords = [630, 180]
+        self.Player1PC1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.630),
+                                  floor(GlobalConst.SCREEN_HEIGHT*0.180)]
 
         self.Player1PC2 = BoardNeighbors()
         self.Player1PC2.Label = "Player 1 PC 2"
-        self.Player1PC2.Coords = [710, 180]
+        self.Player1PC2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.710),
+                                  floor(GlobalConst.SCREEN_HEIGHT*0.180)]
 
         ####################################################
 
 
         self.Player2PC1 = BoardNeighbors()
         self.Player2PC1.Label = "Player 2 PC 1"
-        self.Player2PC1.Coords = [370, 820]
+        self.Player2PC1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.370),
+                                  floor(GlobalConst.SCREEN_HEIGHT*0.820)]
 
         self.Player2PC2 = BoardNeighbors()
         self.Player2PC2.Label = "Player 2 PC 2"
-        self.Player2PC2.Coords = [290, 820]
+        self.Player2PC2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.290),
+                                  floor(GlobalConst.SCREEN_HEIGHT*0.820)]
 
     def __iter__(self):
         GlobalVars.counter = 0
@@ -574,7 +644,7 @@ class ClassicBoardGenerator():
         else:
             GlobalVars.counter += 1
             return __iterator
-
+        
 class TvTBoardGenerator():
     # 3v3 Board
     """
@@ -613,124 +683,151 @@ class TvTBoardGenerator():
         self.E6 = BoardNeighbors()
         self.E7 = BoardNeighbors()
         
-        self.A1.Coords = [285, 287]
+        self.A1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A1.Label = "A1"
         self.A1.Neighbors = (self.B1, self.B2, self.A2)
         self.A1.Player1Entry = True
         
-        self.A2.Coords = [356, 287]
+        self.A2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.356),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A2.Label = "A2"
         self.A2.Neighbors = (self.A1, self.A3)
         
-        self.A3.Coords = [427, 287]
+        self.A3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.427),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A3.Label = "A3"
         self.A3.Neighbors = (self.A2, self.A4)
         
-        self.A4.Coords = [500, 287]
+        self.A4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A4.Label = "A4"
         self.A4.Neighbors = (self.A3, self.A5)
         self.A4.Player1Goal = True
         
-        self.A5.Coords = [572, 287]
+        self.A5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.572),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A5.Label = "A5"
         self.A5.Neighbors = (self.A4, self.A6)
         
-        self.A6.Coords = [643, 287]
+        self.A6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.643),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A6.Label = "A6"
         self.A6.Neighbors = (self.A5, self.A7)
         self.A6.Player1Entry = True
         
-        self.A7.Coords = [713, 287]
+        self.A7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.287)]
         self.A7.Label = "A7"
         self.A7.Neighbors = (self.A6, self.B6, self.B7)
 
         ####################################################
 
-        self.B1.Coords = [285, 405]
+        self.B1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B1.Label = "B1"
         self.B1.Neighbors = (self.A1, self.C1)
         
-        self.B2.Coords = [390, 405]
+        self.B2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.390),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B2.Label = "B2"
         self.B2.Neighbors = (self.A1, self.C2)
         
-        self.B6.Coords = [609, 405]
+        self.B6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.609),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B6.Label = "B6"
         self.B6.Neighbors = (self.A7, self.C6)
         
-        self.B7.Coords = [713, 405]
+        self.B7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.405)]
         self.B7.Label = "B7"
         self.B7.Neighbors = (self.A7, self.C7)
 
         ####################################################
 
-        self.C1.Coords = [285, 500]
+        self.C1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C1.Label = "C1"
         self.C1.Neighbors = (self.B1, self.D1)
         
-        self.C2.Coords = [390, 500]
+        self.C2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.390),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C2.Label = "C2"
         self.C2.Neighbors = (self.B2, self.D2, self.C4)
         
-        self.C4.Coords = [500, 500]
+        self.C4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C4.Label = "C4"
         self.C4.Neighbors = (self.C2, self.C6)
         
-        self.C6.Coords = [609, 500]
+        self.C6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.609),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C6.Label = "C6"
         self.C6.Neighbors = (self.B6, self.D6, self.C4)
         
-        self.C7.Coords = [713, 500]
+        self.C7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.500)]
         self.C7.Label = "C7"
         self.C7.Neighbors = (self.B7, self.D7)
 
         ####################################################
 
-        self.D1.Coords = [285, 596]
+        self.D1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D1.Label = "D1"
         self.D1.Neighbors = (self.E1, self.C1)
         
-        self.D2.Coords = [390, 596]
+        self.D2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.390),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D2.Label = "D2"
         self.D2.Neighbors = (self.E1, self.C2)
         
-        self.D6.Coords = [609, 596]
+        self.D6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.609),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D6.Label = "D6"
         self.D6.Neighbors = (self.E7, self.C6)
         
-        self.D7.Coords = [713, 596]
+        self.D7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.596)]
         self.D7.Label = "D7"
         self.D7.Neighbors = (self.C7, self.E7)
 
         ####################################################
 
-        self.E1.Coords = [285, 713]
+        self.E1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.285),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E1.Label = "E1"
         self.E1.Neighbors = (self.D1, self.E2, self.D2)
         
-        self.E2.Coords = [356, 713]
+        self.E2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.356),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E2.Label = "E2"
         self.E2.Neighbors = (self.E1, self.E3)
         self.E2.Player2Entry = True
         
-        self.E3.Coords = [427, 713]
+        self.E3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.427),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E3.Label = "E3"
         self.E3.Neighbors = (self.E2, self.E4)
         
-        self.E4.Coords = [500, 713]
+        self.E4.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E4.Label = "E4"
         self.E4.Neighbors = (self.E3, self.E5)
         self.E4.Player2Goal = True
         
-        self.E5.Coords = [572, 713]
+        self.E5.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.572),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E5.Label = "E5"
         self.E5.Neighbors = (self.E4, self.E6)
         
-        self.E6.Coords = [643, 713]
+        self.E6.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.643),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E6.Label = "E6"
         self.E6.Neighbors = (self.E5, self.E7)
         
-        self.E7.Coords = [713, 713]
+        self.E7.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.713),
+                          floor(GlobalConst.SCREEN_HEIGHT*0.713)]
         self.E7.Label = "E7"
         self.E7.Neighbors = (self.E6, self.D6, self.D7)
         self.E7.Player2Entry = True
@@ -742,21 +839,24 @@ class TvTBoardGenerator():
         """Player 1 Bench"""
 
         self.Player1Bench1 = BoardNeighbors()
-        self.Player1Bench1.Coords = [300, 180]
+        self.Player1Bench1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.300),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.180)]
         self.Player1Bench1.Neighbors = (self.A1, self.A6)
         self.Player1Bench1.Occupant = PlayerTeams.Player1.Pkmn1
         self.Player1Bench1.OccupantTeam = 1
         self.Player1Bench1.Occupied = True
 
         self.Player1Bench2 = BoardNeighbors()
-        self.Player1Bench2.Coords = [400, 180]
+        self.Player1Bench2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.400),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.180)]
         self.Player1Bench2.Neighbors = (self.A1, self.A6)
         self.Player1Bench2.Occupant = PlayerTeams.Player1.Pkmn2
         self.Player1Bench2.OccupantTeam = 1
         self.Player1Bench2.Occupied = True
 
         self.Player1Bench3 = BoardNeighbors()
-        self.Player1Bench3.Coords = [500, 180]
+        self.Player1Bench3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.180)]
         self.Player1Bench3.Neighbors = (self.A1, self.A6)
         self.Player1Bench3.Occupant = PlayerTeams.Player1.Pkmn3
         self.Player1Bench3.OccupantTeam = 1
@@ -766,21 +866,24 @@ class TvTBoardGenerator():
         """Player 2 Bench"""
 
         self.Player2Bench1 = BoardNeighbors()
-        self.Player2Bench1.Coords = [500, 825]
+        self.Player2Bench1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.500),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.825)]
         self.Player2Bench1.Neighbors = (self.E2, self.E7)
         self.Player2Bench1.Occupant = PlayerTeams.Player2.Pkmn1
         self.Player2Bench1.OccupantTeam = 1
         self.Player2Bench1.Occupied = True
 
         self.Player2Bench2 = BoardNeighbors()
-        self.Player2Bench2.Coords = [600, 825]
+        self.Player2Bench2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.600),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.825)]
         self.Player2Bench2.Neighbors = (self.E2, self.E7)
         self.Player2Bench2.Occupant = PlayerTeams.Player2.Pkmn2
         self.Player2Bench2.OccupantTeam = 1
         self.Player2Bench2.Occupied = True
 
         self.Player2Bench3 = BoardNeighbors()
-        self.Player2Bench3.Coords = [700, 825]
+        self.Player2Bench3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.700),
+                                     floor(GlobalConst.SCREEN_HEIGHT*0.825)]
         self.Player2Bench3.Neighbors = (self.E2, self.E7)
         self.Player2Bench3.Occupant = PlayerTeams.Player2.Pkmn3
         self.Player2Bench3.OccupantTeam = 1
@@ -797,76 +900,90 @@ class TvTBoardGenerator():
         ####################################################
 
 
-        self.Player1UltraSpace1 = BoardNeighbors()
-        self.Player1UltraSpace1.Coords = [878, 270]
-        self.Player1UltraSpace1.Label = "Player 1 Ultra Space 1"
+        self.Player1USpace1 = BoardNeighbors()
+        self.Player1USpace1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.270)]
+        self.Player1USpace1.Label = "Player 1 Ultra Space 1"
         
-        self.Player1UltraSpace2 = BoardNeighbors()
-        self.Player1UltraSpace2.Coords = [878, 180]
-        self.Player1UltraSpace2.Label = "Player 1 Ultra Space 2"
+        self.Player1USpace2 = BoardNeighbors()
+        self.Player1USpace2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.180)]
+        self.Player1USpace2.Label = "Player 1 Ultra Space 2"
         
-        self.Player1UltraSpace3 = BoardNeighbors()
-        self.Player1UltraSpace3.Coords = [878, 100]
-        self.Player1UltraSpace3.Label = "Player 1 Ultra Space 3"
+        self.Player1USpace3 = BoardNeighbors()
+        self.Player1USpace3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.100)]
+        self.Player1USpace3.Label = "Player 1 Ultra Space 3"
 
         ####################################################
 
 
-        self.Player2UltraSpace1 = BoardNeighbors()
-        self.Player2UltraSpace1.Coords = [120, 270]
-        self.Player2UltraSpace1.Label = "Player 2 Ultra Space 1"
+        self.Player2USpace1 = BoardNeighbors()
+        self.Player2USpace1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.270)]
+        self.Player2USpace1.Label = "Player 2 Ultra Space 1"
         
-        self.Player2UltraSpace2 = BoardNeighbors()
-        self.Player2UltraSpace2.Coords = [120, 180]
-        self.Player2UltraSpace2.Label = "Player 2 Ultra Space 2"
+        self.Player2USpace2 = BoardNeighbors()
+        self.Player2USpace2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.180)]
+        self.Player2USpace2.Label = "Player 2 Ultra Space 2"
         
-        self.Player2UltraSpace3 = BoardNeighbors()
-        self.Player2UltraSpace3.Coords = [120, 100]
-        self.Player2UltraSpace3.Label = "Player 2 Ultra Space 3"
+        self.Player2USpace3 = BoardNeighbors()
+        self.Player2USpace3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                      floor(GlobalConst.SCREEN_HEIGHT*0.100)]
+        self.Player2USpace3.Label = "Player 2 Ultra Space 3"
 
         ####################################################
 
 
-        self.Player1Eliminated1 = BoardNeighbors()
-        self.Player1Eliminated1.Coords = [120, 735]
-        self.Player1Eliminated1.Label = "Player 1 Eliminated 1"
+        self.Player1Elim1 = BoardNeighbors()
+        self.Player1Elim1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.735)]
+        self.Player1Elim1.Label = "Player 1 Eliminated 1"
         
-        self.Player1Eliminated2 = BoardNeighbors()
-        self.Player1Eliminated2.Coords = [120, 825]
-        self.Player1Eliminated2.Label = "Player 1 Eliminated 2"
+        self.Player1Elim2 = BoardNeighbors()
+        self.Player1Elim2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.825)]
+        self.Player1Elim2.Label = "Player 1 Eliminated 2"
         
-        self.Player1Eliminated3 = BoardNeighbors()
-        self.Player1Eliminated3.Coords = [120, 905]
-        self.Player1Eliminated3.Label = "Player 1 Eliminated 3"
+        self.Player1Elim3 = BoardNeighbors()
+        self.Player1Elim3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.120),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.905)]
+        self.Player1Elim3.Label = "Player 1 Eliminated 3"
 
         ####################################################
 
 
-        self.Player2Eliminated1 = BoardNeighbors()
-        self.Player2Eliminated1.Coords = [878, 735]
-        self.Player2Eliminated1.Label = "Player 2 Eliminated 1"
+        self.Player2Elim1 = BoardNeighbors()
+        self.Player2Elim1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.735)]
+        self.Player2Elim1.Label = "Player 2 Eliminated 1"
         
-        self.Player2Eliminated2 = BoardNeighbors()
-        self.Player2Eliminated2.Coords = [878, 825]
-        self.Player2Eliminated2.Label = "Player 2 Eliminated 2"
+        self.Player2Elim2 = BoardNeighbors()
+        self.Player2Elim2.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.825)]
+        self.Player2Elim2.Label = "Player 2 Eliminated 2"
         
-        self.Player2Eliminated3 = BoardNeighbors()
-        self.Player2Eliminated3.Coords = [878, 905]
-        self.Player2Eliminated3.Label = "Player 2 Eliminated 3"
+        self.Player2Elim3 = BoardNeighbors()
+        self.Player2Elim3.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.878),
+                                    floor(GlobalConst.SCREEN_HEIGHT*0.905)]
+        self.Player2Elim3.Label = "Player 2 Eliminated 3"
 
         ####################################################
 
 
         self.Player1PC1 = BoardNeighbors()
         self.Player1PC1.Label = "Player 1 PC 1"
-        self.Player1PC1.Coords = [675, 180]
+        self.Player1PC1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.675),
+                                  floor(GlobalConst.SCREEN_HEIGHT*0.180)]
 
         ####################################################
 
 
         self.Player2PC1 = BoardNeighbors()
         self.Player2PC1.Label = "Player 2 PC 1"
-        self.Player2PC1.Coords = [330, 820]
+        self.Player2PC1.Coords = [floor(GlobalConst.SCREEN_HEIGHT*0.330),
+                                  floor(GlobalConst.SCREEN_HEIGHT*0.820)]
 
     def __iter__(self):
         GlobalVars.counter = 0
@@ -939,13 +1056,11 @@ class Attacks():
             return __iterator
 
 class PlayerTeam():
-    # TEST VERSION for FULL OBJECT CONVERSION
-
     def __init__(self, Ctrl):
         team_file = eval(f"GlobalVars.player_{Ctrl}_select")
         if GlobalVars.game_mode == "Classic":
             selected_team_path = os.path.join(
-                GlobalConstants.FILE_PATH,
+                GlobalConst.FILE_PATH,
                 "saves",
                 "classic_teams",
                 f"{team_file}")
@@ -953,7 +1068,7 @@ class PlayerTeam():
             GlobalVars.bottom_range = 7
         elif GlobalVars.game_mode == "3v3":
             selected_team_path = os.path.join(
-                GlobalConstants.FILE_PATH,
+                GlobalConst.FILE_PATH,
                 "saves",
                 "3v3_teams",
                 f"{team_file}")
@@ -968,8 +1083,8 @@ class PlayerTeam():
             exec(f"self.Pkmn{x}.KnockedOut = False")
             exec(f"self.Pkmn{x}.IsSurrounded = False")
             exec(f"self.Pkmn{x}.ToPC = False")
-            exec(f"self.Pkmn{x}.ToEliminated = False")
-            exec(f"self.Pkmn{x}.ToUltraSpace = False")
+            exec(f"self.Pkmn{x}.ToElim = False")
+            exec(f"self.Pkmn{x}.ToUSpace = False")
             exec(f"self.Pkmn{x}.ToBench = False")
             exec(f"self.Pkmn{x}.Wait = 0")
             exec(f"self.Pkmn{x}.InPlay = False")
@@ -988,7 +1103,7 @@ class PlayerTeam():
         GlobalVars.gamelog.append(f"Player {Ctrl}'s team:")
         GlobalVars.gamelog.append(str("-" * 8 + team_file[:-4] + "-" * 8))
         for line in custom_team:
-            pkmn_stat_dict = eval(f"GlobalConstants.PKMN_STATS['{line}']")
+            pkmn_stat_dict = eval(f"GlobalConst.PKMN_STATS['{line}']")
             for keys, values in pkmn_stat_dict.items():
                 new_keys = keys[0].upper() + keys[1:]
                 if keys.startswith('attack') == False:
@@ -1022,7 +1137,7 @@ class PlayerTeam():
                         exec(f"self.Pkmn{line_counter}." \
                              f"Attacks.Attack{keys[6]}.Power = None")
             GlobalVars.gamelog.append(
-                eval(f"GlobalConstants.PKMN_STATS['{line}']['name']"))
+                eval(f"GlobalConst.PKMN_STATS['{line}']['name']"))
             line_counter += 1
             if GlobalVars.game_mode == "Classic" and line_counter == 7:
                 break
@@ -1065,7 +1180,7 @@ def write_log():
     log_stamp = log_stamp.replace(' ', '_')
     log_stamp = log_stamp.replace(':', '-')
     LOG_PATH = os.path.join(
-        GlobalConstants.FILE_PATH,
+        GlobalConst.FILE_PATH,
         "saves",
         "gamelogs",
         f"PoDuReDux_Log_{log_stamp}.txt")
@@ -1819,7 +1934,7 @@ def evolve_target(target):
     target.Status = 'clear'
     target.Markers = 'clear'
     target.Stage += 1
-    pkmn_stat_dict = GlobalConstants.PKMN_STATS[target_evo]
+    pkmn_stat_dict = GlobalConst.PKMN_STATS[target_evo]
     for keys, values in pkmn_stat_dict.items():
         if keys.startswith('attack') == False:
             new_keys = keys[0].upper() + keys[1:]
@@ -1840,11 +1955,11 @@ def evolve_target(target):
                      "= values")
 
     target.Sprite = arcade.Sprite(os.path.join(
-                                        GlobalConstants.FILE_PATH,
+                                        GlobalConst.FILE_PATH,
                                         "images",
                                         "sprites",
                                         target.Spritefile),
-                                    GlobalConstants.SPRITE_SCALING)
+                                    GlobalConst.SPRITE_SCALING)
     target.Sprite.set_position(*target.Loc.Coords)
     for new_attacks in target.Attacks:
         if new_attacks.Power != None:
@@ -1940,13 +2055,13 @@ class GameView(arcade.View):
             for pkmns in teams:
                 bench_spot = pkmns.OrigLoc.Label[-1]
                 sprite_path = os.path.join(
-                                GlobalConstants.FILE_PATH,
+                                GlobalConst.FILE_PATH,
                                 "images",
                                 "sprites",
                                 pkmns.Spritefile)
                 exec(f"self.player_{pkmns.Ctrl}_pkmn_{bench_spot} = " \
                      "arcade.Sprite(sprite_path, " \
-                     "GlobalConstants.SPRITE_SCALING)")
+                     "GlobalConst.SPRITE_SCALING)")
                 exec(f"self.player_{pkmns.Ctrl}_pkmn_{bench_spot}"\
                      ".set_position(*pkmns.Loc.Coords)")
                 exec(f"pkmns.Sprite = self.player_{pkmns.Ctrl}_"\
@@ -1979,35 +2094,35 @@ class GameView(arcade.View):
         # the screen to the background color, and erase what we drew last
         # frame.
 
-        text_offset_x = -20
-        text_offset_y = 35
-        circle_offset_x = -25
-        circle_offset_y = 27
+        text_offset_x = floor(-20*GlobalConst.ASPECT_RATIO)
+        text_offset_y = floor(35*GlobalConst.ASPECT_RATIO)
+        circle_offset_x = floor(-25*GlobalConst.ASPECT_RATIO)
+        circle_offset_y = floor(27*GlobalConst.ASPECT_RATIO)
 
         arcade.start_render()
         arcade.draw_texture_rectangle(
-            GlobalConstants.SCREEN_HEIGHT // 2,
-            GlobalConstants.SCREEN_HEIGHT // 2,
-            GlobalConstants.SCREEN_HEIGHT,
-            GlobalConstants.SCREEN_HEIGHT,
+            GlobalConst.SCREEN_HEIGHT // 2,
+            GlobalConst.SCREEN_HEIGHT // 2,
+            GlobalConst.SCREEN_HEIGHT,
+            GlobalConst.SCREEN_HEIGHT,
             self.background)
         if GlobalVars.game_mode == "Classic":
             arcade.draw_texture_rectangle(
-                GlobalConstants.SCREEN_HEIGHT // 2,
-                GlobalConstants.SCREEN_HEIGHT // 2,
-                GlobalConstants.SCREEN_HEIGHT,
-                GlobalConstants.SCREEN_HEIGHT,
+                GlobalConst.SCREEN_HEIGHT // 2,
+                GlobalConst.SCREEN_HEIGHT // 2,
+                GlobalConst.SCREEN_HEIGHT,
+                GlobalConst.SCREEN_HEIGHT,
                 self.ClassicBoard)
-            center_text_x = 500
+            center_text_x = floor(500*GlobalConst.ASPECT_RATIO)
 
         elif GlobalVars.game_mode == "3v3":
             arcade.draw_texture_rectangle(
-                GlobalConstants.SCREEN_HEIGHT // 2,
-                GlobalConstants.SCREEN_HEIGHT // 2,
-                GlobalConstants.SCREEN_HEIGHT,
-                GlobalConstants.SCREEN_HEIGHT,
+                GlobalConst.SCREEN_HEIGHT // 2,
+                GlobalConst.SCREEN_HEIGHT // 2,
+                GlobalConst.SCREEN_HEIGHT,
+                GlobalConst.SCREEN_HEIGHT,
                 self.TvTBoard)
-            center_text_x = 550
+            center_text_x = floor(550*GlobalConst.ASPECT_RATIO)
 
         # draw unit bases
         for teams, sprites in zip(PlayerTeams, self.pkmn_list):
@@ -2021,20 +2136,20 @@ class GameView(arcade.View):
                 sprites.center = pkmns.Loc.Coords
                 arcade.draw_circle_filled(
                     *pkmns.Loc.Coords,
-                    40,
+                    floor(35*GlobalConst.ASPECT_RATIO),
                     cir_color)
                 if pkmns.Stage > 0:
                     for stages in range(pkmns.Stage):
                         arcade.draw_circle_outline(
                             *pkmns.Loc.Coords,
-                            40+5*(stages+1),
-                            stage_cir_color, 4)
-                for colors in GlobalConstants.STATUS_COLORS.keys():
+                            floor((35+7*(stages+1))*GlobalConst.ASPECT_RATIO),
+                            stage_cir_color, 3)
+                for colors in GlobalConst.STATUS_COLORS.keys():
                     if pkmns.Status == colors:
                         arcade.draw_circle_filled(
                             *pkmns.Loc.Coords,
-                            35,
-                            GlobalConstants.STATUS_COLORS[colors])
+                            floor(30*GlobalConst.ASPECT_RATIO),
+                            GlobalConst.STATUS_COLORS[colors])
 
         self.pkmn_list.draw()
         
@@ -2044,42 +2159,47 @@ class GameView(arcade.View):
                 arcade.draw_circle_filled(
                     pkmns.Loc.Coords[0] - circle_offset_x,
                     pkmns.Loc.Coords[1] - circle_offset_y,
-                    12,
+                    12*GlobalConst.ASPECT_RATIO,
                     arcade.color.BLUE_SAPPHIRE)
                 arcade.draw_text(
                     str(pkmns.Move - GlobalVars.first_turn),
                     pkmns.Loc.Coords[0] - text_offset_x,
                     pkmns.Loc.Coords[1] - text_offset_y,
                     arcade.color.WHITE,
-                    16)
+                    floor(16*GlobalConst.ASPECT_RATIO))
                 if pkmns.Wait > 0:
                     arcade.draw_circle_filled(
                         pkmns.Loc.Coords[0] + circle_offset_x,
                         pkmns.Loc.Coords[1] - circle_offset_y,
-                        12,
+                        floor(12*GlobalConst.ASPECT_RATIO),
                         arcade.color.PURPLE)
                     arcade.draw_text(
                         str(pkmns.Wait),
-                        pkmns.Loc.Coords[0] + text_offset_x - 10,
+                        pkmns.Loc.Coords[0] + text_offset_x - floor(10*GlobalConst.ASPECT_RATIO),
                         pkmns.Loc.Coords[1] - text_offset_y,
                         arcade.color.WHITE,
-                        16)
+                        floor(16*GlobalConst.ASPECT_RATIO))
 
         line_counter = 0
         for lines in GlobalVars.gamelog[::-1]:
-            lines_text = [lines[i:i + 55] for i in range(0, len(lines), 55)]
+            lines_text = [lines[i:i + floor(85*GlobalConst.ASPECT_RATIO)] \
+                          for i in range(
+                              0,
+                              len(lines),
+                              floor(85*GlobalConst.ASPECT_RATIO))]
             for split_lines in lines_text[::-1]:
                 arcade.draw_text(
                     split_lines,
-                    1020,
-                    16 + line_counter*16,
+                    GlobalConst.SCREEN_HEIGHT + 20*GlobalConst.ASPECT_RATIO,
+                    floor(24*GlobalConst.ASPECT_RATIO + line_counter* \
+                          floor(24*GlobalConst.ASPECT_RATIO)),
                     arcade.color.WHITE,
-                    10,
+                    floor(18*GlobalConst.ASPECT_RATIO),
                     font_name="Arial")
                 line_counter += 1
-                if line_counter == 60:
+                if line_counter == floor(60*GlobalConst.ASPECT_RATIO):
                     break
-            if line_counter == 60:
+            if line_counter == floor(60*GlobalConst.ASPECT_RATIO):
                 break
 
         if GlobalVars.player_1_win:
@@ -2091,10 +2211,12 @@ class GameView(arcade.View):
 
         arcade.draw_text(
             center_text,
-            500,
-            500 if GlobalVars.game_mode == "Classic" else 550,
+            GlobalConst.SCREEN_HEIGHT // 2,
+            GlobalConst.SCREEN_HEIGHT // 2 if GlobalVars.game_mode == "Classic" \
+            else GlobalConst.SCREEN_HEIGHT // 2 + \
+                 floor(50*GlobalConst.ASPECT_RATIO),
             arcade.color.YELLOW,
-            18,
+            floor(18*GlobalConst.ASPECT_RATIO),
             anchor_x="center",
             anchor_y="center",
             align="center",
@@ -2102,10 +2224,11 @@ class GameView(arcade.View):
         if GlobalVars.move_click:
             arcade.draw_text(
                 "Click this unit again\nto attack without moving,\nif able.",
-                500,
-                500 - 45,
+                floor(500*GlobalConst.ASPECT_RATIO),
+                floor(500*GlobalConst.ASPECT_RATIO - 45 * \
+                      GlobalConst.ASPECT_RATIO),
                 arcade.color.YELLOW,
-                12,
+                floor(12*GlobalConst.ASPECT_RATIO),
                 anchor_x="center",
                 anchor_y="center",
                 align='center',
@@ -2115,19 +2238,19 @@ class GameView(arcade.View):
             for moves in GlobalVars.checked_moves:
                 arcade.draw_circle_filled(
                     *moves.Coords,
-                    40,
+                    floor(35*GlobalConst.ASPECT_RATIO),
                     (59, 122, 87, 200))
         if len(GlobalVars.potential_targets) > 0:
             for targets in GlobalVars.potential_targets:
                 arcade.draw_circle_filled(
                     *targets.Coords,
-                    40,
+                    floor(35*GlobalConst.ASPECT_RATIO),
                     (255, 240, 0, 150))
         if len(GlobalVars.tag_targets) > 0:
             for targets in GlobalVars.tag_targets:
                 arcade.draw_circle_filled(
                     *targets.Coords,
-                    40,
+                    floor(35*GlobalConst.ASPECT_RATIO),
                     (255, 24, 180, 125))
         """
         # ON HOVER STATS VIEW, NEED LOTS OF WORK
@@ -2172,7 +2295,8 @@ class GameView(arcade.View):
                                         stats_counter += 1
             """
                     
-                
+    def on_close(self):
+        restart = True
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
@@ -2190,11 +2314,15 @@ class GameView(arcade.View):
                     elif pkmns.Status in ['sleep', 'frozen']:
                         continue
                     else:
-                        if x in range(pkmns.Loc.Coords[0] - 40,
-                                      pkmns.Loc.Coords[0] + 40
+                        if x in range(pkmns.Loc.Coords[0] - floor(
+                            35*GlobalConst.ASPECT_RATIO),
+                                      pkmns.Loc.Coords[0] + floor(
+                                          35*GlobalConst.ASPECT_RATIO)
                                       ) and y in range(
-                                          pkmns.Loc.Coords[1] - 40,
-                                          pkmns.Loc.Coords[1] + 40):
+                                          pkmns.Loc.Coords[1] - floor(
+                                              35*GlobalConst.ASPECT_RATIO),
+                                          pkmns.Loc.Coords[1] + floor(
+                                              35*GlobalConst.ASPECT_RATIO)):
                             GlobalVars.move_click = True
                             GlobalVars.in_transit = pkmns
                             path_check(pkmns)
@@ -2211,11 +2339,15 @@ class GameView(arcade.View):
 
             elif GlobalVars.move_click:
                 for moves in GlobalVars.checked_moves:
-                    if x in range(moves.Coords[0] - 40,
-                                  moves.Coords[0] + 40
+                    if x in range(moves.Coords[0] - floor(
+                        35*GlobalConst.ASPECT_RATIO),
+                                  moves.Coords[0] + floor(
+                                      35*GlobalConst.ASPECT_RATIO)
                                   ) and y in range(
-                                      moves.Coords[1] - 40,
-                                      moves.Coords[1] + 40
+                                      moves.Coords[1] - floor(
+                                          35*GlobalConst.ASPECT_RATIO),
+                                      moves.Coords[1] + floor(
+                                          35*GlobalConst.ASPECT_RATIO)
                                       ) and moves.Occupied == False:
                         GlobalVars.unit_moved = True
                         GlobalVars.gamelog.append(
@@ -2255,11 +2387,15 @@ class GameView(arcade.View):
                         if len(
                             GlobalVars.in_transit.Loc.Label
                             ) == 2 and x in range(
-                                GlobalVars.in_transit.Loc.Coords[0] - 40,
-                                GlobalVars.in_transit.Loc.Coords[0] + 40
+                                GlobalVars.in_transit.Loc.Coords[0] - floor(
+                                    35*GlobalConst.ASPECT_RATIO),
+                                GlobalVars.in_transit.Loc.Coords[0] + floor(
+                                    35*GlobalConst.ASPECT_RATIO)
                                 ) and y in range(
-                                    GlobalVars.in_transit.Loc.Coords[1] - 40,
-                                    GlobalVars.in_transit.Loc.Coords[1] + 40):
+                                    GlobalVars.in_transit.Loc.Coords[1] - \
+                                    floor(35*GlobalConst.ASPECT_RATIO),
+                                    GlobalVars.in_transit.Loc.Coords[1] + \
+                                    floor(35*GlobalConst.ASPECT_RATIO)):
                             target_finder(GlobalVars.in_transit)
                             if len(GlobalVars.potential_targets) > 0 or \
                                len(GlobalVars.tag_targets) > 0:
@@ -2277,10 +2413,15 @@ class GameView(arcade.View):
 
             elif GlobalVars.attack_click:
                 for targets in GlobalVars.potential_targets:
-                    if x in range(targets.Coords[0] - 40,
-                                  targets.Coords[0] + 40
-                                  ) and y in range(targets.Coords[1] - 40,
-                                                   targets.Coords[1] + 40):
+                    if x in range(targets.Coords[0] - floor(
+                        35*GlobalConst.ASPECT_RATIO),
+                                  targets.Coords[0] + floor(
+                                      35*GlobalConst.ASPECT_RATIO)
+                                  ) and y in range(
+                                      targets.Coords[1] - floor(
+                                          35*GlobalConst.ASPECT_RATIO),
+                                      targets.Coords[1] + floor(
+                                          35*GlobalConst.ASPECT_RATIO)):
                         GlobalVars.unit_attacked = True
                         winner_check = battle_spin_compare(
                             GlobalVars.in_transit,
@@ -2333,19 +2474,24 @@ class GameView(arcade.View):
                         elif winner_check == 7:
                             pass
                 for targets in GlobalVars.tag_targets:
-                    if x in range(targets.Coords[0] - 40,
-                                  targets.Coords[0] + 40
-                                  ) and y in range(targets.Coords[1] - 40,
-                                                   targets.Coords[1] + 40):
+                    if x in range(targets.Coords[0] - floor(
+                        35*GlobalConst.ASPECT_RATIO),
+                                  targets.Coords[0] + floor(
+                                      35*GlobalConst.ASPECT_RATIO)
+                                  ) and y in range(
+                                      targets.Coords[1] - floor(
+                                          35*GlobalConst.ASPECT_RATIO),
+                                      targets.Coords[1] + floor(
+                                          35*GlobalConst.ASPECT_RATIO)):
                         if targets.Occupant.Status in ['frozen', 'sleep']:
-                            targets.Occupant.Status = 'clear'
+                            apply_status(targets.Occupant)
+                            apply_marker(targets.Occupant)
                             GlobalVars.gamelog.append(
                                 f"Player {GlobalVars.turn_player} tagged " \
                                 f"their {targets.Occupant.Name} " \
                                 f"({targets.Occupant.OrigLoc.Label[-1]}). " \
                                 "Status and markers cleared.")
                         #add statement for different markers
-                        targets.Occupant.Marker = 'clear'
                         GlobalVars.unit_attacked = True
 
                 if GlobalVars.unit_moved or GlobalVars.unit_attacked:
@@ -2362,7 +2508,6 @@ class GameView(arcade.View):
 
             if GlobalVars.player_1_win or GlobalVars.player_2_win:
                 arcade.close_window()
-                exit()
 
             if board.A4.Ctrl == 2:
                 GlobalVars.player_2_win = True
@@ -2414,22 +2559,9 @@ class GameView(arcade.View):
     def on_resize(self, width, height):
     #add this when circle, sprite and movement scaling is added
         print(width, height)
-        GlobalConstants.SCREEN_HEIGHT = height
-        GlobalConstants.SCREEN_WIDTH = width
+        GlobalConst.SCREEN_HEIGHT = height
+        GlobalConst.SCREEN_WIDTH = width
 """                     
-
-
-def main():
-    """ Main method """
-    window = arcade.Window(
-        GlobalConstants.SCREEN_WIDTH,
-        GlobalConstants.SCREEN_HEIGHT,
-        "Game Start",
-        False,
-        True)
-    game = GameView()
-    window.show_view(game)
-    arcade.run()
 
 
 def on_select_team(player_num, event=None):
@@ -2451,8 +2583,12 @@ def mode_select():
             GlobalVars.game_mode = 'Classic'
 
         GlobalVars.background_select = os.path.join(
-            GlobalConstants.BG_PATH,
+            GlobalConst.BG_PATH,
             bg_cb.get() + ".png")
+        GlobalConst.SCREEN_WIDTH, GlobalConst.SCREEN_HEIGHT = \
+                                  resolution_list[res_cb.get()]
+        GlobalConst.ASPECT_RATIO = GlobalConst.SCREEN_HEIGHT / 1000
+        GlobalConst.SPRITE_SCALING = 2.5*(GlobalConst.ASPECT_RATIO)
         root.destroy()
 
     root = tk.Tk()
@@ -2465,17 +2601,32 @@ def mode_select():
         def fn(x): return x.split('/')[-1][:-4]
         background_textures = {
             fn(k): k for k in iglob(
-                GlobalConstants.BG_PATH +
+                GlobalConst.BG_PATH +
                 "/**/*.png",
                 recursive=True)}
 
     except BaseException:
         pass
 
+    resolution_list = {"640x360":(640, 360),
+                       "720x400":(720, 400),
+                       "800x600":(800, 600),
+                       "960x540":(960, 540),
+                       "1280x720":(1280, 720),
+                       "1600x900":(1600, 900),
+                       "1920x1080":(1920, 1080),
+                       "2560x1080":(2560, 1440),
+                       "3200x1800":(3200, 1800),
+                       "3840x1600":(3840, 1600),
+                       "4096x2160":(4096, 2160),
+                       "5120x2880":(5120, 2880),
+                       "7680x4320":(7680, 4320)}
+    
     background_list = []
+    res_keys = [_ for _ in resolution_list.keys()]
 
     for items in background_textures.values():
-        background_list.append(items[len(GlobalConstants.BG_PATH) + 1:-4])
+        background_list.append(items[len(GlobalConst.BG_PATH) + 1:-4])
 
     bg_Label = ttk.Label(root, text="Choose Background image from drop-down:")
     bg_Label.pack()
@@ -2495,6 +2646,13 @@ def mode_select():
     mode_select_3v3_radio = ttk.Radiobutton(
         root, text="3v3", variable=var, value="3v3")
     mode_select_3v3_radio.pack()
+
+    mode_select_Label = ttk.Label(root, text="Select Resolution:")
+    mode_select_Label.pack()
+
+    res_cb = ttk.Combobox(root, values=res_keys)
+    res_cb.set(res_keys[4])
+    res_cb.pack()
 
     mode_select_confirm = ttk.Button(
         root, text="Confirm", command=button_click)
@@ -2536,20 +2694,31 @@ def startup_window():
 
     root.mainloop()
 
+
+def main():
+    
+    window = arcade.Window(
+        GlobalConst.SCREEN_WIDTH,
+        GlobalConst.SCREEN_HEIGHT,
+        "Game Start",
+        False,
+        True)
+    game = GameView()
+    window.show_view(game)
+    arcade.run()
+    call(["pythonw", "PoDuReDux.pyw"])
+
 if __name__ == "__main__":
-
-    GlobalConstants = GlobalConstants()
+    GlobalConst = GlobalConst()
     GlobalVars = GlobalVars()
-
     mode_select()
-      
     team_list = []
     if GlobalVars.game_mode == "Classic":
         for x in os.listdir(
             os.path.join(
                 os.path.abspath(
                     os.path.expanduser(
-                GlobalConstants.FILE_PATH)),
+                GlobalConst.FILE_PATH)),
                 "saves",
                 "classic_teams")):
             team_list.append(x)
@@ -2558,15 +2727,15 @@ if __name__ == "__main__":
             os.path.join(
                 os.path.abspath(
                     os.path.expanduser(
-                GlobalConstants.FILE_PATH)),
+                GlobalConst.FILE_PATH)),
                 "saves",
                 "3v3_teams")):
             team_list.append(x)
 
     startup_window()
-    
+
     PlayerTeams = AllTeams()
-    
+
     PlayerTeams.Player1 = PlayerTeam(1)
     PlayerTeams.Player2 = PlayerTeam(2)
                 
@@ -2580,5 +2749,4 @@ if __name__ == "__main__":
             exec(f"pkmns.Loc = board.Player{pkmns.Ctrl}Bench{x}")
             pkmns.OrigLoc = pkmns.Loc
             x += 1
-
     main()
