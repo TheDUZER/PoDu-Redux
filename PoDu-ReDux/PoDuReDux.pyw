@@ -2,7 +2,6 @@
 
 """
 TODO NOW...:
--Update Classic board properties for new OOP system
 -Create new stats viewer
 -Add tagging logic for removal of ally markers and freeze / sleep
 
@@ -14,6 +13,7 @@ TODO LATER...:
 -START ADDING ATTACK EFFECTS
 
     Priorities:
+    -REWORK to replace exec(effects) to getattr()
     -Fly / Fly Away / Telekinesis effects
     -Psychic Shove
     -Markers
@@ -26,6 +26,7 @@ TODO LATER...:
     sleeping or marked units is allowed
 
     DONE:
+    -Add tagging logic for removal of ally markers and freeze / sleep
     -MOVED TO OBJECT-ORIENTED SYSTEM
     -Simple, compulsory, linear knockback effects of varying
         distances (no optional or traced paths, i.e. 'opponent
@@ -68,7 +69,7 @@ class GlobalConst():
         self.SCREEN_HEIGHT = 0
         self.ASPECT_RATIO = 0
         self.SPRITE_SCALING = 0
-        self.SCREEN_TITLE = "PoDu ReDux v0.2.1"
+        self.SCREEN_TITLE = "PoDu ReDux v0.2.3"
         self.FILE_PATH = os.path.dirname(sys.argv[0])
         self.STATS_PATH = os.path.join(
             self.FILE_PATH,
@@ -1019,8 +1020,57 @@ class AllTeams():
         return 'Player Teams'
 
 class Pokemon():
-    def __init__(self):
-        pass
+    def __init__(self, line = None, Ctrl = None):
+        self.Attacks = Attacks()
+        self.Loc = None
+        self.OrigLoc = None
+        self.KnockedOut = False
+        self.IsSurrounded = False
+        self.ToPC = False
+        self.ToElim = False
+        self.ToUSpace = False
+        self.ToBench = False
+        self.Wait = 0
+        self.InPlay = False
+        self.Status = 'clear'
+        self.Markers = 'clear'
+        self.Ctrl = Ctrl
+        self.Stage = 0
+        self.FinalSongCount = None
+        self.PreviousLoc = None
+        self.OrigForm = None
+        self.CombatRange = 1
+        
+        pkmn_stat_dict = GlobalConst.PKMN_STATS[line]
+        for keys, values in pkmn_stat_dict.items():
+            new_keys = keys[0].upper() + keys[1:]
+            if keys.startswith('attack') == False:
+                setattr(self, f"{new_keys}", values)
+        for keys, values in pkmn_stat_dict.items():
+            new_keys = keys[0].upper() + keys[1:]
+            if keys.startswith('attack'):
+                new_attack_keys = keys[7].upper() + keys[8:]
+                if new_attack_keys == 'Color' and values == None:
+                    break
+                if hasattr(self, "Attacks") == False:
+                    setattr(
+                        self, "Attacks", AttackList())
+                if hasattr(
+                    self.Attacks, f"Attack{keys[6]}") == False:
+                    setattr(
+                        self.Attacks, f"Attack{keys[6]}", Attacks())
+                current_attack = getattr(
+                    self.Attacks, f"Attack{keys[6]}")
+                setattr(current_attack, new_attack_keys, values)
+                if hasattr(current_attack, "Effect") == False:
+                    setattr(current_attack, "Effect", None)
+                if hasattr(current_attack, "Power") == False:
+                    setattr(current_attack, "Power", None)
+                if current_attack.Power != None:
+                    current_attack.OrigPower = current_attack.Power
+                else:
+                    current_attack.OrigPower = None
+
 
     def __iter__(self):
         GlobalVars.counter = 0
@@ -1037,6 +1087,23 @@ class Pokemon():
 
     def __str__(self):
         return self.Name
+
+class AttackList():
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        GlobalVars.counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if GlobalVars.counter == len(self.__dict__.values()):
+            GlobalVars.counter = 0
+            raise StopIteration
+        else:
+            GlobalVars.counter += 1
+            return __iterator
 
 class Attacks():
     def __init__(self):
@@ -1057,7 +1124,7 @@ class Attacks():
 
 class PlayerTeam():
     def __init__(self, Ctrl):
-        team_file = eval(f"GlobalVars.player_{Ctrl}_select")
+        team_file = getattr(GlobalVars, f"player_{Ctrl}_select")
         if GlobalVars.game_mode == "Classic":
             selected_team_path = os.path.join(
                 GlobalConst.FILE_PATH,
@@ -1075,69 +1142,15 @@ class PlayerTeam():
             GlobalVars.top_range = 1
             GlobalVars.bottom_range = 4
 
-        for x in range(GlobalVars.top_range, GlobalVars.bottom_range):
-            exec(f"self.Pkmn{x} = Pokemon()")
-            exec(f"self.Pkmn{x}.Attacks = Attacks()")
-            exec(f"self.Pkmn{x}.Loc = None")
-            exec(f"self.Pkmn{x}.OrigLoc = None")
-            exec(f"self.Pkmn{x}.KnockedOut = False")
-            exec(f"self.Pkmn{x}.IsSurrounded = False")
-            exec(f"self.Pkmn{x}.ToPC = False")
-            exec(f"self.Pkmn{x}.ToElim = False")
-            exec(f"self.Pkmn{x}.ToUSpace = False")
-            exec(f"self.Pkmn{x}.ToBench = False")
-            exec(f"self.Pkmn{x}.Wait = 0")
-            exec(f"self.Pkmn{x}.InPlay = False")
-            exec(f"self.Pkmn{x}.Status = 'clear'")
-            exec(f"self.Pkmn{x}.Markers = 'clear'")
-            exec(f"self.Pkmn{x}.Ctrl = Ctrl")
-            exec(f"self.Pkmn{x}.Stage = 0")
-            exec(f"self.Pkmn{x}.FinalSongCount = None")
-            exec(f"self.Pkmn{x}.PreviousLoc = None")
-            exec(f"self.Pkmn{x}.OrigForm = None")
-            exec(f"self.Pkmn{x}.CombatRange = 1")
-
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
         GlobalVars.gamelog.append(f"Player {Ctrl}'s team:")
         GlobalVars.gamelog.append(str("-" * 8 + team_file[:-4] + "-" * 8))
         for line in custom_team:
-            pkmn_stat_dict = eval(f"GlobalConst.PKMN_STATS['{line}']")
-            for keys, values in pkmn_stat_dict.items():
-                new_keys = keys[0].upper() + keys[1:]
-                if keys.startswith('attack') == False:
-                    exec(f"self.Pkmn{line_counter}.{new_keys} = values")
-            for keys, values in pkmn_stat_dict.items():
-                new_keys = keys[0].upper() + keys[1:]
-                if keys.startswith('attack'):
-                    new_attack_keys = keys[7].upper() + keys[8:]
-                    if new_attack_keys == 'Color' and values == None:
-                        break
-                    try:
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]}." \
-                             f"{new_attack_keys} = values")
-                    except AttributeError:
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]} = Attacks()")
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]}." \
-                             f"{new_attack_keys} = values")
-                    try:
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]}.Effect")
-                    except:
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]}.Effect = None")
-                    try:
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]}.Power")
-                    except:
-                        exec(f"self.Pkmn{line_counter}." \
-                             f"Attacks.Attack{keys[6]}.Power = None")
-            GlobalVars.gamelog.append(
-                eval(f"GlobalConst.PKMN_STATS['{line}']['name']"))
+            setattr(self, f"Pkmn{line_counter}", Pokemon(line, Ctrl))
+
+            GlobalVars.gamelog.append(GlobalConst.PKMN_STATS[line]['name'])
             line_counter += 1
             if GlobalVars.game_mode == "Classic" and line_counter == 7:
                 break
@@ -1146,16 +1159,11 @@ class PlayerTeam():
             else:
                 continue
 
-            if eval(f"self.Pkmn{line_counter}.Name") == 'Reshiram' or eval(
-                    f"self.Pkmn{line_counter}.Name") == 'Zekrom':
-                exec(f"self.Pkmn{line_counter}.Wait = 9")
-            elif eval(f"self.Pkmn{line_counter}.Name") == 'Nincada':
-                exec(f"self.Pkmn{line_counter}.Wait = 10")
-            for new_attacks in exec(f"self.Pkmn{line_counter}.Attacks"):
-                if new_attacks.Power != None:
-                    new_attacks.OrigPower = new_attacks.Power
-                else:
-                    new_attacks.OrigPower = None
+            if current_poke.Name == 'Reshiram' or \
+               current_poke.Name == 'Zekrom':
+                current_poke.Wait = 9
+            elif current_poke.Name == 'Nincada':
+                current_poke.Wait = 10
         
     def __iter__(self):
         GlobalVars.counter = 0
@@ -1355,9 +1363,9 @@ def pc_rotate(target):
                             pkmns.Wait += 2
             pkmns.Sprite.set_position(*pkmns.Loc.Coords)
     if GlobalVars.game_mode == "Classic":
-        exec(f"target.Loc = board.Player{target.Ctrl}PC2")
+        target.Loc = getattr(board, f"Player{target.Ctrl}PC2")
     elif GlobalVars.game_mode == "3v3":
-        exec(f"target.Loc = board.Player{target.Ctrl}PC1")
+        target.Loc = getattr(board, f"Player{target.Ctrl}PC1")
     target.Sprite.set_position(*target.Loc.Coords)
         
 
@@ -1930,37 +1938,27 @@ def battle_spin_compare(combatant_1, combatant_2):
 
 def evolve_target(target):
     target_evo = GlobalVars.evo_complete
-    target.Attacks = Attacks()
-    target.Status = 'clear'
-    target.Markers = 'clear'
-    target.Stage += 1
-    pkmn_stat_dict = GlobalConst.PKMN_STATS[target_evo]
-    for keys, values in pkmn_stat_dict.items():
-        if keys.startswith('attack') == False:
-            new_keys = keys[0].upper() + keys[1:]
-            exec(f"target.{new_keys} = values")
-        
-    for keys, values in pkmn_stat_dict.items():
-        new_keys = keys[0].upper() + keys[1:]
-        if keys.startswith('attack'):
-            new_attack_keys = keys[7].upper() + keys[8:]
-            if new_attack_keys == 'Color' and values == None:
-                break
-            try:
-                exec(f"target.Attacks.Attack{keys[6]}.{new_attack_keys} " \
-                     "= values")
-            except AttributeError:
-                exec(f"target.Attacks.Attack{keys[6]} = Attacks()")
-                exec(f"target.Attacks.Attack{keys[6]}.{new_attack_keys} " \
-                     "= values")
-
-    target.Sprite = arcade.Sprite(os.path.join(
+    new_stage = target.Stage + 1
+    new_loc = target.Loc
+    old_sprite = target.Sprite
+    current_spritelist = target.Sprite.sprite_lists[0]
+    
+    target.__dict__ = Pokemon(GlobalVars.evo_complete, target.Ctrl).__dict__
+    
+    target.Stage = new_stage
+    target.Loc = new_loc
+    target.OrigLoc = target.Loc
+    new_sprite = arcade.Sprite(os.path.join(
                                         GlobalConst.FILE_PATH,
                                         "images",
                                         "sprites",
                                         target.Spritefile),
                                     GlobalConst.SPRITE_SCALING)
+    current_spritelist.append(new_sprite)
+    old_sprite.kill()
+    target.Sprite = new_sprite
     target.Sprite.set_position(*target.Loc.Coords)
+    
     for new_attacks in target.Attacks:
         if new_attacks.Power != None:
             if new_attacks.Color == 'White' or new_attacks.Color == 'Gold':
@@ -2059,15 +2057,14 @@ class GameView(arcade.View):
                                 "images",
                                 "sprites",
                                 pkmns.Spritefile)
-                exec(f"self.player_{pkmns.Ctrl}_pkmn_{bench_spot} = " \
-                     "arcade.Sprite(sprite_path, " \
-                     "GlobalConst.SPRITE_SCALING)")
-                exec(f"self.player_{pkmns.Ctrl}_pkmn_{bench_spot}"\
-                     ".set_position(*pkmns.Loc.Coords)")
-                exec(f"pkmns.Sprite = self.player_{pkmns.Ctrl}_"\
-                     f"pkmn_{bench_spot}")
-                exec(f"self.pkmn_list.append(self.player_{pkmns.Ctrl}_"\
-                     f"pkmn_{bench_spot})")
+                setattr(self,
+                        f"player_{pkmns.Ctrl}_pkmn_{bench_spot}",
+                        arcade.Sprite(sprite_path, GlobalConst.SPRITE_SCALING))
+                new_sprite = getattr(self,
+                                     f"player_{pkmns.Ctrl}_pkmn_{bench_spot}")
+                new_sprite.set_position(*pkmns.Loc.Coords)
+                pkmns.Sprite = new_sprite
+                self.pkmn_list.append(pkmns.Sprite)
 
         self.background = arcade.load_texture(GlobalVars.background_select)
         if GlobalVars.game_mode == "Classic":
@@ -2435,22 +2432,14 @@ class GameView(arcade.View):
                         if winner_check == 0:
                             pass
                         elif winner_check == 1:
-                            self.pkmn_list.remove(
-                                GlobalVars.in_transit.Sprite)
                             winner_resolve(
                                 GlobalVars.in_transit,
                                 targets.Occupant)
-                            self.pkmn_list.append(
-                                GlobalVars.in_transit.Sprite)
                             self.pkmn_list.update()
                         elif winner_check == 2:
-                            self.pkmn_list.remove(
-                                targets.Occupant.Sprite)
                             winner_resolve(
                                 targets.Occupant,
                                 GlobalVars.in_transit)
-                            self.pkmn_list.append(
-                                targets.Occupant.Sprite)
                         elif winner_check == 3:
                             pass
                         elif winner_check == 4:
@@ -2746,7 +2735,7 @@ if __name__ == "__main__":
     for teams in PlayerTeams:
         x = 1
         for pkmns in teams:
-            exec(f"pkmns.Loc = board.Player{pkmns.Ctrl}Bench{x}")
+            pkmns.Loc = getattr(board, f"Player{pkmns.Ctrl}Bench{x}")
             pkmns.OrigLoc = pkmns.Loc
             x += 1
     main()
