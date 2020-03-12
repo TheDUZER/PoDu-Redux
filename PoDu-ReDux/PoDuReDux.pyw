@@ -54,13 +54,13 @@ from glob import iglob
 import tkinter as tk
 from tkinter import ttk
 import arcade
-import json
+import pickle
 import sys
 import os
+import copy
 import random
 import time
 from math import floor
-from subprocess import call
 
 
 class GlobalConst():
@@ -69,12 +69,12 @@ class GlobalConst():
         self.SCREEN_HEIGHT = 0
         self.ASPECT_RATIO = 0
         self.SPRITE_SCALING = 0
-        self.SCREEN_TITLE = "PoDu ReDux v0.2.3"
+        self.SCREEN_TITLE = "PoDu ReDux v0.2.4"
         self.FILE_PATH = os.path.dirname(sys.argv[0])
         self.STATS_PATH = os.path.join(
             self.FILE_PATH,
-            "pkmn-stats.json")
-        self.PKMN_STATS = json.load(open(self.STATS_PATH, "r"))
+            "pkmn-stats.pkl")
+        self.PKMN_STATS = pickle.load(open(self.STATS_PATH, "rb"))
         self.BG_PATH = os.path.join(
             self.FILE_PATH,
             "images",
@@ -137,6 +137,7 @@ class GlobalVars():
         self.checked_targets = []
         self.next_target = None
         self.turn_change = False
+        self.stat_card = None
 
 class BoardNeighbors():
     """
@@ -1019,58 +1020,28 @@ class AllTeams():
     def __str__(self):
         return 'Player Teams'
 
+class PokemonList():
+    def __init__(self):
+        pass
+    def __iter__(self):
+        counter = 0
+        __iterator = iter(self.__dict__.values())
+        return __iterator
+    
+    def __next__(self):
+        if counter == len(self.__dict__.values()):
+            counter = 0
+            raise StopIteration
+        else:
+            counter += 1
+            return __iterator
+
+    def __str__(self):
+        return self.Name
+
 class Pokemon():
     def __init__(self, line = None, Ctrl = None):
-        self.Attacks = Attacks()
-        self.Loc = None
-        self.OrigLoc = None
-        self.KnockedOut = False
-        self.IsSurrounded = False
-        self.ToPC = False
-        self.ToElim = False
-        self.ToUSpace = False
-        self.ToBench = False
-        self.Wait = 0
-        self.InPlay = False
-        self.Status = 'clear'
-        self.Markers = 'clear'
-        self.Ctrl = Ctrl
-        self.Stage = 0
-        self.FinalSongCount = None
-        self.PreviousLoc = None
-        self.OrigForm = None
-        self.CombatRange = 1
-        
-        pkmn_stat_dict = GlobalConst.PKMN_STATS[line]
-        for keys, values in pkmn_stat_dict.items():
-            new_keys = keys[0].upper() + keys[1:]
-            if keys.startswith('attack') == False:
-                setattr(self, f"{new_keys}", values)
-        for keys, values in pkmn_stat_dict.items():
-            new_keys = keys[0].upper() + keys[1:]
-            if keys.startswith('attack'):
-                new_attack_keys = keys[7].upper() + keys[8:]
-                if new_attack_keys == 'Color' and values == None:
-                    break
-                if hasattr(self, "Attacks") == False:
-                    setattr(
-                        self, "Attacks", AttackList())
-                if hasattr(
-                    self.Attacks, f"Attack{keys[6]}") == False:
-                    setattr(
-                        self.Attacks, f"Attack{keys[6]}", Attacks())
-                current_attack = getattr(
-                    self.Attacks, f"Attack{keys[6]}")
-                setattr(current_attack, new_attack_keys, values)
-                if hasattr(current_attack, "Effect") == False:
-                    setattr(current_attack, "Effect", None)
-                if hasattr(current_attack, "Power") == False:
-                    setattr(current_attack, "Power", None)
-                if current_attack.Power != None:
-                    current_attack.OrigPower = current_attack.Power
-                else:
-                    current_attack.OrigPower = None
-
+        pass
 
     def __iter__(self):
         GlobalVars.counter = 0
@@ -1145,12 +1116,13 @@ class PlayerTeam():
         custom_team = open(selected_team_path)
         custom_team = custom_team.read().splitlines()
         line_counter = 1
-        GlobalVars.gamelog.append(f"Player {Ctrl}'s team:")
-        GlobalVars.gamelog.append(str("-" * 8 + team_file[:-4] + "-" * 8))
         for line in custom_team:
-            setattr(self, f"Pkmn{line_counter}", Pokemon(line, Ctrl))
-
-            GlobalVars.gamelog.append(GlobalConst.PKMN_STATS[line]['name'])
+            setattr(self, f"Pkmn{line_counter}",
+                               copy.deepcopy(getattr(GlobalConst.PKMN_STATS,
+                                                   "".join(filter(str.isalnum, line)))))
+            new_pkmn = getattr(self, f"Pkmn{line_counter}")
+            new_pkmn.Ctrl = Ctrl
+                    
             line_counter += 1
             if GlobalVars.game_mode == "Classic" and line_counter == 7:
                 break
@@ -1158,12 +1130,6 @@ class PlayerTeam():
                 break
             else:
                 continue
-
-            if current_poke.Name == 'Reshiram' or \
-               current_poke.Name == 'Zekrom':
-                current_poke.Wait = 9
-            elif current_poke.Name == 'Nincada':
-                current_poke.Wait = 10
         
     def __iter__(self):
         GlobalVars.counter = 0
@@ -1379,10 +1345,6 @@ def apply_wait(target, duration=2):
         GlobalVars.gamelog.append(
             f"{target.Name} gained Wait {duration - 1}.")
 
-def apply_marker(marker_type = 'clear'):
-    #for MP-X, Curse, Disguise, etc
-    target.Marker = marker_type
-
 def wait_tickdown():
     for teams in PlayerTeams:
         for pkmns in teams:
@@ -1547,7 +1509,7 @@ def target_finder(combatant):
         for x in targets:
             GlobalVars.potential_targets.append(x)
             for y in GlobalVars.potential_targets:
-                for new_neighbors in x.Neighbors:
+                for _ in x.Neighbors:
                     next_targets.append(y)
         GlobalVars.loop_counter += 1
         if GlobalVars.loop_counter < attack_distance:
@@ -1940,10 +1902,14 @@ def evolve_target(target):
     target_evo = GlobalVars.evo_complete
     new_stage = target.Stage + 1
     new_loc = target.Loc
+    new_ctrl = target.Ctrl
     old_sprite = target.Sprite
+    current_wait = target.Wait
     current_spritelist = target.Sprite.sprite_lists[0]
     
-    target.__dict__ = Pokemon(GlobalVars.evo_complete, target.Ctrl).__dict__
+    target.__dict__ = copy.deepcopy(
+        getattr(GlobalConst.PKMN_STATS, GlobalVars.evo_complete)).__dict__
+    print(GlobalVars.evo_complete)
     
     target.Stage = new_stage
     target.Loc = new_loc
@@ -1956,6 +1922,8 @@ def evolve_target(target):
                                     GlobalConst.SPRITE_SCALING)
     current_spritelist.append(new_sprite)
     old_sprite.kill()
+    target.Wait = current_wait
+    target.Ctrl = new_ctrl
     target.Sprite = new_sprite
     target.Sprite.set_position(*target.Loc.Coords)
     
@@ -2249,48 +2217,13 @@ class GameView(arcade.View):
                     *targets.Coords,
                     floor(35*GlobalConst.ASPECT_RATIO),
                     (255, 24, 180, 125))
-        """
-        # ON HOVER STATS VIEW, NEED LOTS OF WORK
-        arcade.draw_rectangle_filled(
-            1200,715,360,550,arcade.color.AIR_FORCE_BLUE)
-        stats_counter = 0
-
-        if GlobalVars.hover_pkmn:
-            hover_dict = GlobalVars.hover_pkmn.__dict__
-            for keys, stats in hover_dict.items():
-                if keys != 'Loc' and keys != 'OrigLoc':
-                    if keys != 'Attacks':
-                        stats_text = [
-                            str(stats)[i:i + 45] for i in range(
-                                0, len(str(stats)), 45)]
-                        for lines in stats_text[::-1]:
-                            arcade.draw_text(
-                                lines,
-                                1030,
-                                400 + stats_counter * 10,
-                                arcade.color.BLACK,
-                                10)
-                            stats_counter += 1
-                    elif keys == 'Attacks':
-                        for new_atks in hover_dict['Attacks']:
-                            new_atk_dict = new_atks.__dict__
-                            for atk_keys, atk_stats in new_atk_dict.items():
-                                atk_stats = str(atk_stats)
-                                if atk_stats != None:
-                                    atk_stats_text = [
-                                        atk_stats[i:i + 45] for i in range(
-                                            0, len(str(atk_stats)), 45)]
-                                    for lines in atk_stats_text[::-1]:
-                                        atk_str = str(
-                                                atk_keys + ":  " + str(lines))
-                                        arcade.draw_text(
-                                            atk_str,
-                                            1030,
-                                            400 + stats_counter * 10,
-                                            arcade.color.BLACK,
-                                            10)
-                                        stats_counter += 1
-            """
+        if GlobalVars.stat_card:
+            arcade.draw_texture_rectangle(
+                        floor(1520*GlobalConst.ASPECT_RATIO),
+                        floor(625*GlobalConst.ASPECT_RATIO),
+                        floor(500*GlobalConst.ASPECT_RATIO),
+                        floor(700*GlobalConst.ASPECT_RATIO),
+                        GlobalVars.stat_card)
                     
     def on_close(self):
         restart = True
@@ -2531,7 +2464,6 @@ class GameView(arcade.View):
     
     #1020, 430, 1380, 990
     def on_mouse_motion(self, x, y, dx, dy):
-        """
         for teams in PlayerTeams:
             for pkmns in teams:
                 coords_x = pkmns.Loc.Coords[0]
@@ -2542,16 +2474,16 @@ class GameView(arcade.View):
                     ) and y in range(
                         coords_y - 40,
                         coords_y + 40):
-                    GlobalVars.hover_pkmn = pkmns
-        """
-"""
-    def on_resize(self, width, height):
-    #add this when circle, sprite and movement scaling is added
-        print(width, height)
-        GlobalConst.SCREEN_HEIGHT = height
-        GlobalConst.SCREEN_WIDTH = width
-"""                     
-
+                    GlobalVars.stat_card = arcade.load_texture(
+                        os.path.join(
+                            'images',
+                            'cards',
+                            pkmns.Spritefile[:-4] + '_card.png'))
+                    break
+                else:
+                    GlobalVars.stat_card = None
+            if GlobalVars.stat_card:
+                break
 
 def on_select_team(player_num, event=None):
 
@@ -2597,11 +2529,7 @@ def mode_select():
     except BaseException:
         pass
 
-    resolution_list = {"640x360":(640, 360),
-                       "720x400":(720, 400),
-                       "800x600":(800, 600),
-                       "960x540":(960, 540),
-                       "1280x720":(1280, 720),
+    resolution_list = {"1280x720":(1280, 720),
                        "1600x900":(1600, 900),
                        "1920x1080":(1920, 1080),
                        "2560x1080":(2560, 1440),
@@ -2640,7 +2568,7 @@ def mode_select():
     mode_select_Label.pack()
 
     res_cb = ttk.Combobox(root, values=res_keys)
-    res_cb.set(res_keys[4])
+    res_cb.set(res_keys[0])
     res_cb.pack()
 
     mode_select_confirm = ttk.Button(
@@ -2695,7 +2623,6 @@ def main():
     game = GameView()
     window.show_view(game)
     arcade.run()
-    call(["pythonw", "PoDuReDux.pyw"])
 
 if __name__ == "__main__":
     GlobalConst = GlobalConst()
