@@ -10,7 +10,7 @@ Requirements:
 
 Essential files currently include:
 -PoDuReDux.pyw
--pokemon-stats.json
+-pokemon-stats.pkl
 -/saves
 -/images
 
