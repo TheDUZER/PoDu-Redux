@@ -73,7 +73,7 @@ class GlobalConst():
         self.FILE_PATH = os.path.dirname(sys.argv[0])
         self.STATS_PATH = os.path.join(
             self.FILE_PATH,
-            "pkmn-stats.pkl")
+            "pkmn-stats.p")
         self.PKMN_STATS = pickle.load(open(self.STATS_PATH, "rb"))
         self.BG_PATH = os.path.join(
             self.FILE_PATH,

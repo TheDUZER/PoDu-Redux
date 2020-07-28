@@ -1,0 +1,130 @@
+MAKE BETTER BOARD
+Tracking tools
+rulebook
+make tokens for plates?
+
+Z-Move planned numbers:
+check numbers at end of each players turn
++1 start of turn, initiate attack, experience ko, miss
+Double: your zone occupied, you occupy opponent, you have empty board
+Gauge max: probably 32, maybe 36
+An abacus would work pretty well, but thats probably beneath most people. Dungeon Dice Monsters did it, why not??
+
+
+markers to add:
+mp+1
+mp+2
+mp+3
+mp-1
+mp-2
+poisoned
+noxious
+frozen
+wait
+burn
+curse
+confusion
+paralysis
+weak armor
+full
+cursed
+cracked
+final song
+tantrum
+charge
+Volt Absorb
+mp-3
+mp0
+imprisoned
+focus
+Rooted
+lock-on
+mummy
+Slime
+Forest Mischief
+Pumpkin
+Clinging Gas
+Disguise
+Symbiant
+Photon
+"DURING FIRST BATTLE" tracker?
+
+Deck examples to make:
+Steel
+Ultra Beasts
+Fire
+Rush
+Deoxys
+Dragons
+Blue Hole
+Grass
+Sleep
+Cracked
+Restored
+Freeze
+Poison
+Ghost
+Latios/Latias Rush
+Water
+Swampert
+Venusaur Cheese
+Tao Dragons
+Zygarde 100%
+Necrozma
+Heracross
+Wait wins
+Victini
+Control/Stall/Obstruction/Anti-Meta
+Metang/Metagross
+Thundurus/Landurus/Tornadus
+Fairy/Diancie
+Take Away (Steelix, Driftblim)
+Mega Alakazam Buffs
+Branded
+Run Away cheese (Garchomp, Alolan Sandshrew, Crawdaunt)
+Shaymin Land Megas Galore
+Unblockable Entry (Invisibility Cape, Empoleon, Excadrill, etc)
+Genesect Eliminiation
+Round
+Goal Bully
+Goal Lockdown (Cobalion/DeoD, Freeze Wall, etc)
+Honchkrow
+Hydreigon
+Ledian
+Ludicolo Swarm
+Dark
+Mewtwo Beatdown
+Curse (mimkyu, spiritomb, etc)
+Trevenant Sleep
+Regis
+Weavile Swarm
+Vespiquen
+Reuniclus
+
+Pokes to add:
+Escavalier
+Araquanid
+Excelgor
+Hoopa
+Forretress
+B/W Starters
+Yanmega
+Scolipede
+Ariados
+Bisharp
+Leavanny
+Skeletal Dactyl/Kabutops? Missingno?
+Pokestars (Doors, F00, Mecha TTar 1/2, Humanoid, Majin, Monster, Transport, UFO 1/2)
+Shedinja
+Chesnaught
+Krookodile
+Skuntank
+Castform
+Ditto
+Kecleon
+Smeargle
+
+mechanics to add:
+trainers
+weather
+SPECIAL WINCONS??

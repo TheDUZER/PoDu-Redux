@@ -1,0 +1,67 @@
+@font-face {
+    font-family: 'pokemon_gbregular';
+    src: url('/CustomFont/pokemon_gb-webfont.woff2') format('woff2'),
+         url('CustomFont/pokemon_gb-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+.card {
+    text-align: center;
+    border-style: solid;
+    border-width: 0.75mm;
+    border-color: black;
+    width: 64mm;
+    height: 89mm; 
+    font-size: 12px; 
+    font-family: "Veranda";
+}
+
+.name{
+    border-style: double;
+    margin-top: 8mm;
+    margin-right: 1mm;
+    margin-left: 1mm;
+    font-family: "pokemon_gbregular";
+    font-size: 14px;
+    padding: 1mm;
+}
+
+.zmove{
+    width: inherit;
+    height: inherit;
+    opacity: 0.3;
+    display: block;
+    z-index: -100;
+    background-image: url(zmove.jpg);
+    background-size: 128px 128px;
+    position: absolute;
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 40mm;
+}
+
+.zmovetext {
+    font-family: "pokemon_gbregular";
+    font-size: 12px;
+    margin-top: 3mm;
+    text-align: center;
+    margin-left: 2mm;
+    margin-right: 2mm;
+}
+
+.cost {
+    font-family: "pokemon_gbregular";
+    font-size: 12px;
+    margin-top: 3mm;
+    text-align: center;
+    margin-left: 2mm;
+    margin-right: 2mm;
+}
+
+.effect {
+    text-align: left;
+    margin-left: 2mm;
+    margin-right: 2mm;
+}

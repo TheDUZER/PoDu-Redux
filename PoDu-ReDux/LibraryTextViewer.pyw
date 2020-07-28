@@ -76,7 +76,7 @@ class Attacks():
             counter += 1
             return __iterator
 
-PKMN_STATS = pickle.load(open('pkmn-stats.pkl', 'rb'))
+PKMN_STATS = pickle.load(open('pkmn-stats.p', 'rb'))
 
 pkmn_list = [_.Name for _ in PKMN_STATS]
 pkmn_list.sort()

@@ -1,0 +1,33 @@
+blank,Type/Figs,Color,Name,Effect
+,"Solgaleo, Necrozma Dusk Mane",White,Searing Sunraze Smash,"The battle opponent temporarily moves to the Ultra Space, returning to the bench after 7 turns. The battle opponent is not knocked out. Pokemon in a straight line directly behind the battle opponent gain Wait 3"
+,"Lunala, Necrozma Dawn Wings",Purple,Menacing Moonraze Maelstrom,"The battle opponent temporarily moves to the Ultra Space, returning to the bench after 7 turns. Opposing Pokemon adjacent to the battle opponent gain Wait 3"
+,Necrozma Ultra,White,Light That Burns the Sky,"An opposing Pokemon within X+1 steps spins, where X is the number of Pokemon in the Ultra Space. If it spins a Purple Attack, that Pokemon is excluded from the duel"
+,Pikachu,White,Catastropika,All opposing Pokemon on the field spin. Those that spin White Attacks become paralyzed
+,Bug,White,Savage Spin-Out,Attaches an MP -2 marker to opposing Pokemon within 2 steps
+,Dragon,Purple,Devastating Drake,"A Pokemon on the field spins. If it spins a Miss or a White Attack of 120 damage or more, it is knocked out"
+,Dark,White,Black Hole Eclipse,Reduces the opponent's Z-Move gauge by two thirds of its max value
+,Electric,White,Gigavolt Havoc,The battle opponent and a succession of Pokemon adjacent to the battle opponent (other than this Pokemon) become paralyzed
+,Flying,White,Supersonic Skystrike,Any Pokemon adjacent to the battle opponent other than this Pokemon spin. Those Pokemon that spin White Attacks move to the bench. This Pokemon gains Wait 3
+,Fire,White,Inferno Overdrive,The battle opponent and the Pokemon in a straight line directly behind it become burned
+,Fighting,White,All-Out Pummeling,Attaches a Cracked marker to opposing Pokemon in a straight line directly behind the battle opponent
+,Fairy,Purple,Twinkle Tackle,Moves the battle opponent to the bench
+,Ground,Purple,Tectonic Rage,Knocks out the battle opponent
+,Ghost,White,Never-Ending Nightmare,All opposing Pokemon on the field spin. Those that spin White Attacks get an MP -1 marker
+,Grass,White,Bloom Doom,Removes all special conditions from your Pokemon
+,Ice,White,Subzero Slammer,An opposing Pokemon within 2 steps becomes frozen
+,Normal,White,Breakneck Blitz,"Pokemon knocked out by this Attack's damage are temporarily excluded fro the duel, returning to the bench 7 turns later"
+,Poison,White,Acid Downpour,All opposing Pokemon on the field spin. Those that spin White Attacks become poisoned
+,Psychic,White,Shattered Psyche,"If this Pokemon is on the field, this Pokemon moves to a point 3 steps away after battle"
+,Rock,Purple,Continental Crush,The battle opponent and opposing Pokemon adjacent to the battle opponent gain Wait 9
+,Steel,White,Corkscrew Crash,"If the battle opponent is knocked out, then after this battle, this Pokemon moves to a point 2 steps away"
+,Water,White,Hydro Vortex,The battle opponent and opposing Pokemon within 2 steps of it become confused
+,Eevee,Purple,Extreme Evoboost,Your Eevee and their Evolutions deal +50 damage while they are on the field.
+,"Tapu Koko, Tapu Lele, Tapu Fini, Tapu Bulu",White,Guardian of Alola,"Pokemon knocked out by this attack are temporarily excluded from the duel, moving to their P.C. 5 turns later. (Only usable when the Guardian Sphere plate is active.)"
+,Decidueye,White,Sinister Arrow Raid,Opposing Pokémon within 2 steps of the battle opponent spin. Those that spin Purple are knocked out.
+,Incineroar,White,Malicious Moonsault,Any Pokémon adjacent to the battle opponent other than this Pokémon spin. Those that spin White gain Wait 3.
+,Primarina,White,Oceanic Operetta,All opposing Pokémon on the field spin. Those that spin Blue attacks are knocked out.
+,Marshadow,White,Soul-Stealing 7-Star Strike,"If the battle opponent is knocked out, then after the battle, this Pokémon moves to a point 2 steps away."
+,Mimikyu,White,Let's Snuggle Forever,Moves the battle opponent to its P.C. The battle opponent is not knocked out.
+,Mew,White,Genesis Supernova,All opposing Pokèmon on the field spin. Those that spin Purple are knocked out. This Pokèmon is excluded from the duel.
+,Snorlax,White,Pulverizing Pancake,The battle opponent and all Pokèmon in a straight line directly behind it are knocked as far back as possible (the battle opponent is not knocked out). Those Pokémon gain Wait.
+,Kommo-o,White,Clangorous Soublaze,"Opposing Pokemon within 2 steps of this Pokemon gain Cracked markers. If they already have Cracked markers, they are eliminated. If this Pokemon eliminates 2 or more Pokemon in this way, it is eliminated as well."
