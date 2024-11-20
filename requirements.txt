@@ -1,0 +1,16 @@
+arcade==2.3.15
+attrs==24.2.0
+cffi==1.15.1
+future==1.0.0
+importlib-metadata==6.7.0
+numpy==1.21.6
+Pillow==9.5.0
+pycparser==2.21
+pyglet==1.4.0b1
+pyglet-ffmpeg==0.1.4
+pyglet-ffmpeg2==0.1.17
+pymunk==6.8.1
+pytiled-parser==0.9.4a3
+PyYAML==6.0.1
+typing-extensions==4.7.1
+zipp==3.15.0

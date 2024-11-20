@@ -1,0 +1,47 @@
+Player 1's team:
+--------FireStuff--------
+Houndoom
+Houndour
+Houndour
+Heatran
+Larvesta
+Moltres
+Player 2's team:
+--------CustomFigures--------
+Amaura
+Tyrunt
+Lileep
+Cranidos
+Tirtouga
+Shieldon
+First turn: Movement reduced by 1.
+Player 1's Houndour (3) moved to B6.
+Player 2's Amaura (1) moved to D6.
+Player 1's Houndour (3) moved to C6.
+Player 1's Houndour (3) attacked Player 2's Amaura (1)
+Player 1's Houndour (3) spun Crunch
+    Color: White ----- Power: 40
+Player 2's Amaura (1) spun Freeze-Dry
+    Color: White ----- Power: 60
+Player 2s Amaura (1) wins!
+Player 1s Houndour was sent to the PC.
+Amaura evolving to Auroros
+Player 2's Auroros (1) moved to B6.
+Player 1's Houndour (2) moved to B4.
+Player 1's Houndour (2) attacked Player 2's Auroros (1)
+Player 1's Houndour (2) spun Crunch
+    Color: White ----- Power: 40
+Player 2's Auroros (1) spun Aurora Beam
+    Color: Purple ----- Power: 3
+Player 2s Auroros (1) wins!
+Player 2's Auroros (1) moved to A6.
+Player 1's Houndour (2) moved to A5.
+Player 1's Houndour (2) attacked Player 2's Auroros (1)
+Player 1's Houndour (2) spun Crunch
+    Color: White ----- Power: 40
+Player 2's Auroros (1) spun Freeze-Dry
+    Color: White ----- Power: 130
+Player 2s Auroros (1) wins!
+Player 1s Houndour was sent to the PC.
+Player 2's Auroros (1) moved to A4.
+Player 2 wins! Click anywhere to exit.

@@ -1,0 +1,21 @@
+.card {
+    margin: 1mm;
+    width: 1in;
+    height: 1in;
+    border-style: solid;
+    border-color: olive;
+    background-color: none;
+    border-radius: 50%;
+    box-sizing: border-box;
+    border-width: 10px;
+    position: relative;
+}
+
+#circle {
+    position: absolute;
+    background-color: black;
+    width: 1in;
+    height: 1in;
+    border-color: black;
+    border-width: 3px;
+}

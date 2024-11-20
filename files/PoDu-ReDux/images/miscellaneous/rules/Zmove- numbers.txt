@@ -1,0 +1,5 @@
+﻿+1 : start of turn, initiate attack, experience ko, miss
+Double: your zone occupied, you occupy opponent, you have empty board
+
+
+Gauge max: 32 to 36

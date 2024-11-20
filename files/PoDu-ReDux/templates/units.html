@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+   
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+    <link rel="stylesheet" type="text/css" href="card-COMPLETE.css">
+</head>
+
+<body>
+    <div class="card">
+        <div class="sprite" style="background-image:url({{imageFileName}})"></div>
+        <div class="sprite2" style="background-image:url({{imageFileName}})"></div>
+        <div class="sprite3" style="background-image:url({{imageFileName}});filter:drop-shadow(10px 10px 20px {{type1color}})"></div>
+        <div class="sprite3" style="background-image:url({{imageFileName}});filter:drop-shadow(-10px 10px 20px {{type2color}})"></div>
+        <div class="cardtext">   
+            <div class="name">
+                {{name}}
+            </div>
+            <div class="name">
+                <img src="{{movefile}}" width=14px height=14px><img src="{{type1file}}"><img src="{{type2file}}"><img src="{{megafile}}">
+            </div>     
+            <br>
+            <div class="ability">
+                <em>Evolutions:</em> {{evolutions}}
+                <br>
+                <em>Forms:</em> {{forms}}
+                <br>
+                <em>Ability:</em> {{ability}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack1fill}}">
+                <div class="framesection1"><em><b>{{attack1name}}</b></em></div>
+                <div class="framesection2">Hit: <b>{{attack1range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack1size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack1power}}</b></div>
+                {{attack1effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack2fill}}">
+                <div class="framesection1"><em><b>{{attack2name}}</b></em></div>
+                <div class="framesection2">Hit: <b>{{attack2range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack2size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack2power}}</b></div>
+                {{attack2effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack3fill}}">
+                <div class="framesection1"><em><b>{{attack3name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack3range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack3size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack3power}}</b></div>
+                {{attack3effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack4fill}}">
+                <div class="framesection1"><em><b>{{attack4name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack4range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack4size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack4power}}</b></div>
+                {{attack4effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack5fill}}">
+                <div class="framesection1"><em><b>{{attack5name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack5range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack5size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack5power}}</b></div>
+                {{attack5effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack6fill}}">
+                <div class="framesection1"><em><b>{{attack6name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack6range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack6size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack6power}}</b></div>
+                {{attack6effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack7fill}}">
+                <div class="framesection1"><em><b>{{attack7name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack7range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack7size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack7power}}</b></div>
+                {{attack7effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack8fill}}">
+                <div class="framesection1"><em><b>{{attack8name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack8range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack8size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack8power}}</b></div>
+                {{attack8effect}}
+            </div>
+            <div class="attackframe" style="background-color:{{attack9fill}}">
+                <div class="framesection1"><em><b>{{attack9name}}</em></b></div>
+                <div class="framesection2">Hit: <b>{{attack9range}}</b></div>
+                <div class="framesection2">Size: <b>{{attack9size}}</b></div>
+                <div class="framesection1">Power: <b>{{attack9power}}</b></div>
+                {{attack9effect}}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
